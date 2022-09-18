@@ -13,7 +13,7 @@
   <PropertyGroup Label="Globals">
     <VCProjectVersion>16.0</VCProjectVersion>
     <ProjectGuid>{16F96186-80BE-414E-9D17-12B5A455B6C6}</ProjectGuid>
-    <RootNamespace>ColorsHUD</RootNamespace>
+    <RootNamespace>SURestorations</RootNamespace>
     <WindowsTargetPlatformVersion>10.0</WindowsTargetPlatformVersion>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
