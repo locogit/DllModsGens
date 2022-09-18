@@ -100,13 +100,16 @@
     </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClInclude Include="Common.h" />
     <ClInclude Include="CPlayerSpeedUpdate.h" />
     <ClInclude Include="CSDCommon.h" />
+    <ClInclude Include="EXP.h" />
     <ClInclude Include="Pch.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="DllMain.cpp" />
     <ClCompile Include="CPlayerSpeedUpdate.cpp" />
+    <ClCompile Include="EXP.cpp" />
     <ClCompile Include="Mod.cpp" />
     <ClCompile Include="Pch.cpp">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Create</PrecompiledHeader>

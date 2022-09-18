@@ -1,5 +1,4 @@
 #pragma once
-#define INI_FILE "mod.ini"
 class CPlayerSpeedUpdate
 {
 public:
