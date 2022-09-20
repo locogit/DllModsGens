@@ -5,5 +5,5 @@ extern "C" _declspec(dllexport) void Init()
 {
 	EXP::Install();
 	CPlayerSpeedUpdate::Install();
-	Missile::Install();
+	//Missile::Install();
 }
