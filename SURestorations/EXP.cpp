@@ -2,6 +2,9 @@ float const c_chaosEnergyReward = 2.0f;
 bool expCountDown = false;
 float expTimer = 4;
 float expTime = 0;
+float expParticleTimer = 0.5f;
+float expParticleTime = 0;
+bool expParticleTimerPlay = false;
 bool expHidden = false;
 int expLevel = 0;
 float expAmount = 0;
@@ -14,12 +17,14 @@ Chao::CSD::RCPtr<Chao::CSD::CScene> exp_count;
 float xAspectOffset = 0.0f;
 float yAspectOffset = 0.0f;
 
-void CreateScreen(Sonic::CGameObject* pParentGameObject)
+SharedPtrTypeless ChaosEnergyHandle;
+
+void CreateScreenEXP(Sonic::CGameObject* pParentGameObject)
 {
 	if (rcExp && !spExp)
 		pParentGameObject->m_pMember->m_pGameDocument->AddGameObject(spExp = boost::make_shared<Sonic::CGameObjectCSD>(rcExp, 0.5f, "HUD", false), "main", pParentGameObject);
 }
-void KillScreen()
+void KillScreenEXP()
 {
 	if (spExp) {
 		spExp->SendMessage(spExp->m_ActorID, boost::make_shared<Sonic::Message::MsgKill>());
@@ -28,7 +33,7 @@ void KillScreen()
 }
 void __fastcall CHudSonicStageRemoveCallback(Sonic::CGameObject* This, void*, Sonic::CGameDocument* pGameDocument)
 {
-	KillScreen();
+	KillScreenEXP();
 	Chao::CSD::CProject::DestroyScene(rcExp.Get(), exp_count);
 	rcExp = nullptr;
 	exp_count = nullptr;
@@ -73,14 +78,14 @@ HOOK(void, __fastcall, CHudSonicStageDelayProcessImpEXP, 0x109A8D0, Sonic::CGame
 		char text[256];
 		sprintf(text, "%02d", expLevel);
 		exp_count->GetNode("exp")->SetText(text);
-		exp_count->GetNode("gauge")->SetScale(expAmount, 0.65f);
+		//exp_count->GetNode("gauge")->SetScale(expAmount, 0.65f);
 		exp_count->SetPosition(xAspectOffset, 0);
 		CSDCommon::FreezeMotion(*exp_count);
 		expHidden = true;
 
 		flags &= ~(0x1 | 0x2 | 0x4 | 0x200 | 0x800); // Mask to prevent crash when game tries accessing the elements we disabled later on
 
-		CreateScreen(This);
+		CreateScreenEXP(This);
 	}
 }
 std::string readExpFile(int index)
@@ -128,17 +133,26 @@ HOOK(void, __fastcall, ChaosEnergy_MsgGetHudPosition, 0x1096790, void* This, voi
 }
 bool renderGameHud;
 bool SUHud = false;
+bool maxEXP = false;
 HOOK(void, __fastcall, CHudSonicStageUpdateParallelEXP, 0x1098A50, Sonic::CGameObject* This, void* Edx, const hh::fnd::SUpdateInfo& in_rUpdateInfo) {
 	originalCHudSonicStageUpdateParallelEXP(This, Edx, in_rUpdateInfo);
 	if (Sonic::Player::CSonicClassicContext::GetInstance() == nullptr) {
 		renderGameHud = *(bool*)0x1A430D8;
 		auto sonic = Sonic::Player::CPlayerSpeedContext::GetInstance();
+		if (expParticleTimerPlay) {
+			if (expParticleTime > 0) {
+				expParticleTime -= in_rUpdateInfo.DeltaTime;
+			}
+			else if (expParticleTime <= 0) {
+				expParticleTimerPlay = false;
+			}
+		}
 		if (expCountDown) {
 			if (expTime > 0) {
 				expTime -= in_rUpdateInfo.DeltaTime;
-				//exp_count->SetMotion("size");
-				//exp_count->SetMotionFrame(expAmount / 0.63f);
-				//exp_count->Update(0.0f);
+				float frameBefore = exp_count->m_MotionFrame;
+				CSDCommon::PlayAnimation(*exp_count, "size", Chao::CSD::eMotionRepeatType_PlayOnce, 1, (maxEXP) ? 99 : std::clamp(expAmount / 0.63f,0.0f,99.0f));
+				CSDCommon::PlayAnimation(*exp_count, "Intro_Anim", Chao::CSD::eMotionRepeatType_PlayOnce, 1, frameBefore);
 			}
 			else if (expTime <= 0) {
 				expHidden = false;
@@ -159,29 +173,33 @@ HOOK(void, __fastcall, CHudSonicStageUpdateParallelEXP, 0x1098A50, Sonic::CGameO
 		}
 	}
 }
-SharedPtrTypeless ChaosEnergyHandle;
 void chaosEnergyParticle() {
 	if (Sonic::Player::CSonicClassicContext::GetInstance() == nullptr) {
 		auto sonic = Sonic::Player::CPlayerSpeedContext::GetInstance();
 		void* middlematrixNode = (void*)((uint32_t)sonic + 0x30);
-		Common::fCGlitterCreate(sonic, ChaosEnergyHandle, middlematrixNode, "jump_delux", 1);
+		if (!expParticleTimerPlay && expParticleTime <= 0) {
+			expParticleTimerPlay = true;
+			expParticleTime = expParticleTimer;
+			Common::fCGlitterCreate(sonic, ChaosEnergyHandle, middlematrixNode, "exp_particles", 0);
+		}
 		if (expHidden && expTime <= 0 && !expCountDown) {
 			expHidden = false;
 			expTime = expTimer;
 			expCountDown = true;
 			CSDCommon::PlayAnimation(*exp_count, "Intro_Anim", Chao::CSD::eMotionRepeatType_PlayOnce, 0, 1);
 		}
-		if (!Common::reader.GetBoolean("EXP", "Max", false)) {
-			expAmount += 0.25f;
-			if (expAmount > 63 && expLevel < 99) {
+		if (!maxEXP) {
+			expAmount += 0.35f;
+			if (expAmount >= 63 && expLevel < 99) {
 				expAmount -= 63;
 				expLevel++;
 			}
+			expAmount = std::clamp(expAmount, 9.25f, 63.0f);
 		}
 		char text[256];
 		sprintf(text, "%02d", expLevel);
-		exp_count->GetNode("exp")->SetText(text);
-		exp_count->GetNode("gauge")->SetScale(expAmount, 0.65f);
+		exp_count->GetNode("exp")->SetText((maxEXP) ? "99" : text);
+		//exp_count->GetNode("gauge")->SetScale(expAmount, 0.65f);
 	}
 }
 void __declspec(naked) addBoostFromChaosEnergy()
@@ -248,11 +266,14 @@ HOOK(int, __fastcall, ProcMsgRestartStageEXP, 0xE76810, uint32_t* This, void* Ed
 }
 HOOK(void, __fastcall, HudResult_MsgStartGoalResultEXP, 0x10B58A0, uint32_t* This, void* Edx, void* message)
 {
-	if (!Common::reader.GetBoolean("EXP", "Max", false))
+	if (!maxEXP)
 		writeToExpFile();
 	originalHudResult_MsgStartGoalResultEXP(This, Edx, message);
 }
 void EXP::Install() {
+	maxEXP = Common::reader.GetBoolean("EXP", "Max", false);
+	expLevel = stoi(readExpFile(1));
+	expAmount = stof(readExpFile(2));
 	INSTALL_HOOK(ChaosEnergy_MsgGetHudPosition);
 	INSTALL_HOOK(CHudSonicStageDelayProcessImpEXP);
 	INSTALL_HOOK(CHudSonicStageUpdateParallelEXP);
