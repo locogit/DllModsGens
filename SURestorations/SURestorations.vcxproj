@@ -107,6 +107,7 @@
     <ClInclude Include="CPlayerSpeedUpdate.h" />
     <ClInclude Include="CSDCommon.h" />
     <ClInclude Include="EXP.h" />
+    <ClInclude Include="HubUI.h" />
     <ClInclude Include="Missile.h" />
     <ClInclude Include="Pch.h" />
   </ItemGroup>
@@ -114,6 +115,7 @@
     <ClCompile Include="DllMain.cpp" />
     <ClCompile Include="CPlayerSpeedUpdate.cpp" />
     <ClCompile Include="EXP.cpp" />
+    <ClCompile Include="HubUI.cpp" />
     <ClCompile Include="Missile.cpp" />
     <ClCompile Include="Mod.cpp" />
     <ClCompile Include="Pch.cpp">

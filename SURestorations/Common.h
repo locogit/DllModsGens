@@ -983,8 +983,6 @@ typedef void* __fastcall CSonicSpeedContextPlaySound(void*, void*, SharedPtrType
 
 namespace Common
 {
-	static INIReader reader("mod.ini");
-	static CSonicContext** const PLAYER_CONTEXT_GET = (CSonicContext**)0x1E5E2F0;
 	inline float WrapFloat(float number, float bounds)
 	{
 		if (number > bounds) number -= bounds;
@@ -1924,14 +1922,14 @@ namespace Common
 		}
 	}
 
-	inline bool IsModEnabled(std::string const& testModName, std::string* o_iniPath = nullptr)
+	static inline bool IsModEnabled(std::string const& testModName, std::string* o_iniPath = nullptr)
 	{
 		std::vector<std::string> modIniList;
 		GetModIniList(modIniList);
 		for (size_t i = 0; i < modIniList.size(); i++)
 		{
 			std::string const& config = modIniList[i];
-			INIReader configReader = INIReader(config);
+			INIReader configReader(config);
 			std::string name = configReader.Get("Desc", "Title", "");
 			if (name == testModName)
 			{
@@ -1947,14 +1945,14 @@ namespace Common
 		return false;
 	}
 
-	inline bool IsModEnabled(std::string const& section, std::string const& name, std::string const& str, std::string* o_iniPath = nullptr)
+	static inline bool IsModEnabled(std::string const& section, std::string const& name, std::string const& str, std::string* o_iniPath = nullptr)
 	{
 		std::vector<std::string> modIniList;
 		GetModIniList(modIniList);
 		for (size_t i = 0; i < modIniList.size(); i++)
 		{
 			std::string const& config = modIniList[i];
-			INIReader configReader = INIReader(config);
+			INIReader configReader(config);
 			std::string value = configReader.Get(section, name, "");
 			if (value == str)
 			{
@@ -1970,14 +1968,14 @@ namespace Common
 		return false;
 	}
 
-	inline bool IsModEnabledContains(std::string const& testModName, std::string* o_iniPath = nullptr)
+	static inline bool IsModEnabledContains(std::string const& testModName, std::string* o_iniPath = nullptr)
 	{
 		std::vector<std::string> modIniList;
 		GetModIniList(modIniList);
 		for (size_t i = 0; i < modIniList.size(); i++)
 		{
 			std::string const& config = modIniList[i];
-			INIReader configReader = INIReader(config);
+			INIReader configReader(config);
 			std::string name = configReader.Get("Desc", "Title", "");
 			if (name.find(testModName) != std::string::npos)
 			{
@@ -1995,8 +1993,6 @@ namespace Common
 
 	inline bool TestModPriority(std::string const& currentModName, std::string const& testModName, bool higherPriority)
 	{
-		printf("currentModName = %s, testModName = %s\n", currentModName.c_str(), testModName.c_str());
-
 		int currentModIndex = -1;
 		int testModIndex = -1;
 
@@ -2005,7 +2001,7 @@ namespace Common
 		for (size_t i = 0; i < modIniList.size(); i++)
 		{
 			std::string const& config = modIniList[i];
-			INIReader configReader = INIReader(config);
+			INIReader configReader(config);
 			std::string name = configReader.Get("Desc", "Title", "");
 			if (name == currentModName)
 			{
@@ -2028,16 +2024,6 @@ namespace Common
 			{
 				success = (testModIndex > currentModIndex);
 			}
-
-			if (!success)
-			{
-				std::string errorMsg = testModName + " detected, please put it " + (higherPriority ? "higher" : "lower") + " priority than (" + (higherPriority ? "above" : "below") + ") this mod.";
-				std::wstring stemp = std::wstring(errorMsg.begin(), errorMsg.end());
-				std::wstring stemp2 = std::wstring(currentModName.begin(), currentModName.end());
-				//MessageBox(nullptr, stemp.c_str(), stemp2.c_str(), MB_ICONERROR);
-				exit(-1);
-			}
-
 			return success;
 		}
 
@@ -2066,7 +2052,7 @@ namespace Common
 		for (std::string const& modIni : modIniList)
 		{
 			bool ignore = false;
-			INIReader configReader = INIReader(modIni);
+			INIReader configReader(modIni);
 			std::string modName = configReader.Get("Desc", "Title", "");
 			for (std::string const& ignoreMod : ignoreModList)
 			{
@@ -2093,5 +2079,9 @@ namespace Common
 		}
 		return false;
 	}
-
+	static INIReader reader("mod.ini");
+	static bool SUHud = Common::IsModEnabled("Sonic Unleashed HUD");
+	static bool UP = Common::IsModEnabled("Unleashed Project");
+	static bool AP = Common::IsModEnabledContains("Adventure Pack");
+	static CSonicContext** const PLAYER_CONTEXT_GET = (CSonicContext**)0x1E5E2F0;
 } // namespace Common

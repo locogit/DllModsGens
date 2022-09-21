@@ -14,8 +14,8 @@ boost::shared_ptr<Sonic::CGameObjectCSD> spExp;
 Chao::CSD::RCPtr<Chao::CSD::CProject> rcExp;
 Chao::CSD::RCPtr<Chao::CSD::CScene> exp_count;
 
-float xAspectOffset = 0.0f;
-float yAspectOffset = 0.0f;
+float xAspectOffsetExp = 0.0f;
+float yAspectOffsetExp = 0.0f;
 
 SharedPtrTypeless ChaosEnergyHandle;
 
@@ -38,7 +38,8 @@ void __fastcall CHudSonicStageRemoveCallback(Sonic::CGameObject* This, void*, So
 	rcExp = nullptr;
 	exp_count = nullptr;
 }
-void CalculateAspectOffsets()
+//Brianuu/Skyth
+void CalculateAspectOffsetsExp()
 {
 	if (*(size_t*)0x6F23C6 != 0x75D8C0D9) // Widescreen Support
 	{
@@ -46,25 +47,27 @@ void CalculateAspectOffsets()
 
 		if (aspect * 9.0f > 16.0f)
 		{
-			xAspectOffset = 720.0f * aspect - 1280.0f;
-			yAspectOffset = 0.0f;
+			xAspectOffsetExp = 720.0f * aspect - 1280.0f;
+			yAspectOffsetExp = 0.0f;
 		}
 		else
 		{
-			xAspectOffset = 0.0f;
-			yAspectOffset = 1280.0f / aspect - 720.0f;
+			xAspectOffsetExp = 0.0f;
+			yAspectOffsetExp = 1280.0f / aspect - 720.0f;
 		}
 	}
 	else
 	{
-		xAspectOffset = 0.0f;
-		yAspectOffset = 0.0f;
+		xAspectOffsetExp = 0.0f;
+		yAspectOffsetExp = 0.0f;
 	}
 }
 HOOK(void, __fastcall, CHudSonicStageDelayProcessImpEXP, 0x109A8D0, Sonic::CGameObject* This) {
 	originalCHudSonicStageDelayProcessImpEXP(This);
-	if (Sonic::Player::CSonicClassicContext::GetInstance() == nullptr) {
+	if (Sonic::Player::CSonicClassicContext::GetInstance() == nullptr && Common::SUHud) {
 		CHudSonicStageRemoveCallback(This, nullptr, nullptr);
+
+		CalculateAspectOffsetsExp();
 
 		Sonic::CCsdDatabaseWrapper wrapperExp(This->m_pMember->m_pGameDocument->m_pMember->m_spDatabase.get());
 
@@ -79,7 +82,7 @@ HOOK(void, __fastcall, CHudSonicStageDelayProcessImpEXP, 0x109A8D0, Sonic::CGame
 		sprintf(text, "%02d", expLevel);
 		exp_count->GetNode("exp")->SetText(text);
 		//exp_count->GetNode("gauge")->SetScale(expAmount, 0.65f);
-		exp_count->SetPosition(xAspectOffset, 0);
+		exp_count->SetPosition(xAspectOffsetExp, 0);
 		CSDCommon::FreezeMotion(*exp_count);
 		expHidden = true;
 
@@ -132,11 +135,10 @@ HOOK(void, __fastcall, ChaosEnergy_MsgGetHudPosition, 0x1096790, void* This, voi
 	originalChaosEnergy_MsgGetHudPosition(This, Edx, message);
 }
 bool renderGameHud;
-bool SUHud = false;
 bool maxEXP = false;
 HOOK(void, __fastcall, CHudSonicStageUpdateParallelEXP, 0x1098A50, Sonic::CGameObject* This, void* Edx, const hh::fnd::SUpdateInfo& in_rUpdateInfo) {
 	originalCHudSonicStageUpdateParallelEXP(This, Edx, in_rUpdateInfo);
-	if (Sonic::Player::CSonicClassicContext::GetInstance() == nullptr) {
+	if (Sonic::Player::CSonicClassicContext::GetInstance() == nullptr && Common::SUHud) {
 		renderGameHud = *(bool*)0x1A430D8;
 		auto sonic = Sonic::Player::CPlayerSpeedContext::GetInstance();
 		if (expParticleTimerPlay) {
@@ -165,7 +167,7 @@ HOOK(void, __fastcall, CHudSonicStageUpdateParallelEXP, 0x1098A50, Sonic::CGameO
 				expHidden = true;
 			}
 		}
-		if (renderGameHud && SUHud) {
+		if (renderGameHud && Common::SUHud) {
 			exp_count->SetHideFlag(expHidden);
 		}
 		else {
@@ -174,7 +176,7 @@ HOOK(void, __fastcall, CHudSonicStageUpdateParallelEXP, 0x1098A50, Sonic::CGameO
 	}
 }
 void chaosEnergyParticle() {
-	if (Sonic::Player::CSonicClassicContext::GetInstance() == nullptr) {
+	if (Sonic::Player::CSonicClassicContext::GetInstance() == nullptr && Common::SUHud) {
 		auto sonic = Sonic::Player::CPlayerSpeedContext::GetInstance();
 		void* middlematrixNode = (void*)((uint32_t)sonic + 0x30);
 		if (!expParticleTimerPlay && expParticleTime <= 0) {
@@ -194,7 +196,7 @@ void chaosEnergyParticle() {
 				expAmount -= 63;
 				expLevel++;
 			}
-			expAmount = std::clamp(expAmount, 9.25f, 63.0f);
+			expAmount = std::clamp(expAmount, 9.0f, 63.0f);
 		}
 		char text[256];
 		sprintf(text, "%02d", expLevel);
@@ -256,7 +258,7 @@ void __declspec(naked) getEnemyChaosEnergyAmount()
 }
 HOOK(int, __fastcall, ProcMsgRestartStageEXP, 0xE76810, uint32_t* This, void* Edx, void* message)
 {
-	if (exp_count) {
+	if (exp_count && Common::SUHud) {
 		expCountDown = false;
 		expTime = 0;
 		expHidden = true;
@@ -266,7 +268,7 @@ HOOK(int, __fastcall, ProcMsgRestartStageEXP, 0xE76810, uint32_t* This, void* Ed
 }
 HOOK(void, __fastcall, HudResult_MsgStartGoalResultEXP, 0x10B58A0, uint32_t* This, void* Edx, void* message)
 {
-	if (!maxEXP)
+	if (!maxEXP && Common::SUHud)
 		writeToExpFile();
 	originalHudResult_MsgStartGoalResultEXP(This, Edx, message);
 }
@@ -279,7 +281,6 @@ void EXP::Install() {
 	INSTALL_HOOK(CHudSonicStageUpdateParallelEXP);
 	INSTALL_HOOK(ProcMsgRestartStageEXP);
 	INSTALL_HOOK(HudResult_MsgStartGoalResultEXP);
-	SUHud = Common::IsModEnabled("Sonic Unleashed HUD");
 	// 06 Experience Code
 	// Set absorb time to 1.2s
 	static float ChaosEnergyParam[] =

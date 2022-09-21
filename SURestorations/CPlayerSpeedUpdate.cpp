@@ -128,7 +128,7 @@ HOOK(void, __fastcall, CPlayerSpeedUpdateParallel, 0xE6BF20, Sonic::Player::CPla
 			if (bobsleigh && !bobsleighBoostCancel) {
 				bobsleighBoostCancel = true;
 				Common::SonicContextSetCollision(TypeSonicBoost, true);
-				sonic->m_pStateFlag->m_Flags[sonic->eStateFlag_EndBoost] = 1;
+				sonic->StateFlag(eStateFlag_EndBoost) = true;
 				WRITE_JUMP(0xDFF268, groundBoostSuperSonicOnly);
 				WRITE_JUMP(0xDFE05F, airBoostSuperSonicOnly);
 			}
@@ -171,8 +171,7 @@ HOOK(void, __fastcall, MsgStartCommonButtonSign, 0x5289A0, void* thisDeclaration
 }
 void CPlayerSpeedUpdate::Install()
 {
-	usingBobsleigh = Common::IsModEnabled("Unleashed Project") || Common::IsModEnabledContains("Holoska Adventure Pack");
-
+	usingBobsleigh = Common::UP || Common::AP;
 	SUMouthFix = Common::reader.GetBoolean("Config","SUMouthFix",true);
 	//https://github.com/LadyLunanova
 	if (SUMouthFix) {

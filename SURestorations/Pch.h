@@ -20,6 +20,7 @@
 #include <deque>
 // Dependencies
 #include "EXP.h"
+#include "HubUI.h"
 #include "Missile.h"
 #include "CSDCommon.h"
 #include "Common.h"
