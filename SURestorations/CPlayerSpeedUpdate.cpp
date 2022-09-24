@@ -104,19 +104,17 @@ HOOK(void, __fastcall, CPlayerSpeedUpdateParallel, 0xE6BF20, Sonic::Player::CPla
 			Hedgehog::Base::CSharedString list[] = { "BoardWalk","BoardJump","BoardFall","BoardLandJumpShort","CPlayerSpeedStateBoardTrickJump","BoardJumpShort","BoardGrindLandJumpShort","BoardGrindJumpShort","BoardGetOn","BoardDrift","BoardGrind" };
 			bobsleigh = contains(list, state);
 			if (bobsleigh) {
-				if (!bobsleighBoostCancel) {
-					bobsleighBoostCancel = true;
-					Common::SonicContextSetCollision(TypeSonicBoost, true);
-					sonic->StateFlag(eStateFlag_EndBoost) = true;
-					WRITE_JUMP(0xDFF268, groundBoostSuperSonicOnly);
-					WRITE_JUMP(0xDFE05F, airBoostSuperSonicOnly);
-				}
-				else if (bobsleighBoostCancel) {
-					bobsleighBoostCancel = false;
-					Common::SonicContextSetCollision(TypeSonicBoost, false);
-					WRITE_MEMORY(0xDFF268, uint8_t, 0xF3, 0x0F, 0x10, 0x83, 0xBC);
-					WRITE_MEMORY(0xDFE05F, uint8_t, 0xF3, 0x0F, 0x10, 0x86, 0xBC);
-				}
+				if (!bobsleighBoostCancel) { bobsleighBoostCancel = true; }
+				Common::SonicContextSetCollision(TypeSonicBoost, true);
+				sonic->StateFlag(eStateFlag_EndBoost) = true;
+				WRITE_JUMP(0xDFF268, groundBoostSuperSonicOnly);
+				WRITE_JUMP(0xDFE05F, airBoostSuperSonicOnly);
+			}
+			else if (bobsleighBoostCancel) {
+				Common::SonicContextSetCollision(TypeSonicBoost, false);
+				WRITE_MEMORY(0xDFF268, uint8_t, 0xF3, 0x0F, 0x10, 0x83, 0xBC);
+				WRITE_MEMORY(0xDFE05F, uint8_t, 0xF3, 0x0F, 0x10, 0x86, 0xBC);
+				bobsleighBoostCancel = false;
 			}
 		}
 
@@ -167,8 +165,9 @@ void CPlayerSpeedUpdate::Install()
 		WRITE_MEMORY(0x015E901C, const char*, "Lip_R_LT1");
 	}
 	// Credit to Skyth
-	if(usingBobsleigh)
+	if (usingBobsleigh) {
 		WRITE_MEMORY(0xDFF622, byte, 0xEB); // Disables Drifting when using bobsleigh
+	}
 	INSTALL_HOOK(ramp);
 	INSTALL_HOOK(CHudSonicStageUpdateParallel);
 	INSTALL_HOOK(CPlayerSpeedUpdateParallel);
