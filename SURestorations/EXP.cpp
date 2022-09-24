@@ -71,7 +71,7 @@ HOOK(void, __fastcall, CHudSonicStageDelayProcessImpEXP, 0x109A8D0, Sonic::CGame
 
 		Sonic::CCsdDatabaseWrapper wrapperExp(This->m_pMember->m_pGameDocument->m_pMember->m_spDatabase.get());
 
-		boost::shared_ptr<Sonic::CCsdProject> spCsdProjectExp;
+		boost::shared_ptr<Sonic::CCsdProject> spCsdProjectExp(new Sonic::CCsdProject);
 
 		size_t& flags = ((size_t*)This)[151];
 
@@ -196,7 +196,7 @@ void chaosEnergyParticle() {
 				expAmount -= 63;
 				expLevel++;
 			}
-			expAmount = std::clamp(expAmount, 9.0f, 63.0f);
+			expAmount = std::clamp(expAmount, 8.8f, 63.0f);
 		}
 		char text[256];
 		sprintf(text, "%02d", expLevel);

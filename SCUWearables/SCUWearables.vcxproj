@@ -12,8 +12,8 @@
   </ItemGroup>
   <PropertyGroup Label="Globals">
     <VCProjectVersion>16.0</VCProjectVersion>
-    <ProjectGuid>{16F96186-80BE-414E-9D17-12B5A455B6C6}</ProjectGuid>
-    <RootNamespace>SURestorations</RootNamespace>
+    <ProjectGuid>{4108355F-A39D-450C-9640-B13075E7457B}</ProjectGuid>
+    <RootNamespace>SCUWearables</RootNamespace>
     <WindowsTargetPlatformVersion>10.0</WindowsTargetPlatformVersion>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
@@ -31,11 +31,11 @@
     <CharacterSet>MultiByte</CharacterSet>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
-    <OutDir>C:\Program Files (x86)\Steam\steamapps\common\Sonic Generations\mods\DLLTest\</OutDir>
+    <OutDir>C:\Program Files (x86)\Steam\steamapps\common\Sonic Generations\mods\If you touch a ring you die\</OutDir>
     <IntDir>$(ProjectDir)obj\$(Platform)\$(Configuration)\</IntDir>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
-    <OutDir>C:\Program Files (x86)\Steam\steamapps\common\Sonic Generations\mods\SURestorations\</OutDir>
+    <OutDir>C:\Program Files (x86)\Steam\steamapps\common\Sonic Generations\mods\SCU Wearables\</OutDir>
     <IntDir>$(ProjectDir)obj\$(Platform)\$(Configuration)\</IntDir>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props" />
@@ -72,8 +72,7 @@
       <AdditionalLibraryDirectories>$(SolutionDir)Dependencies\BlueBlur;$(SolutionDir)Dependencies\Detours\lib\x86</AdditionalLibraryDirectories>
     </Link>
     <PostBuildEvent>
-      <Command>
-      </Command>
+      <Command>copy /Y "$(MSBuildProjectDirectory)\Mod.ini" "$(MSBuildProjectDirectory)\bin\$(Platform)\$(Configuration)\mod.ini"</Command>
     </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
@@ -105,21 +104,11 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClInclude Include="ArchiveTreePatcher.h" />
-    <ClInclude Include="Common.h" />
-    <ClInclude Include="CPlayerSpeedUpdate.h" />
-    <ClInclude Include="CSDCommon.h" />
-    <ClInclude Include="EXP.h" />
-    <ClInclude Include="HubUI.h" />
-    <ClInclude Include="Missile.h" />
     <ClInclude Include="Pch.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="ArchiveTreePatcher.cpp" />
     <ClCompile Include="DllMain.cpp" />
-    <ClCompile Include="CPlayerSpeedUpdate.cpp" />
-    <ClCompile Include="EXP.cpp" />
-    <ClCompile Include="HubUI.cpp" />
-    <ClCompile Include="Missile.cpp" />
     <ClCompile Include="Mod.cpp" />
     <ClCompile Include="Pch.cpp">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Create</PrecompiledHeader>

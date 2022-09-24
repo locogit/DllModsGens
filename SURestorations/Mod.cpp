@@ -3,6 +3,8 @@
 /// </summary>
 extern "C" _declspec(dllexport) void Init()
 {
+	ArchiveTreePatcher::m_archiveDependencies.push_back(ArchiveDependency("SonicNew", { "Sonic" }));
+	ArchiveTreePatcher::applyPatches();
 	HubUI::Install();
 	EXP::Install();
 	CPlayerSpeedUpdate::Install();

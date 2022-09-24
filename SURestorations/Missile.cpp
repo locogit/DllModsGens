@@ -28,7 +28,7 @@ HOOK(void, __fastcall, CHudSonicStageDelayProcessImpMissile, 0x109A8D0, Sonic::C
 
 	Sonic::CCsdDatabaseWrapper wrapperLockOn(This->m_pMember->m_pGameDocument->m_pMember->m_spDatabase.get());
 
-	boost::shared_ptr<Sonic::CCsdProject> spCsdProjectLockOn;
+	boost::shared_ptr<Sonic::CCsdProject> spCsdProjectLockOn(new Sonic::CCsdProject);
 
 	size_t& flags = ((size_t*)This)[151];
 

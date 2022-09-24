@@ -42,20 +42,22 @@ void CalculateAspectOffsetsTownScreen()
 void __fastcall RemoveHubCallbackTownScreen(Sonic::CGameObject* This, void*, Sonic::CGameDocument* pGameDocument)
 {
 	KillScreenTownScreen();
-	Chao::CSD::CProject::DestroyScene(rcTownScreen.Get(), info);
-	Chao::CSD::CProject::DestroyScene(rcTownScreen.Get(), cam);
+	if(info)
+		Chao::CSD::CProject::DestroyScene(rcTownScreen.Get(), info);
+	if(cam)
+		Chao::CSD::CProject::DestroyScene(rcTownScreen.Get(), cam);
+	rcTownScreen = nullptr;
 }
 
 HOOK(void, __fastcall, CHudPlayableMenuStart, 0x108DEB0, Sonic::CGameObject *This, int a2, int a3, void **a4, void* Edx) {
 	originalCHudPlayableMenuStart(This, a2, a3, a4, Edx);
 	RemoveHubCallbackTownScreen(This, nullptr, nullptr);
-	if (Common::SUHud && Common::UP) {
+	if (Common::SUHud && Common::UP && Sonic::Player::CSonicClassicContext::GetInstance() == nullptr) {
 		CalculateAspectOffsetsTownScreen();
 		Sonic::CCsdDatabaseWrapper wrapper(This->m_pMember->m_pGameDocument->m_pMember->m_spDatabase.get());
+		boost::shared_ptr<Sonic::CCsdProject> spCsdProjectTown(new Sonic::CCsdProject);
 
-		boost::shared_ptr<Sonic::CCsdProject> spCsdProjectTown;
-
-		size_t& flags = ((size_t*)a4)[151];
+		size_t& flags = ((size_t*)This)[151];
 
 		wrapper.GetCsdProject(spCsdProjectTown, "ui_townscreen");
 		rcTownScreen = spCsdProjectTown->m_rcProject;

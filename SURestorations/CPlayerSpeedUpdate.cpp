@@ -41,7 +41,7 @@ void __declspec(naked) airBoostSuperSonicOnly()
 	}
 }
 bool SUMouthFix;
-float ringEnergyAmount = 2.0f;
+float ringEnergyAmount = 2.75f;
 size_t prevRingCount;
 float previousChaosEnergy;
 HOOK(void, __fastcall, CHudSonicStageUpdateParallel, 0x1098A50, Sonic::CGameObject* This, void* Edx, const hh::fnd::SUpdateInfo& in_rUpdateInfo) {
@@ -55,36 +55,6 @@ HOOK(void, __fastcall, CHudSonicStageUpdateParallel, 0x1098A50, Sonic::CGameObje
 		previousChaosEnergy = sonic->m_ChaosEnergy;
 	}
 	prevRingCount = sonic->m_RingCount;
-}
-HOOK(bool, __stdcall, ParseArchiveTree, 0xD4C8E0, void* A1, char* data, const size_t size, void* database)
-{
-	std::string str;
-	{
-		std::stringstream stream;
-
-		stream << "  <DefAppend>\n";
-		stream << "    <Name>Sonic</Name>\n";
-		stream << "    <Archive>SonicNew</Archive>\n";
-		stream << "  </DefAppend>\n";
-
-		str = stream.str();
-	}
-
-	const size_t newSize = size + str.size();
-	const std::unique_ptr<char[]> buffer = std::make_unique<char[]>(newSize);
-	memcpy(buffer.get(), data, size);
-
-	char* insertionPos = strstr(buffer.get(), "<Include>");
-
-	memmove(insertionPos + str.size(), insertionPos, size - (size_t)(insertionPos - buffer.get()));
-	memcpy(insertionPos, str.c_str(), str.size());
-
-	bool result;
-	{
-		result = originalParseArchiveTree(A1, buffer.get(), newSize, database);
-	}
-
-	return result;
 }
 
 SharedPtrTypeless RampHandle;
@@ -107,6 +77,14 @@ HOOK(void, __fastcall, CPlayerSpeedUpdateParallel, 0xE6BF20, Sonic::Player::CPla
 	if (Sonic::Player::CSonicClassicContext::GetInstance() == nullptr) {
 		auto sonic = This->GetContext();
 		auto state = This->m_StateMachine.GetCurrentState()->GetStateName();
+		auto input = Sonic::CInputState::GetInstance()->GetPadState();
+
+		if (Common::CheckCurrentStage("pam000")) {
+			if (sonic->m_ChaosEnergy != 100) {
+				sonic->m_ChaosEnergy = 100;
+			}
+		}
+
 		if (state == "ExternalControl" && sonic->GetCurrentAnimationName() == "PoleSpinLoop" && !poleSwing) {
 			poleSwing = true;
 			poleParticleTime = poleParticleDelay;
@@ -125,18 +103,20 @@ HOOK(void, __fastcall, CPlayerSpeedUpdateParallel, 0xE6BF20, Sonic::Player::CPla
 			// All of the states you do not want to be allowed to boost in.
 			Hedgehog::Base::CSharedString list[] = { "BoardWalk","BoardJump","BoardFall","BoardLandJumpShort","CPlayerSpeedStateBoardTrickJump","BoardJumpShort","BoardGrindLandJumpShort","BoardGrindJumpShort","BoardGetOn","BoardDrift","BoardGrind" };
 			bobsleigh = contains(list, state);
-			if (bobsleigh && !bobsleighBoostCancel) {
-				bobsleighBoostCancel = true;
-				Common::SonicContextSetCollision(TypeSonicBoost, true);
-				sonic->StateFlag(eStateFlag_EndBoost) = true;
-				WRITE_JUMP(0xDFF268, groundBoostSuperSonicOnly);
-				WRITE_JUMP(0xDFE05F, airBoostSuperSonicOnly);
-			}
-			else if (!bobsleigh && bobsleighBoostCancel) {
-				bobsleighBoostCancel = false;
-				Common::SonicContextSetCollision(TypeSonicBoost, false);
-				WRITE_MEMORY(0xDFF268, uint8_t, 0xF3, 0x0F, 0x10, 0x83, 0xBC);
-				WRITE_MEMORY(0xDFE05F, uint8_t, 0xF3, 0x0F, 0x10, 0x86, 0xBC);
+			if (bobsleigh) {
+				if (!bobsleighBoostCancel) {
+					bobsleighBoostCancel = true;
+					Common::SonicContextSetCollision(TypeSonicBoost, true);
+					sonic->StateFlag(eStateFlag_EndBoost) = true;
+					WRITE_JUMP(0xDFF268, groundBoostSuperSonicOnly);
+					WRITE_JUMP(0xDFE05F, airBoostSuperSonicOnly);
+				}
+				else if (bobsleighBoostCancel) {
+					bobsleighBoostCancel = false;
+					Common::SonicContextSetCollision(TypeSonicBoost, false);
+					WRITE_MEMORY(0xDFF268, uint8_t, 0xF3, 0x0F, 0x10, 0x83, 0xBC);
+					WRITE_MEMORY(0xDFE05F, uint8_t, 0xF3, 0x0F, 0x10, 0x86, 0xBC);
+				}
 			}
 		}
 
@@ -186,10 +166,10 @@ void CPlayerSpeedUpdate::Install()
 		WRITE_MEMORY(0x015E9014, const char*, "Lip_L_LT1");
 		WRITE_MEMORY(0x015E901C, const char*, "Lip_R_LT1");
 	}
-
-	INSTALL_HOOK(ParseArchiveTree);
+	// Credit to Skyth
+	if(usingBobsleigh)
+		WRITE_MEMORY(0xDFF622, byte, 0xEB); // Disables Drifting when using bobsleigh
 	INSTALL_HOOK(ramp);
-	//INSTALL_HOOK(missile);
 	INSTALL_HOOK(CHudSonicStageUpdateParallel);
 	INSTALL_HOOK(CPlayerSpeedUpdateParallel);
 	INSTALL_HOOK(MsgStartCommonButtonSign);
