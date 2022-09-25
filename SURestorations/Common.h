@@ -1967,7 +1967,6 @@ namespace Common
 
 		return false;
 	}
-
 	static inline bool IsModEnabledContains(std::string const& testModName, std::string* o_iniPath = nullptr)
 	{
 		std::vector<std::string> modIniList;

@@ -63,11 +63,6 @@ bool usedRamp;
 bool bobsleighBoostCancel = false;
 bool usingBobsleigh = false;
 bool bobsleigh = false;
-
-template<typename C, typename T>
-bool contains(C&& c, T e) {
-	return std::find(std::begin(c), std::end(c), e) != std::end(c);
-};
 bool poleSwing = false;
 float poleParticleDelay = 0.25f;
 float poleParticleTime = 0;
@@ -75,34 +70,30 @@ HOOK(void, __fastcall, CPlayerSpeedUpdateParallel, 0xE6BF20, Sonic::Player::CPla
 {
 	originalCPlayerSpeedUpdateParallel(This, _, updateInfo);
 	if (Sonic::Player::CSonicClassicContext::GetInstance() == nullptr) {
+
 		auto sonic = This->GetContext();
 		auto state = This->m_StateMachine.GetCurrentState()->GetStateName();
 		auto input = Sonic::CInputState::GetInstance()->GetPadState();
 
-		if (Common::CheckCurrentStage("pam000")) {
-			if (sonic->m_ChaosEnergy != 100) {
-				sonic->m_ChaosEnergy = 100;
-			}
-		}
+		if (sonic->m_ChaosEnergy != 100 && Common::CheckCurrentStage("pam000")) // For Boost Gauge Starts Empty Code
+			sonic->m_ChaosEnergy = 100;
 
 		if (state == "ExternalControl" && sonic->GetCurrentAnimationName() == "PoleSpinLoop" && !poleSwing) {
 			poleSwing = true;
 			poleParticleTime = poleParticleDelay;
 		}
 		else if (state != "ExternalControl" && poleSwing) {
-			if (poleParticleTime > 0) {
+			if (poleParticleTime > 0)
 				poleParticleTime -= updateInfo.DeltaTime;
-			}
-			else {
+			else
 				poleSwing = false;
-			}
 		}
 
 		// If bobsleigh is used (using UP or AP)
 		if (usingBobsleigh) {
 			// All of the states you do not want to be allowed to boost in.
-			Hedgehog::Base::CSharedString list[] = { "BoardWalk","BoardJump","BoardFall","BoardLandJumpShort","CPlayerSpeedStateBoardTrickJump","BoardJumpShort","BoardGrindLandJumpShort","BoardGrindJumpShort","BoardGetOn","BoardDrift","BoardGrind" };
-			bobsleigh = contains(list, state);
+			std::vector<Hedgehog::Base::CSharedString> list = { "BoardWalk","BoardJump","BoardFall","BoardLandJumpShort","CPlayerSpeedStateBoardTrickJump","BoardJumpShort","BoardGrindLandJumpShort","BoardGrindJumpShort","BoardGetOn","BoardDrift","BoardGrind" };
+			bobsleigh = std::find(list.begin(), list.end(), state) != list.end();
 			if (bobsleigh) {
 				if (!bobsleighBoostCancel) { bobsleighBoostCancel = true; }
 				Common::SonicContextSetCollision(TypeSonicBoost, true);
@@ -118,7 +109,8 @@ HOOK(void, __fastcall, CPlayerSpeedUpdateParallel, 0xE6BF20, Sonic::Player::CPla
 			}
 		}
 
-		if (state != "SpecialJump") { usedRamp = false; }
+		if (state != "SpecialJump")
+			usedRamp = false;
 	}
 }
 HOOK(void, __fastcall, ramp, 0x11DE240, int This) {
@@ -147,10 +139,20 @@ HOOK(void, __fastcall, MsgStartCommonButtonSign, 0x5289A0, void* thisDeclaration
 
 	originalMsgStartCommonButtonSign(thisDeclaration, edx, a2);
 }
+std::vector<std::string> SUModelMods = { "Chip Bracelet (Unleashed)", "Pure SU Sonic", "SU Marza Sonic", "Unleashed Sonic Model"};
 void CPlayerSpeedUpdate::Install()
 {
 	usingBobsleigh = Common::UP || Common::AP;
-	SUMouthFix = Common::reader.GetBoolean("Config","SUMouthFix",true);
+
+	for(std::string modName : SUModelMods)
+	{
+		if (Common::IsModEnabled(modName) || Common::IsModEnabledContains(modName))
+			SUMouthFix = true;
+	}
+
+	if(Common::reader.GetBoolean("Config", "ForceMouthFix", false))
+		SUMouthFix = Common::reader.GetBoolean("Config", "SUMouthFix", true); // incase you need to override the bool
+
 	//https://github.com/LadyLunanova
 	if (SUMouthFix) {
 		//Right Mouth
