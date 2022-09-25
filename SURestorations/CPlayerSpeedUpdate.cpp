@@ -113,6 +113,7 @@ HOOK(void, __fastcall, CPlayerSpeedUpdateParallel, 0xE6BF20, Sonic::Player::CPla
 			usedRamp = false;
 	}
 }
+SharedPtrTypeless RampVoiceHandle;
 HOOK(void, __fastcall, ramp, 0x11DE240, int This) {
 	if (Sonic::Player::CSonicClassicContext::GetInstance() == nullptr) {
 		auto sonic = Sonic::Player::CPlayerSpeedContext::GetInstance();
@@ -126,6 +127,7 @@ HOOK(void, __fastcall, ramp, 0x11DE240, int This) {
 		if (sonic->StateFlag(eStateFlag_Boost) && ramp && !usedRamp) {
 			usedRamp = true;
 			Common::fCGlitterCreate(sonic, RampHandle, middlematrixNode, "jump_delux", 1);
+			if (Common::reader.GetBoolean("QOL", "RampVoice", false)) { Common::SonicContextPlayVoice(RampVoiceHandle, 3002013, 30); }
 		}
 	}
 	originalramp(This);
@@ -142,7 +144,7 @@ HOOK(void, __fastcall, MsgStartCommonButtonSign, 0x5289A0, void* thisDeclaration
 std::vector<std::string> SUModelMods = { "Chip Bracelet (Unleashed)", "Pure SU Sonic", "SU Marza Sonic", "Unleashed Sonic Model"};
 void CPlayerSpeedUpdate::Install()
 {
-	usingBobsleigh = Common::UP || Common::AP;
+	usingBobsleigh = Common::UP || Common::AP || Common::IsModEnabled("EggmanLand");
 
 	for(std::string modName : SUModelMods)
 	{
