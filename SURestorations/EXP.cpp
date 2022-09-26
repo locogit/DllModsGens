@@ -1,8 +1,9 @@
+// Recycled code from Brianuu's 06 Experience
 float const c_chaosEnergyReward = 2.0f;
 bool expCountDown = false;
 float expTimer = 4;
 float expTime = 0;
-float expParticleTimer = 0.5f;
+float expParticleTimer = 1.0f;
 float expParticleTime = 0;
 bool expParticleTimerPlay = false;
 bool expHidden = false;
@@ -179,6 +180,7 @@ void chaosEnergyParticle() {
 	if (Sonic::Player::CSonicClassicContext::GetInstance() == nullptr && Common::SUHud) {
 		auto sonic = Sonic::Player::CPlayerSpeedContext::GetInstance();
 		void* middlematrixNode = (void*)((uint32_t)sonic + 0x30);
+		printf("[SU Restorations] EXP Particle Collected\n");
 		if (!expParticleTimerPlay && expParticleTime <= 0) {
 			expParticleTimerPlay = true;
 			expParticleTime = expParticleTimer;
