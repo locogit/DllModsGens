@@ -63,26 +63,25 @@ SharedPtrTypeless RampHandle;
 bool usedRamp;
 
 bool bobsleighBoostCancel = false;
-bool usingBobsleigh = false;
+bool usingBobsleigh = Common::UP || Common::AP || Common::IsModEnabled("EggmanLand");
 bool bobsleigh = false;
 bool poleSwing = false;
 float poleParticleDelay = 0.25f;
 float poleParticleTime = 0;
 int lastHurdleIndex = 0;
 int currentHurdleIndex = 1;
+bool InfLivesCodeChange = Common::reader.GetBoolean("Changes", "InfLives", true);
 HOOK(void, __fastcall, CPlayerSpeedUpdateParallel, 0xE6BF20, Sonic::Player::CPlayerSpeed* This, void* _, const hh::fnd::SUpdateInfo& updateInfo)
 {
 	originalCPlayerSpeedUpdateParallel(This, _, updateInfo);
 	if (Sonic::Player::CSonicClassicContext::GetInstance() == nullptr) {
-
 		auto sonic = This->GetContext();
 		auto state = This->m_StateMachine.GetCurrentState()->GetStateName();
 		auto anim = sonic->GetCurrentAnimationName();
 		auto input = Sonic::CInputState::GetInstance()->GetPadState();
-
-		if ((byte)Common::GetMultiLevelAddress(0xD59A67, { 0x6 }) == 150 && *Common::GetPlayerLives() != 99)
+		printf("%s\n", state.c_str());
+		if ((byte)Common::GetMultiLevelAddress(0xD59A67, { 0x6 }) == 150 && *Common::GetPlayerLives() != 99 && InfLivesCodeChange)
 			*Common::GetPlayerLives() = 99;
-
 		if (sonic->m_ChaosEnergy != 100 && Common::CheckCurrentStage("pam000")) // For Boost Gauge Starts Empty Code
 			sonic->m_ChaosEnergy = 100;
 
@@ -186,46 +185,88 @@ void CreateConsole()
 	std::wcin.clear();
 }
 bool shortJumpMove = false;
+bool JumpRestore = Common::reader.GetBoolean("Restorations", "RunJump", true);
 HOOK(int, __fastcall, ShortJumpMove, 0x11BF200, int This) {
-	auto sonic = Sonic::Player::CPlayerSpeedContext::GetInstance();
-	auto velXZ = sonic->m_Velocity.x() + sonic->m_Velocity.z();
-	shortJumpMove = abs(velXZ) > 0;
+	if (JumpRestore) {
+		auto sonic = Sonic::Player::CPlayerSpeedContext::GetInstance();
+		auto velXZ = sonic->m_Velocity.x() + sonic->m_Velocity.z();
+		shortJumpMove = abs(velXZ) >= 5;
+	}
 	return originalShortJumpMove(This);
 }
 HOOK(void, __fastcall, HurdleAnim, 0x11BEEC0, float *This) {
 	originalHurdleAnim(This);
-	auto sonic = Sonic::Player::CPlayerSpeedContext::GetInstance();
-	auto anim = sonic->GetCurrentAnimationName();
-	if (shortJumpMove) {
-		if (anim == "JumpShortBegin") {
-			currentHurdleIndex = (lastHurdleIndex == 0) ? 1 : 0;
-			lastHurdleIndex = currentHurdleIndex;
-		}
-		if (anim != "JumpHurdleL" && anim != "JumpHurdleR") {
-			if (anim != "SpinAttack") {
-				auto hurdleAnimName = (currentHurdleIndex == 0) ? "JumpHurdleL" : "JumpHurdleR";
-				sonic->ChangeAnimation(hurdleAnimName);
+	if (JumpRestore) {
+		auto sonic = Sonic::Player::CPlayerSpeedContext::GetInstance();
+		auto anim = sonic->GetCurrentAnimationName();
+		if (shortJumpMove) {
+			if (anim == "JumpShortBegin") {
+				currentHurdleIndex = (lastHurdleIndex == 0) ? 1 : 0;
+				lastHurdleIndex = currentHurdleIndex;
+			}
+			if (anim != "JumpHurdleL" && anim != "JumpHurdleR") {
+				if (anim != "SpinAttack") {
+					auto hurdleAnimName = (currentHurdleIndex == 0) ? "JumpHurdleL" : "JumpHurdleR";
+					sonic->ChangeAnimation(hurdleAnimName);
+				}
 			}
 		}
 	}
 }
+void HMMPatches() {
+	//Patch "Disable Spin Dash on Dash Panels" by "Hyper"
+	WRITE_MEMORY(0xE0AC1C, byte, 0xE9, 0x27, 0x01, 0x00, 0x00);
+	WRITE_MEMORY(0xE0C734, byte, 0xE9, 0x27, 0x01, 0x00, 0x00);
+
+	//Patch "Unleashed Style Grinding Animations" by "Skyth"
+	WRITE_MEMORY(0xDF2380, USHORT, 0xA4E9);
+	WRITE_MEMORY(0xDF2382, byte, 0x0);
+	WRITE_NOP(0xDF2385, 1);
+	WRITE_MEMORY(0xDF2356, byte, 0xEB);
+	WRITE_MEMORY(0xDF2485, byte, 0xEB);
+
+	//Patch "Unleashed Stick Deadzones" by "M&M"
+	WRITE_MEMORY(0x16055EC, byte, 0x69); /* InputThreshold (0.02f) */
+	WRITE_MEMORY(0xE75F93, byte, 0x38, 0x71); /* InputTransformHalf (0.85f) */
+	WRITE_MEMORY(0x1605610, byte, 0x69);
+	WRITE_MEMORY(0x160562C, byte, 0x69); /* InputTransformPower (3.0f) */
+
+	//Patch "Use Bumpers to Switch Grind Rails" by "Skyth"
+	WRITE_MEMORY(0xDFCC92, UINT, 0x10244C8B);
+	WRITE_NOP(0xDFCC96, 2);
+	WRITE_MEMORY(0xDFCC99, byte, 0xE1BA);
+	WRITE_MEMORY(0xDFCC9B, byte, 0xD);
+	WRITE_NOP(0xDFCC9C, 3);
+	WRITE_MEMORY(0xDFCC9F, byte, 0x73);
+	WRITE_MEMORY(0xDFCCA8, UINT, 0xCE1BA0F);
+	WRITE_NOP(0xDFCCAC, 7);
+	WRITE_MEMORY(0xDFCCB3, byte, 0x73);
+
+	if (Common::reader.GetBoolean("Restorations", "XHoming", true)) {
+		//Patch "Homing Attack on Boost" by "SWS90"
+		WRITE_MEMORY(0x015FA418, byte, 0);
+	}
+
+}
 void CPlayerSpeedUpdate::Install()
 {
 	CreateConsole();
-	usingBobsleigh = Common::UP || Common::AP || Common::IsModEnabled("EggmanLand");
+
+	HMMPatches();
 
 	for(std::string modName : SUModelMods)
 	{
 		if (Common::IsModEnabled(modName) || Common::IsModEnabledContains(modName)) {
-			printf("[SU Restorations] SU Model Mod Found, Fixing Mouth...\n");
+			printf("[SU Restorations] %s Found, Fixing Mouth...\n", modName.c_str());
 			SUMouthFix = true;
 		}
 	}
 
-	if (Common::reader.GetBoolean("Config", "ForceMouthFix", false)) {
-		SUMouthFix = Common::reader.GetBoolean("Config", "SUMouthFix", true); // incase you need to override the bool
+	if (Common::reader.GetBoolean("Hidden", "ForceMouthFix", false)) {
+		SUMouthFix = Common::reader.GetBoolean("Hidden", "SUMouthFix", false); // incase you need to override the bool
 		printf("[SU Restorations] SU Mouth Fix Overwritten.\n");
 	}
+
 	if (DisableBoard) {
 		//Credit to Skyth
 		WRITE_MEMORY(0xD947CC, byte, 0xEB);
@@ -246,10 +287,15 @@ void CPlayerSpeedUpdate::Install()
 		WRITE_MEMORY(0x015E9014, const char*, "Lip_L_LT1");
 		WRITE_MEMORY(0x015E901C, const char*, "Lip_R_LT1");
 	}
+
 	// Credit to Skyth
-	if (usingBobsleigh) {
+	if (usingBobsleigh)
 		WRITE_MEMORY(0xDFF622, byte, 0xEB); // Disables Drifting when using bobsleigh
-	}
+
+	// https://github.com/brianuuu/DllMods/blob/master/Source/Sonic06DefinitiveExperience/NextGenSonic.cpp
+	if(Common::reader.GetBoolean("Restorations", "DPadDisable", true))
+		WRITE_JUMP(0xD97B56, (void*)0xD97B9E); // Disable D-Pad Input
+
 	INSTALL_HOOK(ShortJumpMove);
 	INSTALL_HOOK(HurdleAnim);
 	INSTALL_HOOK(RampParticle);
