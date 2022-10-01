@@ -5,6 +5,7 @@ extern "C" _declspec(dllexport) void Init()
 {
 	ArchiveTreePatcher::m_archiveDependencies.push_back(ArchiveDependency("SonicNew", { "Sonic" }));
 	ArchiveTreePatcher::m_archiveDependencies.push_back(ArchiveDependency("SonicCrawl", { "Sonic" }));
+	ArchiveTreePatcher::m_archiveDependencies.push_back(ArchiveDependency("SonicPulley", { "Sonic" }));
 	ArchiveTreePatcher::applyPatches();
 	AnimationSetPatcher::applyPatches();
 	HubUI::Install();

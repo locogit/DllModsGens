@@ -64,7 +64,6 @@ public:
 
     // New animation states
     static const char* volatile const CrawlLoop;
-    static const char* volatile const CrawlIdle;
     static const char* volatile const CrawlEnter;
     static const char* volatile const CrawlExit;
 };

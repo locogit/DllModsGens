@@ -75,6 +75,7 @@ bool InfLivesCodeChange = Common::reader.GetBoolean("Changes", "InfLives", true)
 bool isCrawling = false;
 const float crawlSpeed = 10;
 float crawlEnterTime = 0;
+
 HOOK(void, __fastcall, CPlayerSpeedUpdateParallel, 0xE6BF20, Sonic::Player::CPlayerSpeed* This, void* _, const hh::fnd::SUpdateInfo& updateInfo)
 {
 	originalCPlayerSpeedUpdateParallel(This, _, updateInfo);
@@ -167,7 +168,7 @@ HOOK(int*, __fastcall, CSonicStateSquatBegin, 0x1230A30, void* This)
 	return originalCSonicStateSquatBegin(This);
 }
 bool CrawlEnabled = Common::reader.GetBoolean("Restorations", "Crawl", true);
-float crawlTurnRate = 200;
+float crawlTurnRate = 400;
 HOOK(void, __stdcall, CSonicRotationAdvance, 0xE310A0, void* a1, float* targetDir, float turnRate1, float turnRateMultiplier, bool noLockDirection, float turnRate2)
 {
 	originalCSonicRotationAdvance(a1, targetDir, turnRate1, turnRateMultiplier, noLockDirection, turnRate2);
@@ -177,19 +178,30 @@ HOOK(void, __fastcall, CSonicStateSquatAdvance, 0x1230B60, void* This)
 	if (CrawlEnabled) {
 
 		Eigen::Vector3f inputDirection;
+		Hedgehog::Math::CVector crawlVelocity;
 		Common::GetWorldInputDirection(inputDirection);
 
 		auto sonic = Sonic::Player::CPlayerSpeedContext::GetInstance();
 		auto anim = sonic->GetCurrentAnimationName();
 		auto input = Sonic::CInputState::GetInstance()->GetPadState();
-
 		float moveMult = std::clamp(abs(inputDirection.norm()), 0.15f, 1.0f);
 
 		if (isCrawling) {
-			sonic->m_Velocity = (sonic->m_spMatrixNode->m_Transform.m_Rotation * Eigen::Vector3f::UnitZ() * crawlSpeed) * moveMult;
+			crawlVelocity = (sonic->m_spMatrixNode->m_Transform.m_Rotation.normalized() * Eigen::Vector3f::UnitZ() * crawlSpeed) * moveMult;
+			crawlVelocity.y() = sonic->m_Velocity.y();
+			float* horizontalVel = (float*)((uint32_t)context + (Common::IsPlayerIn2D() ? 0x290 : 0x2A0));
+			horizontalVel[0] = crawlVelocity.x();
+			if (Common::IsPlayerIn2D())
+			{
+				horizontalVel[1] = crawlVelocity.y();
+			}
+			horizontalVel[2] = crawlVelocity.z();
+			//sonic->m_Velocity = crawlVelocity;
+			alignas(16) float dir[4] = { inputDirection.normalized().x(), inputDirection.y(), inputDirection.normalized().z(), 0 };
+			originalCSonicRotationAdvance(This, dir, 100, PI_F * 10.0f, false, crawlTurnRate * moveMult);
+			static float slideTurnRate = 100.0f;
+			WRITE_MEMORY(0x11D9441, float*, &slideTurnRate);
 			if (!inputDirection.isZero()) {
-				alignas(16) float dir[4] = { inputDirection.x(), inputDirection.y(), inputDirection.z(), 0 };
-				originalCSonicRotationAdvance(This, dir, crawlTurnRate * moveMult, crawlTurnRate * moveMult, false, crawlTurnRate * moveMult);
 				if (anim != "CrawlLoop" && crawlEnterTime <= 0)
 				{
 					sonic->ChangeAnimation("CrawlLoop");
@@ -292,6 +304,7 @@ HOOK(void, __fastcall, HurdleAnim, 0x11BEEC0, float *This) {
 	}
 }
 void HMMPatches() {
+
 	//Patch "Disable Spin Dash on Dash Panels" by "Hyper"
 	WRITE_MEMORY(0xE0AC1C, byte, 0xE9, 0x27, 0x01, 0x00, 0x00);
 	WRITE_MEMORY(0xE0C734, byte, 0xE9, 0x27, 0x01, 0x00, 0x00);
@@ -383,4 +396,5 @@ void CPlayerSpeedUpdate::Install()
 	INSTALL_HOOK(CSonicStateSquatBegin);
 	INSTALL_HOOK(CSonicRotationAdvance);
 	INSTALL_HOOK(CSonicStateSquatAdvance);
+
 }
