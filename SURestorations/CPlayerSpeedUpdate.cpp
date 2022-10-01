@@ -71,6 +71,10 @@ float poleParticleTime = 0;
 int lastHurdleIndex = 0;
 int currentHurdleIndex = 1;
 bool InfLivesCodeChange = Common::reader.GetBoolean("Changes", "InfLives", true);
+
+bool isCrawling = false;
+const float crawlSpeed = 10;
+float crawlEnterTime = 0;
 HOOK(void, __fastcall, CPlayerSpeedUpdateParallel, 0xE6BF20, Sonic::Player::CPlayerSpeed* This, void* _, const hh::fnd::SUpdateInfo& updateInfo)
 {
 	originalCPlayerSpeedUpdateParallel(This, _, updateInfo);
@@ -79,7 +83,8 @@ HOOK(void, __fastcall, CPlayerSpeedUpdateParallel, 0xE6BF20, Sonic::Player::CPla
 		auto state = This->m_StateMachine.GetCurrentState()->GetStateName();
 		auto anim = sonic->GetCurrentAnimationName();
 		auto input = Sonic::CInputState::GetInstance()->GetPadState();
-		printf("%s\n", state.c_str());
+		//printf("%s\n", state.c_str());
+		if (crawlEnterTime > 0) { crawlEnterTime -= updateInfo.DeltaTime; }
 		if ((byte)Common::GetMultiLevelAddress(0xD59A67, { 0x6 }) == 150 && *Common::GetPlayerLives() != 99 && InfLivesCodeChange)
 			*Common::GetPlayerLives() = 99;
 		if (sonic->m_ChaosEnergy != 100 && Common::CheckCurrentStage("pam000")) // For Boost Gauge Starts Empty Code
@@ -152,6 +157,72 @@ HOOK(void, __fastcall, MsgStartCommonButtonSign, 0x5289A0, void* thisDeclaration
 		return;
 
 	originalMsgStartCommonButtonSign(thisDeclaration, edx, a2);
+}
+HOOK(int*, __fastcall, CSonicStateSquatBegin, 0x1230A30, void* This)
+{
+	return originalCSonicStateSquatBegin(This);
+}
+bool CrawlEnabled = Common::reader.GetBoolean("Restorations", "Crawl", true);
+HOOK(void, __fastcall, CSonicStateSquatAdvance, 0x1230B60, void* This)
+{
+	if (CrawlEnabled) {
+		Eigen::Vector3f inputDirection;
+		Hedgehog::Math::CVector crawlVelocity;
+
+		auto sonic = Sonic::Player::CPlayerSpeedContext::GetInstance();
+		auto anim = sonic->GetCurrentAnimationName();
+		auto input = Sonic::CInputState::GetInstance()->GetPadState();
+		Common::GetWorldInputDirection(inputDirection);
+		if (isCrawling) {
+			crawlVelocity = inputDirection * crawlSpeed;
+			crawlVelocity.y() = sonic->m_Velocity.y();
+			sonic->m_Velocity = crawlVelocity;
+			if (!inputDirection.isZero()) {
+				Common::SonicContextUpdateRotationToVelocity(sonic, &crawlVelocity, true);
+				if (anim != "CrawlLoop" && crawlEnterTime <= 0)
+				{
+					sonic->ChangeAnimation("CrawlLoop");
+				}
+			}
+		}
+		if (sonic && sonic->m_Grounded) {
+			if (!inputDirection.isZero() && input.IsDown(Sonic::eKeyState_B)) {
+				if (!isCrawling && crawlEnterTime <= 0) {
+					crawlEnterTime = 0.3f;
+					sonic->ChangeAnimation("CrawlEnter");
+				}
+				isCrawling = true;
+			}
+			else if (inputDirection.isZero()) {
+				isCrawling = false;
+				if (anim == "CrawlLoop" || anim == "CrawlEnter") {
+					sonic->ChangeAnimation("CrawlExit");
+				}
+				originalCSonicStateSquatAdvance(This);
+			}
+			else if (input.IsUp(Sonic::eKeyState_B)) {
+				isCrawling = false;
+				if (!inputDirection.isZero()) {
+					sonic->ChangeState("Walk");
+				}
+				else {
+					originalCSonicStateSquatAdvance(This);
+				}
+			}
+		}
+		else if (!sonic || !sonic->m_Grounded) {
+			isCrawling = false;
+			originalCSonicStateSquatAdvance(This);
+		}
+	}
+	else {
+		originalCSonicStateSquatAdvance(This);
+	}
+}
+
+HOOK(int*, __fastcall, CSonicStateSquatEnd, 0x12309A0, void* This)
+{
+	return originalCSonicStateSquatEnd(This);
 }
 std::vector<std::string> SUModelMods = { "Chip Bracelet (Unleashed)", "Pure SU Sonic", "SU Marza Sonic", "Unleashed Sonic Model"};
 bool DisableBoard = Common::reader.GetBoolean("Changes", "DisableBoard", false);
@@ -302,4 +373,7 @@ void CPlayerSpeedUpdate::Install()
 	INSTALL_HOOK(CHudSonicStageUpdateParallel);
 	INSTALL_HOOK(CPlayerSpeedUpdateParallel);
 	INSTALL_HOOK(MsgStartCommonButtonSign);
+	INSTALL_HOOK(CSonicStateSquatBegin);
+	INSTALL_HOOK(CSonicStateSquatAdvance);
+	INSTALL_HOOK(CSonicStateSquatEnd);
 }

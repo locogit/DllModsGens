@@ -20,6 +20,7 @@
 #include <deque>
 // Dependencies
 #include "ArchiveTreePatcher.h"
+#include "AnimationSetPatcher.h"
 #include "EXP.h"
 #include "HubUI.h"
 #include "Missile.h"

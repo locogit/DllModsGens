@@ -95,7 +95,7 @@
       <SubSystem>Console</SubSystem>
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
-      <AdditionalDependencies>detours.lib;syelog.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>detours.lib;syelog.lib;d3d9.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <AdditionalLibraryDirectories>$(SolutionDir)Dependencies\BlueBlur;$(SolutionDir)Dependencies\Detours\lib\x86</AdditionalLibraryDirectories>
     </Link>
     <PostBuildEvent>
@@ -104,6 +104,7 @@
     </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClInclude Include="AnimationSetPatcher.h" />
     <ClInclude Include="ArchiveTreePatcher.h" />
     <ClInclude Include="Common.h" />
     <ClInclude Include="CPlayerSpeedUpdate.h" />
@@ -114,6 +115,7 @@
     <ClInclude Include="Pch.h" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="AnimationSetPatcher.cpp" />
     <ClCompile Include="ArchiveTreePatcher.cpp" />
     <ClCompile Include="DllMain.cpp" />
     <ClCompile Include="CPlayerSpeedUpdate.cpp" />
