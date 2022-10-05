@@ -3,9 +3,15 @@
 /// </summary>
 extern "C" _declspec(dllexport) void Init()
 {
+	if (Common::reader.GetBoolean("Restorations", "ExplosionParticle", true)) {
+		ArchiveTreePatcher::m_archiveDependencies.push_back(ArchiveDependency("EnemyExplosion", { "EnemyCommon" }));
+	}
 	ArchiveTreePatcher::m_archiveDependencies.push_back(ArchiveDependency("SonicNew", { "Sonic" }));
 	ArchiveTreePatcher::m_archiveDependencies.push_back(ArchiveDependency("SonicCrawl", { "Sonic" }));
-	ArchiveTreePatcher::m_archiveDependencies.push_back(ArchiveDependency("SonicPulley", { "Sonic" }));
+	ArchiveTreePatcher::m_archiveDependencies.push_back(ArchiveDependency("SonicSweepKick", { "Sonic" }));
+	ArchiveTreePatcher::m_archiveDependencies.push_back(ArchiveDependency("SonicUI", { "Sonic" }));
+	ArchiveTreePatcher::m_archiveDependencies.push_back(ArchiveDependency("SonicRamp", { "Sonic" }));
+	ArchiveTreePatcher::m_archiveDependencies.push_back(ArchiveDependency("SonicSound", { "Sonic" }));
 	ArchiveTreePatcher::applyPatches();
 	AnimationSetPatcher::applyPatches();
 	HubUI::Install();

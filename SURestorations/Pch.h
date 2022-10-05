@@ -14,7 +14,6 @@
 #include <cstdint>
 #include <cstdio>
 #include <filesystem>
-#include <mmsystem.h>
 #include <iostream>
 #include <fstream>
 #include <deque>

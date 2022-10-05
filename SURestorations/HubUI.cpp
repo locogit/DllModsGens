@@ -52,7 +52,7 @@ void __fastcall RemoveHubCallbackTownScreen(Sonic::CGameObject* This, void*, Son
 HOOK(void, __fastcall, CHudPlayableMenuStart, 0x108DEB0, Sonic::CGameObject *This, int a2, int a3, void **a4, void* Edx) {
 	originalCHudPlayableMenuStart(This, a2, a3, a4, Edx);
 	RemoveHubCallbackTownScreen(This, nullptr, nullptr);
-	if (Common::SUHud && Common::UP && Sonic::Player::CSonicClassicContext::GetInstance() == nullptr) {
+	if (Common::SUHud && Common::UP && BlueBlurCommon::IsModern()) {
 		CalculateAspectOffsetsTownScreen();
 		Sonic::CCsdDatabaseWrapper wrapper(This->m_pMember->m_pGameDocument->m_pMember->m_spDatabase.get());
 		boost::shared_ptr<Sonic::CCsdProject> spCsdProjectTown(new Sonic::CCsdProject);

@@ -65,7 +65,7 @@ void CalculateAspectOffsetsExp()
 }
 HOOK(void, __fastcall, CHudSonicStageDelayProcessImpEXP, 0x109A8D0, Sonic::CGameObject* This) {
 	originalCHudSonicStageDelayProcessImpEXP(This);
-	if (Sonic::Player::CSonicClassicContext::GetInstance() == nullptr && Common::SUHud) {
+	if (BlueBlurCommon::IsModern() && Common::SUHud) {
 		CHudSonicStageRemoveCallback(This, nullptr, nullptr);
 
 		CalculateAspectOffsetsExp();
@@ -139,7 +139,7 @@ bool renderGameHud;
 bool maxEXP = false;
 HOOK(void, __fastcall, CHudSonicStageUpdateParallelEXP, 0x1098A50, Sonic::CGameObject* This, void* Edx, const hh::fnd::SUpdateInfo& in_rUpdateInfo) {
 	originalCHudSonicStageUpdateParallelEXP(This, Edx, in_rUpdateInfo);
-	if (Sonic::Player::CSonicClassicContext::GetInstance() == nullptr && Common::SUHud) {
+	if (BlueBlurCommon::IsModern() && Common::SUHud) {
 		renderGameHud = *(bool*)0x1A430D8;
 		auto sonic = Sonic::Player::CPlayerSpeedContext::GetInstance();
 		if (expParticleTimerPlay) {
@@ -177,7 +177,7 @@ HOOK(void, __fastcall, CHudSonicStageUpdateParallelEXP, 0x1098A50, Sonic::CGameO
 	}
 }
 void chaosEnergyParticle() {
-	if (Sonic::Player::CSonicClassicContext::GetInstance() == nullptr && Common::SUHud) {
+	if (BlueBlurCommon::IsModern() && Common::SUHud) {
 		auto sonic = Sonic::Player::CPlayerSpeedContext::GetInstance();
 		void* middlematrixNode = (void*)((uint32_t)sonic + 0x30);
 		printf("[SU Restorations] EXP Particle Collected\n");
