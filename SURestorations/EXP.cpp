@@ -141,7 +141,7 @@ HOOK(void, __fastcall, CHudSonicStageUpdateParallelEXP, 0x1098A50, Sonic::CGameO
 	originalCHudSonicStageUpdateParallelEXP(This, Edx, in_rUpdateInfo);
 	if (BlueBlurCommon::IsModern() && Common::SUHud) {
 		renderGameHud = *(bool*)0x1A430D8;
-		auto sonic = Sonic::Player::CPlayerSpeedContext::GetInstance();
+		Sonic::Player::CPlayerSpeedContext* sonic = Sonic::Player::CPlayerSpeedContext::GetInstance();
 		if (expParticleTimerPlay) {
 			if (expParticleTime > 0) {
 				expParticleTime -= in_rUpdateInfo.DeltaTime;
@@ -178,7 +178,7 @@ HOOK(void, __fastcall, CHudSonicStageUpdateParallelEXP, 0x1098A50, Sonic::CGameO
 }
 void chaosEnergyParticle() {
 	if (BlueBlurCommon::IsModern() && Common::SUHud) {
-		auto sonic = Sonic::Player::CPlayerSpeedContext::GetInstance();
+		Sonic::Player::CPlayerSpeedContext* sonic = Sonic::Player::CPlayerSpeedContext::GetInstance();
 		void* middlematrixNode = (void*)((uint32_t)sonic + 0x30);
 		printf("[SU Restorations] EXP Particle Collected\n");
 		if (!expParticleTimerPlay && expParticleTime <= 0) {

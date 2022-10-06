@@ -45,9 +45,9 @@ HOOK(void, __fastcall, CHudSonicStageDelayProcessImpMissile, 0x109A8D0, Sonic::C
 }
 HOOK(void, __fastcall, CHudSonicStageUpdateParallelMissile, 0x1098A50, Sonic::CGameObject* This, void* Edx, const hh::fnd::SUpdateInfo& in_rUpdateInfo) {
 	originalCHudSonicStageUpdateParallelMissile(This, Edx, in_rUpdateInfo);
-	auto sonic = Sonic::Player::CPlayerSpeedContext::GetInstance();
+	Sonic::Player::CPlayerSpeedContext* sonic = Sonic::Player::CPlayerSpeedContext::GetInstance();
 	if (!cursorHidden) {
-		auto& position = Sonic::Player::CPlayerSpeedContext::GetInstance()->m_spMatrixNode->m_Transform.m_Position;
+		Hedgehog::Math::CVector& position = Sonic::Player::CPlayerSpeedContext::GetInstance()->m_spMatrixNode->m_Transform.m_Position;
 		const auto camera = Sonic::CGameDocument::GetInstance()->GetWorld()->GetCamera();
 		hh::math::CVector4 screenPosition = camera->m_MyCamera.m_View * hh::math::CVector4(position.x(), position.y(), position.z(), 1.0f);
 		screenPosition = camera->m_MyCamera.m_Projection * screenPosition;

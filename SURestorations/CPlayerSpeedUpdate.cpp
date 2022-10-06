@@ -48,7 +48,7 @@ float previousChaosEnergy;
 bool MoreVoice = Common::reader.GetBoolean("Changes", "MoreVoice", false);
 HOOK(void, __fastcall, CHudSonicStageUpdateParallel, 0x1098A50, Sonic::CGameObject* This, void* Edx, const hh::fnd::SUpdateInfo& in_rUpdateInfo) {
 	originalCHudSonicStageUpdateParallel(This, Edx, in_rUpdateInfo);
-	auto sonic = Sonic::Player::CPlayerSpeedContext::GetInstance();
+	Sonic::Player::CPlayerSpeedContext* sonic = Sonic::Player::CPlayerSpeedContext::GetInstance();
 	if (sonic) {
 		if (prevRingCount < sonic->m_RingCount) {
 			if (sonic->m_ChaosEnergy < 100.0f && previousChaosEnergy + ringEnergyAmount < 100.0f)
@@ -91,7 +91,7 @@ HOOK(int*, __fastcall, CSonicStateSquatKickBegin, 0x12526D0, hh::fnd::CStateMach
 	void* middlematrixNode = (void*)((uint32_t)context + 0x10);
 	Common::fCGlitterCreate(context, squatKickParticleHandle, middlematrixNode, "Sweepkick", 1);
 
-	context->PlaySound(2002373, true);
+	context->PlaySound(2002374, true);
 
 	squatKickSpeed = (!isCrawling) ? context->m_Velocity.norm() : 0.0f;
 	return originalCSonicStateSquatKickBegin(This);
@@ -106,19 +106,19 @@ HOOK(void, __fastcall, CPlayerSpeedUpdateParallel, 0xE6BF20, Sonic::Player::CPla
 {
 	originalCPlayerSpeedUpdateParallel(This, _, updateInfo);
 	if (BlueBlurCommon::IsModern()) {
-		auto sonic = This->GetContext();
-		auto state = This->m_StateMachine.GetCurrentState()->GetStateName();
-		auto anim = sonic->GetCurrentAnimationName();
-		auto input = Sonic::CInputState::GetInstance()->GetPadState();
-		auto velNoY = sonic->m_Velocity;
+		Sonic::Player::CPlayerSpeedContext* sonic = This->GetContext();
+		Hedgehog::Base::CSharedString state = This->m_StateMachine.GetCurrentState()->GetStateName();
+		Hedgehog::Base::CSharedString anim = sonic->GetCurrentAnimationName();
+		Sonic::SPadState input = Sonic::CInputState::GetInstance()->GetPadState();
+		Hedgehog::Math::CVector velNoY = sonic->m_Velocity;
 		velNoY.y() = 0;
 
-		printf("%s\n", anim.c_str());
+		printf("%s\n", state.c_str());
 		if (anim == "DashRingL" || anim == "DashRingR") {
 			if (MoreVoice) {
 				if (lastAnimDashRing != anim.c_str()) {
 					lastAnimDashRing = anim.c_str();
-					sonic->PlaySound(2002374, true);
+					sonic->PlaySound(2002375, true);
 					static SharedPtrTypeless soundHandle;
 					Common::SonicContextPlayVoice(soundHandle, 0, 30);
 				}
@@ -183,8 +183,10 @@ HOOK(void, __fastcall, CPlayerSpeedUpdateParallel, 0xE6BF20, Sonic::Player::CPla
 				BResetTimerEnable = false;
 			}
 		}
-		if (abs(velNoY.norm()) > 100 && !sonic->m_Grounded && DoMSpeed) {
-			sonic->m_Velocity += sonic->m_spMatrixNode->m_Transform.m_Rotation * Eigen::Vector3f::UnitZ() * (updateInfo.DeltaTime * 90);
+		float mSpeedStick = Common::IsPlayerIn2D() ? input.LeftStickHorizontal : input.LeftStickVertical;
+		if (abs(velNoY.norm()) > 100 && !sonic->m_Grounded && DoMSpeed && abs(mSpeedStick) < 0.2f) {
+			float dimensionMultiplier = Common::IsPlayerIn2D() ? 120 : 90;
+			sonic->m_Velocity += sonic->m_spMatrixNode->m_Transform.m_Rotation * Eigen::Vector3f::UnitZ() * (updateInfo.DeltaTime * dimensionMultiplier);
 			sonic->m_PreviousVelocity = sonic->m_Velocity;
 		}
 		if (state == "JumpShort" && sonic->m_Grounded) {
@@ -239,7 +241,7 @@ HOOK(void, __fastcall, CPlayerSpeedUpdateParallel, 0xE6BF20, Sonic::Player::CPla
 SharedPtrTypeless RampVoiceHandle;
 HOOK(void, __fastcall, RampParticle, 0x11DE240, int This) {
 	if (BlueBlurCommon::IsModern()) {
-		auto sonic = Sonic::Player::CPlayerSpeedContext::GetInstance();
+		Sonic::Player::CPlayerSpeedContext* sonic = Sonic::Player::CPlayerSpeedContext::GetInstance();
 
 		// dash rings use SpecialJump as well, this makes sure you are using a ramp by checking the animation that is playing.
 		bool ramp = sonic->GetCurrentAnimationName() == "JumpBoardSpecialR" || sonic->GetCurrentAnimationName() == "JumpBoardSpecialL" || sonic->GetCurrentAnimationName() == "JumpBoardSpecial";
@@ -278,9 +280,9 @@ HOOK(void, __stdcall, CPlayerGetLife, 0xE75520, Sonic::Player::CPlayerContext* c
 
 	if (lifeCount > 0)
 	{
-		auto sonic = Sonic::Player::CPlayerSpeedContext::GetInstance();
+		Sonic::Player::CPlayerSpeedContext* sonic = Sonic::Player::CPlayerSpeedContext::GetInstance();
 		if (sonic && BlueBlurCommon::IsModern()) {
-			sonic->PlaySound(2002375, true);
+			sonic->PlaySound(2002376, true);
 			static SharedPtrTypeless soundHandle;
 			Common::SonicContextPlayVoice(soundHandle, 0, 30);
 		}
@@ -294,9 +296,9 @@ HOOK(void, __fastcall, CSonicStateSquatAdvance, 0x1230B60, void* This)
 		Hedgehog::Math::CVector crawlVelocity;
 		Common::GetWorldInputDirection(inputDirection);
 
-		auto sonic = Sonic::Player::CPlayerSpeedContext::GetInstance();
-		auto anim = sonic->GetCurrentAnimationName();
-		auto input = Sonic::CInputState::GetInstance()->GetPadState();
+		Sonic::Player::CPlayerSpeedContext* sonic = Sonic::Player::CPlayerSpeedContext::GetInstance();
+		Hedgehog::Base::CSharedString anim = sonic->GetCurrentAnimationName();
+		Sonic::SPadState input = Sonic::CInputState::GetInstance()->GetPadState();
 		float moveMult = std::clamp(abs(inputDirection.norm()), 0.15f, 1.0f);
 
 		if (isCrawling) {
@@ -387,8 +389,8 @@ bool shortJumpMove = false;
 bool JumpRestore = Common::reader.GetBoolean("Restorations", "RunJump", true);
 HOOK(int, __fastcall, ShortJumpMove, 0x11BF200, int This) {
 	if (JumpRestore) {
-		auto sonic = Sonic::Player::CPlayerSpeedContext::GetInstance();
-		auto velXZ = sonic->m_Velocity.x() + sonic->m_Velocity.z();
+		Sonic::Player::CPlayerSpeedContext* sonic = Sonic::Player::CPlayerSpeedContext::GetInstance();
+		float velXZ = sonic->m_Velocity.x() + sonic->m_Velocity.z();
 		shortJumpMove = abs(velXZ) >= 5;
 	}
 	return originalShortJumpMove(This);
@@ -396,8 +398,8 @@ HOOK(int, __fastcall, ShortJumpMove, 0x11BF200, int This) {
 HOOK(void, __fastcall, HurdleAnim, 0x11BEEC0, float *This) {
 	originalHurdleAnim(This);
 	if (JumpRestore) {
-		auto sonic = Sonic::Player::CPlayerSpeedContext::GetInstance();
-		auto anim = sonic->GetCurrentAnimationName();
+		Sonic::Player::CPlayerSpeedContext* sonic = Sonic::Player::CPlayerSpeedContext::GetInstance();
+		Hedgehog::Base::CSharedString anim = sonic->GetCurrentAnimationName();
 		if (shortJumpMove) {
 			if (anim == "JumpShortBegin") {
 				currentHurdleIndex = (lastHurdleIndex == 0) ? 1 : 0;
@@ -405,7 +407,7 @@ HOOK(void, __fastcall, HurdleAnim, 0x11BEEC0, float *This) {
 			}
 			if (anim != "JumpHurdleL" && anim != "JumpHurdleR") {
 				if (anim != "SpinAttack") {
-					auto hurdleAnimName = (currentHurdleIndex == 0) ? "JumpHurdleL" : "JumpHurdleR";
+					Hedgehog::Base::CSharedString hurdleAnimName = (currentHurdleIndex == 0) ? "JumpHurdleL" : "JumpHurdleR";
 					sonic->ChangeAnimation(hurdleAnimName);
 				}
 			}
