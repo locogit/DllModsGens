@@ -66,4 +66,5 @@ public:
     static const char* volatile const CrawlLoop;
     static const char* volatile const CrawlEnter;
     static const char* volatile const CrawlExit;
+    static const char* volatile const JumpBoardLoop;
 };

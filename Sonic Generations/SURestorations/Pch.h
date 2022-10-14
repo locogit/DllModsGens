@@ -18,6 +18,7 @@
 #include <fstream>
 #include <deque>
 // Dependencies
+#include <INIReader.h>
 #include "ArchiveTreePatcher.h"
 #include "AnimationSetPatcher.h"
 #include "EXP.h"
@@ -26,5 +27,5 @@
 #include "CSDCommon.h"
 #include "Common.h"
 #include "CPlayerSpeedUpdate.h"
-#include <Helpers.h>
+#include "Helpers.h"
 #include <StringHelper.h>

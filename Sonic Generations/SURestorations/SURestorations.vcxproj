@@ -84,7 +84,7 @@
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <SDLCheck>true</SDLCheck>
       <ConformanceMode>true</ConformanceMode>
-      <AdditionalIncludeDirectories>$(SolutionDir)Dependencies\BlueBlur;$(SolutionDir)Dependencies;$(SolutionDir)Dependencies\Detours\include;C:\Users\locol\Downloads\App-Extension-Mods\Dependencies\BlueBlurCustom;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(SolutionDir)Dependencies\BlueBlur;$(SolutionDir)Dependencies;$(SolutionDir)Dependencies\Detours\include;C:\Users\locol\Downloads\App-Extension-Mods\Dependencies\BlueBlurCustom;C:\Users\locol\Downloads\DllModsGens\Dependencies\boost;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <PrecompiledHeader>Use</PrecompiledHeader>
       <PrecompiledHeaderFile>Pch.h</PrecompiledHeaderFile>
       <ForcedIncludeFiles>Pch.h</ForcedIncludeFiles>
@@ -95,7 +95,7 @@
       <SubSystem>Console</SubSystem>
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
-      <AdditionalDependencies>detours.lib;syelog.lib;d3d9.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>detours.lib;syelog.lib;d3d9.lib;winmm.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <AdditionalLibraryDirectories>$(SolutionDir)Dependencies\BlueBlur;$(SolutionDir)Dependencies\Detours\lib\x86</AdditionalLibraryDirectories>
     </Link>
     <PostBuildEvent>

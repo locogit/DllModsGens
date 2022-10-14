@@ -3,6 +3,36 @@ Chao::CSD::RCPtr<Chao::CSD::CProject> rcTownScreen;
 Chao::CSD::RCPtr<Chao::CSD::CScene> info, cam;
 float xAspectOffsetTownScreen = 0.0f;
 float yAspectOffsetTownScreen = 0.0f;
+
+int ringCount = 0;
+std::string hubFileName = "hub.sav";
+std::string readHubFile(int index)
+{
+	std::string line;
+	std::ifstream hubFile(hubFileName);
+	int currentLine = 0;
+	if (hubFile.is_open())
+	{
+		while (!hubFile.eof()) {
+			currentLine++;
+			std::getline(hubFile, line);
+			if (currentLine == index) break;
+		}
+		return line;
+	}
+	else {
+		return "NULL";
+	}
+}
+void writeToHubFile() {
+	std::ofstream hubFile(hubFileName);
+	if (hubFile.is_open())
+	{
+		hubFile << std::to_string(ringCount) + "\n";
+		hubFile.close();
+	}
+}
+
 void CreateScreenTownScreen(Sonic::CGameObject* pParentGameObject)
 {
 	if (rcTownScreen && !spTownScreen)
@@ -48,44 +78,54 @@ void __fastcall RemoveHubCallbackTownScreen(Sonic::CGameObject* This, void*, Son
 		Chao::CSD::CProject::DestroyScene(rcTownScreen.Get(), cam);
 	rcTownScreen = nullptr;
 }
-
+HOOK(void, __fastcall, HudResult_MsgStartGoalResultHUB, 0x10B58A0, uint32_t* This, void* Edx, void* message)
+{
+	Sonic::Player::CPlayerSpeedContext* sonic = Sonic::Player::CPlayerSpeedContext::GetInstance();
+	ringCount += sonic->m_RingCount;
+	writeToHubFile();
+	originalHudResult_MsgStartGoalResultHUB(This, Edx, message);
+}
 HOOK(void, __fastcall, CHudPlayableMenuStart, 0x108DEB0, Sonic::CGameObject *This, int a2, int a3, void **a4, void* Edx) {
 	originalCHudPlayableMenuStart(This, a2, a3, a4, Edx);
 	RemoveHubCallbackTownScreen(This, nullptr, nullptr);
-	if (Common::SUHud && Common::UP && BlueBlurCommon::IsModern()) {
-		CalculateAspectOffsetsTownScreen();
-		Sonic::CCsdDatabaseWrapper wrapper(This->m_pMember->m_pGameDocument->m_pMember->m_spDatabase.get());
-		boost::shared_ptr<Sonic::CCsdProject> spCsdProjectTown(new Sonic::CCsdProject);
 
-		size_t& flags = ((size_t*)This)[151];
+	CalculateAspectOffsetsTownScreen();
+	Sonic::CCsdDatabaseWrapper wrapper(This->m_pMember->m_pGameDocument->m_pMember->m_spDatabase.get());
+	boost::shared_ptr<Sonic::CCsdProject> spCsdProjectTown(new Sonic::CCsdProject);
 
-		wrapper.GetCsdProject(spCsdProjectTown, "ui_townscreen");
-		rcTownScreen = spCsdProjectTown->m_rcProject;
-		info = rcTownScreen->CreateScene("info");
-		info->SetPosition(xAspectOffsetTownScreen, 0);
-		CSDCommon::FreezeMotion(*info);
+	size_t& flags = ((size_t*)This)[151];
 
-		cam = rcTownScreen->CreateScene("cam");
-		cam->SetPosition(xAspectOffsetTownScreen, 0);
-		CSDCommon::FreezeMotion(*cam);
+	wrapper.GetCsdProject(spCsdProjectTown, "ui_townscreen");
+	rcTownScreen = spCsdProjectTown->m_rcProject;
+	info = rcTownScreen->CreateScene("info");
+	info->SetPosition(xAspectOffsetTownScreen, 0);
+	CSDCommon::FreezeMotion(*info);
 
-		CSDCommon::PlayAnimation(*info, "Usual_so_Anim", Chao::CSD::eMotionRepeatType_Loop, 1, 0);
-		CSDCommon::PlayAnimation(*cam, "Usual_so_Anim", Chao::CSD::eMotionRepeatType_Loop, 1, 0);
+	cam = rcTownScreen->CreateScene("cam");
+	cam->SetPosition(xAspectOffsetTownScreen, 0);
+	CSDCommon::FreezeMotion(*cam);
 
-		info->GetNode("ring_num")->SetText("157861");
+	CSDCommon::PlayAnimation(*info, "Usual_so_Anim", Chao::CSD::eMotionRepeatType_Loop, 1, 0);
+	CSDCommon::PlayAnimation(*cam, "Usual_so_Anim", Chao::CSD::eMotionRepeatType_Loop, 1, 0);
 
-		info->GetNode("S_medal_lv_num")->SetText("7");
-		info->GetNode("S_medal_num")->SetText("[200]");
+	ringCount = std::clamp(stoi(readHubFile(1)), 0, 999999);
 
-		info->GetNode("M_medal_lv_num")->SetText("7");
-		info->GetNode("M_medal_num")->SetText("[200]");
+	char text[256];
+	sprintf(text, "%d", ringCount);
+	info->GetNode("ring_num")->SetText(text);
 
-		flags &= ~(0x1 | 0x2 | 0x4 | 0x200 | 0x800); // Mask to prevent crash when game tries accessing the elements we disabled later on
+	info->GetNode("S_medal_lv_num")->SetText("7");
+	info->GetNode("S_medal_num")->SetText("[200]");
 
-		CreateScreenTownScreen(This);
-	}
+	info->GetNode("M_medal_lv_num")->SetText("7");
+	info->GetNode("M_medal_num")->SetText("[200]");
+
+	flags &= ~(0x1 | 0x2 | 0x4 | 0x200 | 0x800); // Mask to prevent crash when game tries accessing the elements we disabled later on
+
+	CreateScreenTownScreen(This);
 }
 void HubUI::Install() {
+	INSTALL_HOOK(HudResult_MsgStartGoalResultHUB);
 	INSTALL_HOOK(CHudPlayableMenuStart);
 	WRITE_MEMORY(0x16A467C, void*, RemoveHubCallbackTownScreen);
 }
