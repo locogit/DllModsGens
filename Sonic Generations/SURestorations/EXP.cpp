@@ -1,5 +1,5 @@
 // Recycled code from Brianuu's 06 Experience
-float const c_chaosEnergyReward = 2.0f;
+float const c_chaosEnergyReward = 1.5f;
 bool expCountDown = false;
 float expTimer = 4;
 float expTime = 0;
@@ -65,7 +65,7 @@ void CalculateAspectOffsetsExp()
 }
 HOOK(void, __fastcall, CHudSonicStageDelayProcessImpEXP, 0x109A8D0, Sonic::CGameObject* This) {
 	originalCHudSonicStageDelayProcessImpEXP(This);
-	if (BlueBlurCommon::IsModern() && Common::SUHud) {
+	if (BlueBlurCommon::IsModern()) {
 		CHudSonicStageRemoveCallback(This, nullptr, nullptr);
 
 		CalculateAspectOffsetsExp();
@@ -139,7 +139,7 @@ bool renderGameHud;
 bool maxEXP = false;
 HOOK(void, __fastcall, CHudSonicStageUpdateParallelEXP, 0x1098A50, Sonic::CGameObject* This, void* Edx, const hh::fnd::SUpdateInfo& in_rUpdateInfo) {
 	originalCHudSonicStageUpdateParallelEXP(This, Edx, in_rUpdateInfo);
-	if (BlueBlurCommon::IsModern() && Common::SUHud) {
+	if (BlueBlurCommon::IsModern()) {
 		renderGameHud = *(bool*)0x1A430D8;
 		Sonic::Player::CPlayerSpeedContext* sonic = Sonic::Player::CPlayerSpeedContext::GetInstance();
 		if (expParticleTimerPlay) {
@@ -168,7 +168,7 @@ HOOK(void, __fastcall, CHudSonicStageUpdateParallelEXP, 0x1098A50, Sonic::CGameO
 				expHidden = true;
 			}
 		}
-		if (renderGameHud && Common::SUHud) {
+		if (renderGameHud) {
 			exp_count->SetHideFlag(expHidden);
 		}
 		else {
@@ -177,7 +177,7 @@ HOOK(void, __fastcall, CHudSonicStageUpdateParallelEXP, 0x1098A50, Sonic::CGameO
 	}
 }
 void chaosEnergyParticle() {
-	if (BlueBlurCommon::IsModern() && Common::SUHud) {
+	if (BlueBlurCommon::IsModern()) {
 		Sonic::Player::CPlayerSpeedContext* sonic = Sonic::Player::CPlayerSpeedContext::GetInstance();
 		void* middlematrixNode = (void*)((uint32_t)sonic + 0x30);
 		printf("[SU Restorations] EXP Particle Collected\n");
@@ -260,7 +260,7 @@ void __declspec(naked) getEnemyChaosEnergyAmount()
 }
 HOOK(int, __fastcall, ProcMsgRestartStageEXP, 0xE76810, uint32_t* This, void* Edx, void* message)
 {
-	if (exp_count && Common::SUHud) {
+	if (exp_count) {
 		expCountDown = false;
 		expTime = 0;
 		expHidden = true;
@@ -270,19 +270,22 @@ HOOK(int, __fastcall, ProcMsgRestartStageEXP, 0xE76810, uint32_t* This, void* Ed
 }
 HOOK(void, __fastcall, HudResult_MsgStartGoalResultEXP, 0x10B58A0, uint32_t* This, void* Edx, void* message)
 {
-	if (!maxEXP && Common::SUHud)
+	if (!maxEXP)
 		writeToExpFile();
 	originalHudResult_MsgStartGoalResultEXP(This, Edx, message);
 }
 void EXP::Install() {
 	maxEXP = Common::reader.GetBoolean("EXP", "Max", false);
+
 	expLevel = stoi(readExpFile(1));
 	expAmount = stof(readExpFile(2));
+
 	INSTALL_HOOK(ChaosEnergy_MsgGetHudPosition);
 	INSTALL_HOOK(CHudSonicStageDelayProcessImpEXP);
 	INSTALL_HOOK(CHudSonicStageUpdateParallelEXP);
 	INSTALL_HOOK(ProcMsgRestartStageEXP);
 	INSTALL_HOOK(HudResult_MsgStartGoalResultEXP);
+
 	// 06 Experience Code
 	// Set absorb time to 1.2s
 	static float ChaosEnergyParam[] =
@@ -291,15 +294,20 @@ void EXP::Install() {
 		0.3f,	// UpTime
 		0.35f	// AbsorbTime
 	};
+
 	WRITE_MEMORY(0xC8EF3D, float*, ChaosEnergyParam);
 	WRITE_MEMORY(0x11244A6, float*, ChaosEnergyParam);
 	WRITE_JUMP(0xBE05E9, getEnemyChaosEnergyAmount);
+
 	// Don't reward boost from enemy spawned chaos energy
 	WRITE_JUMP(0xE60C6C, (void*)0xE60D79);
+
 	// Spawn chaos energy base on currect trick level (visual only)
 	WRITE_MEMORY(0x16D1970, uint32_t, 0, 0, 0, 0);
+
 	// Give 0 chaos energy for board trick jump (visual only)
 	WRITE_MEMORY(0x11A12E4, uint8_t, 0);
-	// Award 5 boost when chaos energy reach Sonic
+
+	// Award boost when chaos energy reach Sonic
 	WRITE_JUMP(0x1124594, addBoostFromChaosEnergy);
 }

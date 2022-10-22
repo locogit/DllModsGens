@@ -164,7 +164,6 @@ const char* volatile const AnimationSetPatcher::CrawlLoop = "CrawlLoop";
 const char* volatile const AnimationSetPatcher::CrawlEnter = "CrawlEnter";
 const char* volatile const AnimationSetPatcher::CrawlExit = "CrawlExit";
 const char* volatile const AnimationSetPatcher::JumpBoardLoop = "JumpBoardLoop";
-
 void AnimationSetPatcher::applyPatches()
 {
     m_newAnimationData.emplace_back(CrawlEnter, "sn_crawlS", 1.0f, false, nullptr);

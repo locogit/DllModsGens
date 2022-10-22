@@ -41,14 +41,15 @@ void __declspec(naked) airBoostSuperSonicOnly()
 	}
 }
 bool SUMouthFix;
-float ringEnergyAmount = 2.75f;
+float ringEnergyAmount = 2.0f;
 size_t prevRingCount;
 float previousChaosEnergy;
 bool MoreVoice = Common::reader.GetBoolean("Changes", "MoreVoice", false);
+bool EnergyChange = Common::reader.GetBoolean("Restorations", "EnergyChange", true);
 HOOK(void, __fastcall, CHudSonicStageUpdateParallel, 0x1098A50, Sonic::CGameObject* This, void* Edx, const hh::fnd::SUpdateInfo& in_rUpdateInfo) {
 	originalCHudSonicStageUpdateParallel(This, Edx, in_rUpdateInfo);
 	Sonic::Player::CPlayerSpeedContext* sonic = Sonic::Player::CPlayerSpeedContext::GetInstance();
-	if (sonic) {
+	if (sonic && EnergyChange) {
 		if (prevRingCount < sonic->m_RingCount) {
 			if (sonic->m_ChaosEnergy < 100.0f && previousChaosEnergy + ringEnergyAmount < 100.0f)
 				sonic->m_ChaosEnergy = max(previousChaosEnergy + ringEnergyAmount, 0);
@@ -80,7 +81,7 @@ bool BResetTimerEnable = false;
 float BResetTimer;
 SharedPtrTypeless squatKickParticleHandle;
 Hedgehog::Math::CQuaternion squatKickRotation;
-HOOK(int*, __fastcall, CSonicStateSquatKickBegin, 0x12526D0, hh::fnd::CStateMachineBase::CStateBase* This)
+HOOK(void, __fastcall, CSonicStateSquatKickBegin, 0x12526D0, hh::fnd::CStateMachineBase::CStateBase* This)
 {
 	Sonic::Player::CPlayerSpeedContext* context = (Sonic::Player::CPlayerSpeedContext*)This->m_pContext;
 
@@ -89,14 +90,88 @@ HOOK(int*, __fastcall, CSonicStateSquatKickBegin, 0x12526D0, hh::fnd::CStateMach
 
 	context->PlaySound(2002497, true);
 
-	return originalCSonicStateSquatKickBegin(This);
+	originalCSonicStateSquatKickBegin(This);
 }
-HOOK(int*, __fastcall, CSonicStateSquatKickEnd, 0x12527B0, void* This)
+HOOK(void, __fastcall, CSonicStateSquatKickEnd, 0x12527B0, void* This)
 {
 	Common::fCGlitterEnd(BlueBlurCommon::GetContext(), squatKickParticleHandle, true);
-	return originalCSonicStateSquatKickEnd(This);
+	originalCSonicStateSquatKickEnd(This);
 }
+// Original Code by Briannu
+bool __fastcall CSonicStateSquatKickAdvanceTransitionOutImpl(char const* name)
+{
+	if (strcmp(name, "Stand") == 0)
+	{
+		Eigen::Vector3f inputDirection;
+		if (Common::GetWorldInputDirection(inputDirection) && inputDirection.isZero())
+		{
+			BlueBlurCommon::GetContext()->ChangeState("Squat");
+			BlueBlurCommon::GetContext()->ChangeAnimation("SquatToStand");
+			return true;
+		}
+	}
+
+	return false;
+}
+
+void __declspec(naked) CSonicStateSquatKickAdvanceTransitionOut()
+{
+	static uint32_t returnAddress = 0x1252924;
+	static uint32_t sub_E4FF30 = 0xE4FF30;
+	__asm
+	{
+		push    eax
+		push    ecx
+
+		mov     ecx, [eax]
+		call    CSonicStateSquatKickAdvanceTransitionOutImpl
+		mov     bl, al
+
+		pop     ecx
+		pop     eax
+
+		test    bl, bl
+		jnz     jump
+		call[sub_E4FF30]
+
+		jump:
+		jmp[returnAddress]
+	}
+}
+
 const char* lastAnimDashRing = "";
+bool stumbleAir = false;
+// Original Code by HyperBE32
+HOOK(int, __fastcall, CSonicStateFallStart, 0x1118FB0, hh::fnd::CStateMachineBase::CStateBase* _this)
+{
+	auto context = (Sonic::Player::CPlayerSpeedContext*)_this->GetContextBase();
+
+	if (stumbleAir)
+	{
+		// Don't transition animation.
+		WRITE_MEMORY(0x1118DE5, uint8_t, 0xEB);
+		WRITE_MEMORY(0x1118E94, uint8_t, 0xEB);
+		WRITE_MEMORY(0x111910F, uint8_t, 0xEB);
+	}
+	else
+	{
+		WRITE_MEMORY(0x1118DE5, uint8_t, 0x75);
+		WRITE_MEMORY(0x1118E94, uint8_t, 0x76);
+		WRITE_MEMORY(0x111910F, uint8_t, 0x75);
+	}
+
+	return originalCSonicStateFallStart(_this);
+}
+bool poleTrail = false;
+bool BobSleighFunctionality = Common::reader.GetBoolean("Restorations", "Bobsleigh", true);
+bool JumpRestore = Common::reader.GetBoolean("Restorations", "RunJump", true);
+bool SweepKick = Common::reader.GetBoolean("Restorations", "SweepKick", true);
+bool Stumble = Common::reader.GetBoolean("Restorations", "Stumble", true);
+bool RampLoop = Common::reader.GetBoolean("Restorations", "Ramp", true);
+bool WaterIdle = Common::reader.GetBoolean("Restorations", "WaterIdle", true);
+bool RampBoost = Common::reader.GetBoolean("Restorations", "BoostRamp", true);
+bool CrawlEnabled = Common::reader.GetBoolean("Restorations", "Crawl", true);
+bool PoleSwingTrail = Common::reader.GetBoolean("Restorations", "PoleTrail", true);
 HOOK(void, __fastcall, CPlayerSpeedUpdateParallel, 0xE6BF20, Sonic::Player::CPlayerSpeed* This, void* _, const hh::fnd::SUpdateInfo& updateInfo)
 {
 	if ((byte)Common::GetMultiLevelAddress(0xD59A67, { 0x6 }) == 150 && *Common::GetPlayerLives() != 99 && InfLivesCodeChange)
@@ -105,17 +180,41 @@ HOOK(void, __fastcall, CPlayerSpeedUpdateParallel, 0xE6BF20, Sonic::Player::CPla
 	originalCPlayerSpeedUpdateParallel(This, _, updateInfo);
 
 	if (BlueBlurCommon::IsModern()) {
+
 		Sonic::Player::CPlayerSpeedContext* sonic = This->GetContext();
 		Hedgehog::Base::CSharedString state = This->m_StateMachine.GetCurrentState()->GetStateName();
 		Hedgehog::Base::CSharedString anim = sonic->GetCurrentAnimationName();
 		Sonic::SPadState input = Sonic::CInputState::GetInstance()->GetPadState();
 		Hedgehog::Math::CVector velNoY = sonic->m_Velocity;
 		velNoY.y() = 0;
+
 		printf("%s\n", anim);
-		if (anim == "Fall" && state == "SpecialJump" && !sonic->StateFlag(eStateFlag_Boost)) {
-			sonic->ChangeAnimation("JumpBoardLoop");
+
+		if (PoleSwingTrail) {
+			if (strstr(anim.c_str(), "PoleSpinJump") && !poleTrail) {
+				poleTrail = true;
+				Common::SonicContextRequestLocusEffect();
+			}
+			else if (!strstr(anim.c_str(), "PoleSpinJump") && poleTrail) {
+				poleTrail = false;
+			}
 		}
-		if (anim == "IdleInWater") {
+
+		if (Stumble) {
+			if (state == "StumbleAir" && !stumbleAir) {
+				stumbleAir = true;
+			}
+			if (state != "StumbleAir" && stumbleAir) {
+				stumbleAir = false;
+			}
+		}
+		if (RampLoop) {
+			if (anim == "Fall" && state == "SpecialJump" && !sonic->StateFlag(eStateFlag_Boost)) {
+				sonic->ChangeAnimation("JumpBoardLoop");
+			}
+		}
+
+		if (anim == "IdleInWater" && WaterIdle) {
 			int randNum = rand() % 5;
 
 			switch (randNum)
@@ -140,13 +239,12 @@ HOOK(void, __fastcall, CPlayerSpeedUpdateParallel, 0xE6BF20, Sonic::Player::CPla
 				break;
 			}
 		}
+
 		if (anim == "DashRingL" || anim == "DashRingR") {
 			if (MoreVoice) {
 				if (lastAnimDashRing != anim.c_str()) {
 					lastAnimDashRing = anim.c_str();
 					sonic->PlaySound(2002498, true);
-					static SharedPtrTypeless soundHandle;
-					Common::SonicContextPlayVoice(soundHandle, 0, 30);
 				}
 			}
 		}
@@ -156,39 +254,36 @@ HOOK(void, __fastcall, CPlayerSpeedUpdateParallel, 0xE6BF20, Sonic::Player::CPla
 			}
 		}
 
-		if (input.IsTapped(Sonic::eKeyState_B) && Common::reader.GetBoolean("Restorations", "SweepKick", true)) {
-			if (!BResetTimerEnable) {
-				BResetTimer = 0.3f;
-				BResetTimerEnable = true;
-			}
-			BPressed++;
-			if (BPressed == 2) {
-				BPressed = 0;
-				if (BResetTimer > 0) {
-					bool canSquatKick = (state == "Squat" || state == "Sliding") && !Common::IsPlayerControlLocked() && !BlueBlurCommon::IsSuper();
-					if (canSquatKick) {
-						squatKickRotation = sonic->m_spMatrixNode->m_Transform.m_Rotation;
-						sonic->ChangeState("SquatKick");
+		if (SweepKick) {
+
+			if (input.IsTapped(Sonic::eKeyState_B)) {
+				if (!BResetTimerEnable) {
+					BResetTimer = 0.3f;
+					BResetTimerEnable = true;
+				}
+				BPressed++;
+				if (BPressed == 2) {
+					BPressed = 0;
+					if (BResetTimer > 0) {
+						bool canSquatKick = (state == "Squat" || state == "Sliding") && !Common::IsPlayerControlLocked() && !BlueBlurCommon::IsSuper();
+						if (canSquatKick) {
+							squatKickRotation = sonic->m_spMatrixNode->m_Transform.m_Rotation;
+							sonic->ChangeState("SquatKick");
+						}
 					}
 				}
 			}
-		}
 
-		if (state == "SquatKick") {
-			// Original code by brianuuu
-			if (sonic->m_Velocity.norm() == 0.0f) {
+			if (state == "SquatKick" && sonic->m_Velocity.norm() == 0.0f) {
 				sonic->m_spMatrixNode->m_Transform.SetRotation(squatKickRotation);
 			}
-			else {
-				Common::SonicContextUpdateRotationToVelocity(sonic, &sonic->m_Velocity, true);
-			}
-		}
 
-		if (BResetTimerEnable) {
-			if (BResetTimer > 0) BResetTimer -= updateInfo.DeltaTime;
-			if (BResetTimer <= 0) {
-				BPressed = 0;
-				BResetTimerEnable = false;
+			if (BResetTimerEnable) {
+				if (BResetTimer > 0) BResetTimer -= updateInfo.DeltaTime;
+				if (BResetTimer <= 0) {
+					BPressed = 0;
+					BResetTimerEnable = false;
+				}
 			}
 		}
 
@@ -212,17 +307,19 @@ HOOK(void, __fastcall, CPlayerSpeedUpdateParallel, 0xE6BF20, Sonic::Player::CPla
 
 		}
 
-		if (crawlEnterTime > 0) { crawlEnterTime -= updateInfo.DeltaTime; }
-		if (crawlExitTime > 0) { crawlExitTime -= updateInfo.DeltaTime; }
+		if (CrawlEnabled) {
+			if (crawlEnterTime > 0) { crawlEnterTime -= updateInfo.DeltaTime; }
+			if (crawlExitTime > 0) { crawlExitTime -= updateInfo.DeltaTime; }
+		}
 
 		if (sonic->m_ChaosEnergy != 100 && Common::CheckCurrentStage("pam000")) // For Boost Gauge Starts Empty Code
 			sonic->m_ChaosEnergy = 100;
 
-		if (state == "JumpHurdle")
+		if (state == "JumpHurdle" && JumpRestore)
 			lastHurdleIndex = (anim == "JumpHurdleL") ? 1 : 0;
 
 		// If bobsleigh is used (using UP or AP)
-		if (usingBobsleigh) {
+		if (usingBobsleigh && BobSleighFunctionality) {
 			if (strstr(state.c_str(), "Board")) {
 				if (!bobsleighBoostCancel) { bobsleighBoostCancel = true; }
 				Common::SonicContextSetCollision(TypeSonicBoost, true);
@@ -238,13 +335,13 @@ HOOK(void, __fastcall, CPlayerSpeedUpdateParallel, 0xE6BF20, Sonic::Player::CPla
 			}
 		}
 
-		if (state != "SpecialJump")
+		if (state != "SpecialJump" && RampBoost)
 			usedRamp = false;
 	}
 }
 SharedPtrTypeless RampVoiceHandle;
 HOOK(void, __fastcall, RampParticle, 0x11DE240, int This) {
-	if (BlueBlurCommon::IsModern()) {
+	if (BlueBlurCommon::IsModern() && RampBoost) {
 		Sonic::Player::CPlayerSpeedContext* sonic = Sonic::Player::CPlayerSpeedContext::GetInstance();
 
 		// dash rings use SpecialJump as well, this makes sure you are using a ramp by checking the animation that is playing.
@@ -267,11 +364,6 @@ HOOK(void, __fastcall, MsgStartCommonButtonSign, 0x5289A0, void* thisDeclaration
 
 	originalMsgStartCommonButtonSign(thisDeclaration, edx, a2);
 }
-HOOK(int*, __fastcall, CSonicStateSquatBegin, 0x1230A30, void* This)
-{
-	return originalCSonicStateSquatBegin(This);
-}
-bool CrawlEnabled = Common::reader.GetBoolean("Restorations", "Crawl", true);
 float crawlTurnRate = 400;
 HOOK(void, __stdcall, CSonicRotationAdvance, 0xE310A0, void* a1, float* targetDir, float turnRate1, float turnRateMultiplier, bool noLockDirection, float turnRate2)
 {
@@ -287,8 +379,6 @@ HOOK(void, __stdcall, CPlayerGetLife, 0xE75520, Sonic::Player::CPlayerContext* c
 		Sonic::Player::CPlayerSpeedContext* sonic = Sonic::Player::CPlayerSpeedContext::GetInstance();
 		if (sonic && BlueBlurCommon::IsModern()) {
 			sonic->PlaySound(2002499, true);
-			static SharedPtrTypeless soundHandle;
-			Common::SonicContextPlayVoice(soundHandle, 0, 30);
 		}
 	}
 }
@@ -396,7 +486,6 @@ void CreateConsole()
 	std::wcin.clear();
 }
 bool shortJumpMove = false;
-bool JumpRestore = Common::reader.GetBoolean("Restorations", "RunJump", true);
 HOOK(int, __fastcall, ShortJumpMove, 0x11BF200, int This) {
 	if (JumpRestore) {
 		Sonic::Player::CPlayerSpeedContext* sonic = Sonic::Player::CPlayerSpeedContext::GetInstance();
@@ -479,13 +568,14 @@ void CPlayerSpeedUpdate::Install()
 	// https://github.com/brianuuu/DllMods/blob/master/Source/Sonic06DefinitiveExperience/NextGenSonic.cpp
 	if(Common::reader.GetBoolean("Restorations", "DPadDisable", true))
 		WRITE_JUMP(0xD97B56, (void*)0xD97B9E); // Disable D-Pad Input
+	WRITE_JUMP(0x125291F, CSonicStateSquatKickAdvanceTransitionOut);
+	INSTALL_HOOK(CSonicStateFallStart);
 	INSTALL_HOOK(ShortJumpMove);
 	INSTALL_HOOK(HurdleAnim);
 	INSTALL_HOOK(RampParticle);
 	INSTALL_HOOK(CHudSonicStageUpdateParallel);
 	INSTALL_HOOK(CPlayerSpeedUpdateParallel);
 	INSTALL_HOOK(MsgStartCommonButtonSign);
-	INSTALL_HOOK(CSonicStateSquatBegin);
 	INSTALL_HOOK(CSonicStateSquatAdvance);
 
 	if (MoreVoice) { INSTALL_HOOK(CPlayerGetLife); }

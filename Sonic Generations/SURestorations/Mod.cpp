@@ -3,8 +3,8 @@
 /// </summary>
 extern "C" _declspec(dllexport) void Init()
 {
-	if (Common::reader.GetBoolean("Restorations", "ExplosionParticle", true)) {
-		ArchiveTreePatcher::m_archiveDependencies.push_back(ArchiveDependency("EnemyExplosion", { "EnemyCommon" }));
+	if (Common::reader.GetBoolean("Restorations", "Explosion", true)) {
+		ArchiveTreePatcher::m_archiveDependencies.push_back(ArchiveDependency("Explosion", { "EnemyCommon" }));
 	}
 	ArchiveTreePatcher::m_archiveDependencies.push_back(ArchiveDependency("SonicNew", { "Sonic" }));
 	ArchiveTreePatcher::m_archiveDependencies.push_back(ArchiveDependency("SonicCrawl", { "Sonic" }));
@@ -16,7 +16,7 @@ extern "C" _declspec(dllexport) void Init()
 	ArchiveTreePatcher::applyPatches();
 	AnimationSetPatcher::applyPatches();
 	if(Common::SUHud && Common::UP) HubUI::Install();
-	EXP::Install();
+	if(Common::SUHud && Common::reader.GetBoolean("EXP", "Use", true)) EXP::Install();
 	CPlayerSpeedUpdate::Install();
 	//Missile::Install();
 }
