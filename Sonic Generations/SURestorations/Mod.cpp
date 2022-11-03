@@ -6,18 +6,26 @@ extern "C" _declspec(dllexport) void Init()
 	if (Common::reader.GetBoolean("Restorations", "Explosion", true)) {
 		ArchiveTreePatcher::m_archiveDependencies.push_back(ArchiveDependency("Explosion", { "EnemyCommon" }));
 	}
-	ArchiveTreePatcher::m_archiveDependencies.push_back(ArchiveDependency("SonicNew", { "Sonic" }));
+	ArchiveTreePatcher::m_archiveDependencies.push_back(ArchiveDependency("Pole", { "ActionCommon" }));
 	ArchiveTreePatcher::m_archiveDependencies.push_back(ArchiveDependency("SonicCrawl", { "Sonic" }));
 	ArchiveTreePatcher::m_archiveDependencies.push_back(ArchiveDependency("SonicSweepKick", { "Sonic" }));
 	ArchiveTreePatcher::m_archiveDependencies.push_back(ArchiveDependency("SonicUI", { "Sonic" }));
 	ArchiveTreePatcher::m_archiveDependencies.push_back(ArchiveDependency("SonicRamp", { "Sonic" }));
 	ArchiveTreePatcher::m_archiveDependencies.push_back(ArchiveDependency("SonicEXP", { "Sonic" }));
 	ArchiveTreePatcher::m_archiveDependencies.push_back(ArchiveDependency("SonicSound", { "Sonic" }));
+	ArchiveTreePatcher::m_archiveDependencies.push_back(ArchiveDependency("SunMedal", { "Sonic" }));
+	ArchiveTreePatcher::m_archiveDependencies.push_back(ArchiveDependency("MoonMedal", { "Sonic" }));
+	ArchiveTreePatcher::m_archiveDependencies.push_back(ArchiveDependency("SonicFirework", { "Sonic" }));
 	ArchiveTreePatcher::applyPatches();
 	AnimationSetPatcher::applyPatches();
-	if(Common::SUHud && Common::UP) HubUI::Install();
+
+	if(Common::SUHud && Common::UPC) HubUI::Install();
 	if(Common::SUHud && Common::reader.GetBoolean("EXP", "Use", true)) EXP::Install();
+
 	CPlayerSpeedUpdate::Install();
+
+	if (Common::SUHud) Medal::Install();
+
 	//Missile::Install();
 }
 

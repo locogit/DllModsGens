@@ -91,11 +91,11 @@ HOOK(void, __fastcall, CHudPlayableMenuStart, 0x108DEB0, Sonic::CGameObject *Thi
 
 	CalculateAspectOffsetsTownScreen();
 	Sonic::CCsdDatabaseWrapper wrapper(This->m_pMember->m_pGameDocument->m_pMember->m_spDatabase.get());
-	boost::shared_ptr<Sonic::CCsdProject> spCsdProjectTown(new Sonic::CCsdProject);
+
+	auto spCsdProjectTown = wrapper.GetCsdProject("ui_townscreen");
 
 	size_t& flags = ((size_t*)This)[151];
 
-	wrapper.GetCsdProject(spCsdProjectTown, "ui_townscreen");
 	rcTownScreen = spCsdProjectTown->m_rcProject;
 	info = rcTownScreen->CreateScene("info");
 	info->SetPosition(xAspectOffsetTownScreen, 0);

@@ -28,11 +28,9 @@ HOOK(void, __fastcall, CHudSonicStageDelayProcessImpMissile, 0x109A8D0, Sonic::C
 
 	Sonic::CCsdDatabaseWrapper wrapperLockOn(This->m_pMember->m_pGameDocument->m_pMember->m_spDatabase.get());
 
-	boost::shared_ptr<Sonic::CCsdProject> spCsdProjectLockOn(new Sonic::CCsdProject);
+	auto spCsdProjectLockOn = wrapperLockOn.GetCsdProject("ui_lcursor_enemy");
 
 	size_t& flags = ((size_t*)This)[151];
-
-	wrapperLockOn.GetCsdProject(spCsdProjectLockOn, "ui_lcursor_enemy");
 	rcLockOn = spCsdProjectLockOn->m_rcProject;
 	cursor_enemy = rcLockOn->CreateScene("cursor_enemy");
 	cursor_enemy->SetHideFlag(true);

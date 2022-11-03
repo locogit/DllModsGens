@@ -32,7 +32,7 @@ void KillScreenEXP()
 		spExp = nullptr;
 	}
 }
-void __fastcall CHudSonicStageRemoveCallback(Sonic::CGameObject* This, void*, Sonic::CGameDocument* pGameDocument)
+void __fastcall CHudSonicStageRemoveCallbackEXP(Sonic::CGameObject* This, void*, Sonic::CGameDocument* pGameDocument)
 {
 	KillScreenEXP();
 	Chao::CSD::CProject::DestroyScene(rcExp.Get(), exp_count);
@@ -66,17 +66,16 @@ void CalculateAspectOffsetsExp()
 HOOK(void, __fastcall, CHudSonicStageDelayProcessImpEXP, 0x109A8D0, Sonic::CGameObject* This) {
 	originalCHudSonicStageDelayProcessImpEXP(This);
 	if (BlueBlurCommon::IsModern()) {
-		CHudSonicStageRemoveCallback(This, nullptr, nullptr);
+		CHudSonicStageRemoveCallbackEXP(This, nullptr, nullptr);
 
 		CalculateAspectOffsetsExp();
 
 		Sonic::CCsdDatabaseWrapper wrapperExp(This->m_pMember->m_pGameDocument->m_pMember->m_spDatabase.get());
 
-		boost::shared_ptr<Sonic::CCsdProject> spCsdProjectExp(new Sonic::CCsdProject);
+		auto spCsdProjectExp = wrapperExp.GetCsdProject("exp");
 
 		size_t& flags = ((size_t*)This)[151];
 
-		wrapperExp.GetCsdProject(spCsdProjectExp, "exp");
 		rcExp = spCsdProjectExp->m_rcProject;
 		exp_count = rcExp->CreateScene("exp_count");
 		char text[256];
@@ -135,12 +134,12 @@ HOOK(void, __fastcall, ChaosEnergy_MsgGetHudPosition, 0x1096790, void* This, voi
 
 	originalChaosEnergy_MsgGetHudPosition(This, Edx, message);
 }
-bool renderGameHud;
+bool renderGameHudEXP;
 bool maxEXP = false;
 HOOK(void, __fastcall, CHudSonicStageUpdateParallelEXP, 0x1098A50, Sonic::CGameObject* This, void* Edx, const hh::fnd::SUpdateInfo& in_rUpdateInfo) {
 	originalCHudSonicStageUpdateParallelEXP(This, Edx, in_rUpdateInfo);
 	if (BlueBlurCommon::IsModern()) {
-		renderGameHud = *(bool*)0x1A430D8;
+		renderGameHudEXP = *(bool*)0x1A430D8;
 		Sonic::Player::CPlayerSpeedContext* sonic = Sonic::Player::CPlayerSpeedContext::GetInstance();
 		if (expParticleTimerPlay) {
 			if (expParticleTime > 0) {
@@ -168,7 +167,7 @@ HOOK(void, __fastcall, CHudSonicStageUpdateParallelEXP, 0x1098A50, Sonic::CGameO
 				expHidden = true;
 			}
 		}
-		if (renderGameHud) {
+		if (renderGameHudEXP) {
 			exp_count->SetHideFlag(expHidden);
 		}
 		else {

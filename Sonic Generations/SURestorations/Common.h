@@ -2081,6 +2081,6 @@ namespace Common
 	static INIReader reader("mod.ini");
 	static bool SUHud = Common::IsModEnabled("Sonic Unleashed HUD");
 	static bool UP = Common::IsModEnabled("Unleashed Project");
-	static bool AP = Common::IsModEnabledContains("Adventure Pack");
+	static bool UPC = Common::IsModEnabled("UP: The Complete Addon");
 	static CSonicContext** const PLAYER_CONTEXT_GET = (CSonicContext**)0x1E5E2F0;
 } // namespace Common

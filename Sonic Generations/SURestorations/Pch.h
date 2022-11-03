@@ -13,19 +13,23 @@
 // Standard library
 #include <cstdint>
 #include <cstdio>
+
 #include <filesystem>
+
 #include <iostream>
 #include <fstream>
-#include <deque>
+
 // Dependencies
 #include <INIReader.h>
+#include "CSDCommon.h"
+#include "Common.h"
 #include "ArchiveTreePatcher.h"
 #include "AnimationSetPatcher.h"
+#include "Helpers.h"
+#include <StringHelper.h>
+
 #include "EXP.h"
 #include "HubUI.h"
 #include "Missile.h"
-#include "CSDCommon.h"
-#include "Common.h"
+#include "Medal.h"
 #include "CPlayerSpeedUpdate.h"
-#include "Helpers.h"
-#include <StringHelper.h>

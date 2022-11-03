@@ -84,7 +84,7 @@
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <SDLCheck>true</SDLCheck>
       <ConformanceMode>true</ConformanceMode>
-      <AdditionalIncludeDirectories>$(SolutionDir)Dependencies\BlueBlur;$(SolutionDir)Dependencies;$(SolutionDir)Dependencies\Detours\include;C:\Users\locol\Downloads\App-Extension-Mods\Dependencies\BlueBlurCustom;C:\Users\locol\Downloads\DllModsGens\Dependencies\boost;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(SolutionDir)Dependencies\BlueBlur;$(SolutionDir)Dependencies;$(SolutionDir)Dependencies\Detours\include;C:\Users\locol\Downloads\DllModsGens\Dependencies\boost;C:\Users\locol\Downloads\DllModsGens\Dependencies\BlueBlurCustom;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <PrecompiledHeader>Use</PrecompiledHeader>
       <PrecompiledHeaderFile>Pch.h</PrecompiledHeaderFile>
       <ForcedIncludeFiles>Pch.h</ForcedIncludeFiles>
@@ -111,6 +111,7 @@
     <ClInclude Include="CSDCommon.h" />
     <ClInclude Include="EXP.h" />
     <ClInclude Include="HubUI.h" />
+    <ClInclude Include="Medal.h" />
     <ClInclude Include="Missile.h" />
     <ClInclude Include="Pch.h" />
   </ItemGroup>
@@ -121,6 +122,7 @@
     <ClCompile Include="CPlayerSpeedUpdate.cpp" />
     <ClCompile Include="EXP.cpp" />
     <ClCompile Include="HubUI.cpp" />
+    <ClCompile Include="Medal.cpp" />
     <ClCompile Include="Missile.cpp" />
     <ClCompile Include="Mod.cpp" />
     <ClCompile Include="Pch.cpp">
