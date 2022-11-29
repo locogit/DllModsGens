@@ -142,9 +142,9 @@ public:
 		const float scale = max(rMatrix.col(0).head<3>().norm(),
 			max(rMatrix.col(1).head<3>().norm(), rMatrix.col(2).head<3>().norm()));
 
-		rMatrix.col(0) /= LERP(1.0f, scale / 0.15f);
-		rMatrix.col(1) /= LERP(1.0f, scale / 0.15f);
-		rMatrix.col(2) /= LERP(1.0f, scale / 0.15f);
+		rMatrix.col(0) /= LERP(0.5f, scale / 0.15f);
+		rMatrix.col(1) /= LERP(0.5f, scale / 0.15f);
+		rMatrix.col(2) /= LERP(0.5f, scale / 0.15f);
 
 		rTransform(0, 3) = LERP(rTransform(0, 3), 0.65f);
 		rTransform(1, 3) = LERP(rTransform(1, 3), (SunMedal) ? -0.629f : -0.74f);

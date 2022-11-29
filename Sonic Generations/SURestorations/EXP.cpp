@@ -273,6 +273,7 @@ HOOK(void, __fastcall, HudResult_MsgStartGoalResultEXP, 0x10B58A0, uint32_t* Thi
 		writeToExpFile();
 	originalHudResult_MsgStartGoalResultEXP(This, Edx, message);
 }
+
 void EXP::Install() {
 	maxEXP = Common::reader.GetBoolean("EXP", "Max", false);
 
@@ -289,9 +290,9 @@ void EXP::Install() {
 	// Set absorb time to 1.2s
 	static float ChaosEnergyParam[] =
 	{
-		3.0f,	// UpHeight
-		0.3f,	// UpTime
-		0.35f	// AbsorbTime
+		Common::reader.GetFloat("EXP","UpHeight",0.0f),	// UpHeight
+		Common::reader.GetFloat("EXP","UpTime",0.0f),	// UpTime
+		Common::reader.GetFloat("EXP","AbsorbTime",0.0f)	// AbsorbTime
 	};
 
 	WRITE_MEMORY(0xC8EF3D, float*, ChaosEnergyParam);

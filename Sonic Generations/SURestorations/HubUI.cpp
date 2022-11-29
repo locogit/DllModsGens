@@ -125,6 +125,7 @@ HOOK(void, __fastcall, CHudPlayableMenuStart, 0x108DEB0, Sonic::CGameObject *Thi
 	CreateScreenTownScreen(This);
 }
 void HubUI::Install() {
+	ringCount = std::clamp(stoi(readHubFile(1)), 0, 999999);
 	INSTALL_HOOK(HudResult_MsgStartGoalResultHUB);
 	INSTALL_HOOK(CHudPlayableMenuStart);
 	WRITE_MEMORY(0x16A467C, void*, RemoveHubCallbackTownScreen);

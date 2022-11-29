@@ -16,10 +16,12 @@ extern "C" _declspec(dllexport) void Init()
 	ArchiveTreePatcher::m_archiveDependencies.push_back(ArchiveDependency("SunMedal", { "Sonic" }));
 	ArchiveTreePatcher::m_archiveDependencies.push_back(ArchiveDependency("MoonMedal", { "Sonic" }));
 	ArchiveTreePatcher::m_archiveDependencies.push_back(ArchiveDependency("SonicFirework", { "Sonic" }));
+
 	ArchiveTreePatcher::applyPatches();
 	AnimationSetPatcher::applyPatches();
 
 	if(Common::SUHud && Common::UPC) HubUI::Install();
+
 	if(Common::SUHud && Common::reader.GetBoolean("EXP", "Use", true)) EXP::Install();
 
 	CPlayerSpeedUpdate::Install();

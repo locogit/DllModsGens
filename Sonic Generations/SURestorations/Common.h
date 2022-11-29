@@ -1809,6 +1809,53 @@ namespace Common
 		msgSetRotation.m_rotation = rot;
 		processObjectMsgSetRotation(pObject, &msgSetRotation);
 	}
+	static Hedgehog::Math::CVector GetPosition()
+	{
+		auto vecResult = Hedgehog::Math::CVector(0, 0, 0);
+
+		if (!*PLAYER_CONTEXT)
+			return vecResult;
+
+		const uint32_t result = *(uint32_t*)((uint32_t) * (void**)((uint32_t)*PLAYER_CONTEXT + 0x110) + 0xAC);
+		{
+			if (!result)
+				return vecResult;
+		}
+
+		float* pPos = (float*)(*(uint32_t*)(result + 0x10) + 0x70);
+		{
+			vecResult.x() = pPos[0];
+			vecResult.y() = pPos[1];
+			vecResult.z() = pPos[2];
+		}
+
+		return vecResult;
+	}
+
+	// https://github.com/brianuuu/DllMods/blob/master/Dependencies/Common.h
+	static Hedgehog::Math::CQuaternion GetRotation()
+	{
+		auto vecResult = Hedgehog::Math::CQuaternion(0, 0, 0, 0);
+
+		if (!*PLAYER_CONTEXT)
+			return vecResult;
+
+		const uint32_t result = *(uint32_t*)((uint32_t) * (void**)((uint32_t)*PLAYER_CONTEXT + 0x110) + 0xAC);
+		{
+			if (!result)
+				return vecResult;
+		}
+
+		float* pRot = (float*)(*(uint32_t*)(result + 0x10) + 0x60);
+		{
+			vecResult.x() = pRot[0];
+			vecResult.y() = pRot[1];
+			vecResult.z() = pRot[2];
+			vecResult.w() = pRot[3];
+		}
+
+		return vecResult;
+	}
 
 	inline void CreatePlayerSupportShockWave(hh::math::CVector const& pos, float height, float radius, float duration)
 	{

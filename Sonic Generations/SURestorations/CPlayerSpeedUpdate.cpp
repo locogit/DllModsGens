@@ -57,12 +57,13 @@ int currentHurdleIndex = 1;
 bool InfLivesCodeChange = Common::reader.GetBoolean("Changes", "InfLives", true);
 
 bool isCrawling = false;
-const float crawlSpeed = 10;
+const float crawlSpeed = 8;
 float crawlEnterTime = 0;
 float crawlExitTime = 0;
 int BPressed = 0;
 bool BResetTimerEnable = false;
 float BResetTimer;
+float sweepkickColTime = 0.0f;
 SharedPtrTypeless squatKickParticleHandle;
 Hedgehog::Math::CQuaternion squatKickRotation;
 HOOK(void, __fastcall, CSonicStateSquatKickBegin, 0x12526D0, hh::fnd::CStateMachineBase::CStateBase* This)
@@ -74,12 +75,14 @@ HOOK(void, __fastcall, CSonicStateSquatKickBegin, 0x12526D0, hh::fnd::CStateMach
 
 	context->PlaySound(2002497, true);
 
+	sweepkickColTime = 0.2f;
+
 	originalCSonicStateSquatKickBegin(This);
 }
 HOOK(void, __fastcall, CSonicStateSquatKickAdvance, 0x1252810, hh::fnd::CStateMachineBase::CStateBase* This) {
 	auto* context = (Sonic::Player::CPlayerSpeedContext*)This->GetContextBase();
 	Hedgehog::Math::CVector pos = context->m_spMatrixNode->m_Transform.m_Position;
-	Common::CreatePlayerSupportShockWave(pos, 0.5f, 2.5f, 0.1f);
+	if (sweepkickColTime <= 0) Common::CreatePlayerSupportShockWave(pos, 0.5f, 2.5f, 0.1f);
 	originalCSonicStateSquatKickAdvance(This);
 }
 HOOK(void, __fastcall, CSonicStateSquatKickEnd, 0x12527B0, void* This)
@@ -163,7 +166,9 @@ bool WaterIdle = Common::reader.GetBoolean("Restorations", "WaterIdle", true);
 bool RampBoost = Common::reader.GetBoolean("Restorations", "BoostRamp", true);
 bool CrawlEnabled = Common::reader.GetBoolean("Restorations", "Crawl", true);
 bool PoleSwingTrail = Common::reader.GetBoolean("Restorations", "PoleTrail", true);
+bool HomingX = Common::reader.GetBoolean("Restorations", "XHoming", true);
 
+float maxSpeed = 70.0f;
 void RingAddSpeed() {
 	Sonic::Player::CPlayerSpeedContext* sonic = Sonic::Player::CPlayerSpeedContext::GetInstance();
 	if (sonic->m_RingCount % 25 == 0 && sonic->m_RingCount != 0) {
@@ -178,8 +183,18 @@ void RingAddSpeed() {
 		else if (sonic->m_RingCount > 200) {
 			addAmount = 0.5f;
 		}
-		//MessageBeep(MB_ICONINFORMATION);
+		maxSpeed += addAmount * addMultiplier;
+		//maxSpeed = std::clamp(maxSpeed, 70.0f, 80.0f);
 	}
+}
+
+bool poleTrail = false;
+HOOK(int, __fastcall, MsgRestartStage, 0xE76810, uint32_t* This, void* Edx, void* message)
+{
+	int result = originalMsgRestartStage(This, Edx, message);
+	prevRingCount = 0;
+	maxSpeed = 70.0f;
+	return result;
 }
 HOOK(void, __fastcall, CPlayerSpeedUpdateParallel, 0xE6BF20, Sonic::Player::CPlayerSpeed* This, void* _, const hh::fnd::SUpdateInfo& updateInfo)
 {
@@ -195,7 +210,29 @@ HOOK(void, __fastcall, CPlayerSpeedUpdateParallel, 0xE6BF20, Sonic::Player::CPla
 		Sonic::SPadState input = Sonic::CInputState::GetInstance()->GetPadState();
 		Hedgehog::Math::CVector velNoY = sonic->m_Velocity;
 		velNoY.y() = 0;
-		//printf("%s\n", anim);
+		printf("code speed : %f actual speed : %f \n", maxSpeed, *Common::GetPlayerMaxSpeed());
+		if (state != "Squat") {
+			if (state == "AirBoost" || sonic->StateFlag(eStateFlag_Boost)) {
+				float speed = Common::IsPlayerIn2D() ? (maxSpeed/2) + 17.0f : maxSpeed + 28.0f;
+				if (*Common::GetPlayerMaxSpeed() != speed) *Common::GetPlayerMaxSpeed() = speed;
+			}
+			else if (state != "AirBoost" && !sonic->StateFlag(eStateFlag_Boost)) {
+				float speed = Common::IsPlayerIn2D() ? maxSpeed / 2 : maxSpeed;
+				if (*Common::GetPlayerMaxSpeed() != speed) *Common::GetPlayerMaxSpeed() = speed;
+			}
+		}
+		else {
+			float speed = 7.0f;
+			if (*Common::GetPlayerMaxSpeed() != speed) *Common::GetPlayerMaxSpeed() = speed;
+		}
+		if (sweepkickColTime > 0) sweepkickColTime -= updateInfo.DeltaTime;
+
+		if (HomingX && sonic->m_spParameter->Get<bool>(Sonic::Player::ePlayerSpeedParameter_XButtonHoming) != true) {
+			sonic->m_spParameter->m_scpNode->m_ValueMap[Sonic::Player::ePlayerSpeedParameter_XButtonHoming] = true;
+		}
+
+		//sonic->m_spParameter->m_scpNode->m_ValueMap[Sonic::Player::ePlayerSpeedParameter_MaxVelocityBasis] = Common::IsPlayerIn2D() ? maxSpeed / 2 : maxSpeed;
+
 		if (EnergyChange) {
 			if (prevRingCount < sonic->m_RingCount) {
 				if (sonic->m_ChaosEnergy < 100.0f && previousChaosEnergy + ringEnergyAmount < 100.0f)
@@ -221,10 +258,15 @@ HOOK(void, __fastcall, CPlayerSpeedUpdateParallel, 0xE6BF20, Sonic::Player::CPla
 		}
 
 		if (PoleSwingTrail) {
-			if (strstr(anim.c_str(), "PoleSpinJump")) {
+			if (strstr(anim.c_str(), "PoleSpinJump") && !poleTrail) {
+				poleTrail = true;
 				Common::SonicContextRequestLocusEffect();
 			}
+			else if (!strstr(anim.c_str(), "PoleSpinJump") && poleTrail) {
+				poleTrail = false;
+			}
 		}
+
 
 		if (anim == "UpReelEnd" && !UpReelEnd && !UpReelForce) {
 			UpReelEnd = true;
@@ -466,7 +508,8 @@ HOOK(void, __fastcall, CSonicStateSquatAdvance, 0x1230B60, void* This)
 			else if (input.IsUp(Sonic::eKeyState_B)) {
 				isCrawling = false;
 				if (!inputDirection.isZero()) {
-					sonic->ChangeState("Walk");
+					sonic->m_Velocity = Hedgehog::Math::CVector::Zero();
+					sonic->ChangeState("Stand");
 				}
 				else {
 					originalCSonicStateSquatAdvance(This);
@@ -541,19 +584,9 @@ HOOK(void, __fastcall, HurdleAnim, 0x11BEEC0, float *This) {
 		}
 	}
 }
-void HMMPatches() {
-	if (Common::reader.GetBoolean("Restorations", "XHoming", true)) {
-		if (*(byte*) 0x015FA418 != 0) {
-			//Patch "Homing Attack on Boost" by "SWS90"
-			WRITE_MEMORY(0x015FA418, byte, 0);
-		}
-	}
-}
 void CPlayerSpeedUpdate::Install()
 {
 	CreateConsole();
-
-	HMMPatches();
 
 	for(std::string modName : SUModelMods)
 	{
@@ -598,12 +631,17 @@ void CPlayerSpeedUpdate::Install()
 		WRITE_JUMP(0xD97B56, (void*)0xD97B9E); // Disable D-Pad Input
 
 	WRITE_JUMP(0x125291F, CSonicStateSquatKickAdvanceTransitionOut);
+
 	INSTALL_HOOK(CSonicStateFallStart);
+
 	INSTALL_HOOK(ShortJumpMove);
 	INSTALL_HOOK(HurdleAnim);
+
 	INSTALL_HOOK(CPlayerSpeedUpdateParallel);
 	INSTALL_HOOK(MsgStartCommonButtonSign);
 	INSTALL_HOOK(CSonicStateSquatAdvance);
+
+	INSTALL_HOOK(MsgRestartStage);
 
 	if (MoreVoice) { INSTALL_HOOK(CPlayerGetLife); }
 
