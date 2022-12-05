@@ -107,19 +107,28 @@
     <ClInclude Include="AnimationSetPatcher.h" />
     <ClInclude Include="ArchiveTreePatcher.h" />
     <ClInclude Include="Common.h" />
-    <ClInclude Include="CPlayerSpeedUpdate.h" />
+    <ClInclude Include="Misc.h" />
+    <ClInclude Include="Crawl.h" />
     <ClInclude Include="CSDCommon.h" />
     <ClInclude Include="EXP.h" />
     <ClInclude Include="HubUI.h" />
     <ClInclude Include="Medal.h" />
     <ClInclude Include="Missile.h" />
     <ClInclude Include="Pch.h" />
+    <ClInclude Include="Pole.h" />
+    <ClInclude Include="Ramp.h" />
+    <ClInclude Include="ShortJump.h" />
+    <ClInclude Include="Stumble.h" />
+    <ClInclude Include="Sweepkick.h" />
+    <ClInclude Include="UPC.h" />
+    <ClInclude Include="UpReel.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="AnimationSetPatcher.cpp" />
     <ClCompile Include="ArchiveTreePatcher.cpp" />
+    <ClCompile Include="Crawl.cpp" />
     <ClCompile Include="DllMain.cpp" />
-    <ClCompile Include="CPlayerSpeedUpdate.cpp" />
+    <ClCompile Include="Misc.cpp" />
     <ClCompile Include="EXP.cpp" />
     <ClCompile Include="HubUI.cpp" />
     <ClCompile Include="Medal.cpp" />
@@ -129,6 +138,13 @@
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Create</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Create</PrecompiledHeader>
     </ClCompile>
+    <ClCompile Include="Pole.cpp" />
+    <ClCompile Include="Ramp.cpp" />
+    <ClCompile Include="ShortJump.cpp" />
+    <ClCompile Include="Stumble.cpp" />
+    <ClCompile Include="Sweepkick.cpp" />
+    <ClCompile Include="UPC.cpp" />
+    <ClCompile Include="UpReel.cpp" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

@@ -20,13 +20,29 @@ extern "C" _declspec(dllexport) void Init()
 	ArchiveTreePatcher::applyPatches();
 	AnimationSetPatcher::applyPatches();
 
+	Misc::Install();
+
 	if(Common::SUHud && Common::UPC) HubUI::Install();
 
 	if(Common::SUHud && Common::reader.GetBoolean("EXP", "Use", true)) EXP::Install();
 
-	CPlayerSpeedUpdate::Install();
+	if(Common::reader.GetBoolean("Restorations", "SweepKick", true)) Sweepkick::Install();
 
-	if (Common::SUHud) Medal::Install();
+	if (Common::reader.GetBoolean("Restorations", "UpReel", true)) UpReel::Install();
+
+	if(Common::reader.GetBoolean("Restorations", "Stumble", true)) Stumble::Install();
+
+	if(Common::reader.GetBoolean("Restorations", "RunJump", true)) ShortJump::Install();
+
+	if(Common::reader.GetBoolean("Restorations", "Crawl", true)) Crawl::Install();
+
+	if(Common::reader.GetBoolean("Restorations", "PoleTrail", true)) Pole::Install();
+
+	if (Common::reader.GetBoolean("Restorations", "Ramp", true) || Common::reader.GetBoolean("Restorations", "BoostRamp", true)) Ramp::Install();
+
+	if (Common::UPC) UPC::Install();
+
+	//if (Common::SUHud) Medal::Install();
 
 	//Missile::Install();
 }

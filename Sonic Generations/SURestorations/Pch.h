@@ -28,8 +28,16 @@
 #include "Helpers.h"
 #include <StringHelper.h>
 
+#include "Misc.h"
 #include "EXP.h"
 #include "HubUI.h"
 #include "Missile.h"
 #include "Medal.h"
-#include "CPlayerSpeedUpdate.h"
+#include "Sweepkick.h"
+#include "UpReel.h"
+#include "Stumble.h"
+#include "ShortJump.h"
+#include "Crawl.h"
+#include "Pole.h"
+#include "Ramp.h"
+#include "UPC.h"

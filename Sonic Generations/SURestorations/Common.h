@@ -2014,6 +2014,28 @@ namespace Common
 
 		return false;
 	}
+	static inline bool IsModEnabledID(std::string const& testModID, std::string* o_iniPath = nullptr)
+	{
+		std::vector<std::string> modIniList;
+		GetModIniList(modIniList);
+		for (size_t i = 0; i < modIniList.size(); i++)
+		{
+			std::string const& config = modIniList[i];
+			INIReader configReader(config);
+			std::string id = configReader.Get("Main", "ID", "");
+			if (id == testModID)
+			{
+				if (o_iniPath)
+				{
+					*o_iniPath = config;
+				}
+
+				return true;
+			}
+		}
+
+		return false;
+	}
 	static inline bool IsModEnabledContains(std::string const& testModName, std::string* o_iniPath = nullptr)
 	{
 		std::vector<std::string> modIniList;
@@ -2036,7 +2058,6 @@ namespace Common
 
 		return false;
 	}
-
 	inline bool TestModPriority(std::string const& currentModName, std::string const& testModName, bool higherPriority)
 	{
 		int currentModIndex = -1;
@@ -2126,8 +2147,8 @@ namespace Common
 		return false;
 	}
 	static INIReader reader("mod.ini");
-	static bool SUHud = Common::IsModEnabled("Sonic Unleashed HUD");
+	static bool SUHud = Common::IsModEnabledID("ptkickass.sonicgenerations.unleashedhud");
 	static bool UP = Common::IsModEnabled("Unleashed Project");
-	static bool UPC = Common::IsModEnabled("UP: The Complete Addon");
+	static bool UPC = Common::IsModEnabledID("the.k1.addon");
 	static CSonicContext** const PLAYER_CONTEXT_GET = (CSonicContext**)0x1E5E2F0;
 } // namespace Common
