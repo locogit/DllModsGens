@@ -71,6 +71,10 @@ HOOK(void, __fastcall, SquatAdvanceCrawl, 0x1230B60, void* This)
 					originalSquatAdvanceCrawl(This);
 				}
 			}
+			if (input.IsTapped(Sonic::eKeyState_A)) {
+				originalSquatAdvanceCrawl(This);
+				isCrawling = false;
+			}
 		}
 		else if (!sonic->m_Grounded) {
 			isCrawling = false;
