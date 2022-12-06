@@ -127,7 +127,10 @@ bool DisableBoard = Common::reader.GetBoolean("Changes", "DisableBoard", false);
 void Misc::Install()
 {
 	// Unwiished Fall
-	if (Common::reader.GetBoolean("Changes", "WiiFall", false)) WRITE_MEMORY(0x15E812C, const char*, "sn_wall_fly02_loop");
+	if (Common::reader.GetBoolean("Changes", "WiiFall", false)) {
+		WRITE_MEMORY(0x111913A, uint8_t, 0x72, 0x27);
+		WRITE_MEMORY(0x15E812C, const char*, "sn_wall_fly02_loop");
+	}
 
 	for(std::string modName : SUModelMods)
 	{

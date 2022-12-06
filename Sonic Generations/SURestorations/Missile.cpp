@@ -2,6 +2,7 @@ boost::shared_ptr<Sonic::CGameObjectCSD> spLockOn;
 Chao::CSD::RCPtr<Chao::CSD::CProject> rcLockOn;
 Chao::CSD::RCPtr<Chao::CSD::CScene> cursor_enemy;
 bool cursorHidden = true;
+float missileTimer;
 void KillScreenMissile()
 {
 	if (spLockOn)
@@ -72,14 +73,57 @@ HOOK(void, __fastcall, HudResult_MsgStartGoalResultMissile, 0x10B58A0, uint32_t*
 	originalHudResult_MsgStartGoalResultMissile(This, Edx, message);
 }
 HOOK(__int8, __fastcall, missile, 0x60EFF0, DWORD** This, int a2, int* a3, void* Edx) {
-	if (cursorHidden) {
-		cursor_enemy->SetHideFlag(false);
-		CSDCommon::PlayAnimation(*cursor_enemy, "Lock_Anim", Chao::CSD::eMotionRepeatType_PlayOnce, 0, 1);
-		cursorHidden = false;
+	if (BlueBlurCommon::IsModern()) {
+		missileTimer = 1.5f;
+		if (cursorHidden) {
+			cursor_enemy->SetHideFlag(false);
+			CSDCommon::PlayAnimation(*cursor_enemy, "Lock_Anim", Chao::CSD::eMotionRepeatType_PlayOnce, 0, 1);
+			cursorHidden = false;
+		}
 	}
 	return originalmissile(This, a2, a3, Edx);
 }
+void CreateConsole()
+{
+	if (!AllocConsole()) {
+		// Add some error handling here.
+		// You can call GetLastError() to get more info about the error.
+		return;
+	}
+	// std::cout, std::clog, std::cerr, std::cin
+	FILE* fDummy;
+	freopen_s(&fDummy, "CONOUT$", "w", stdout);
+	freopen_s(&fDummy, "CONOUT$", "w", stderr);
+	freopen_s(&fDummy, "CONIN$", "r", stdin);
+	std::cout.clear();
+	std::clog.clear();
+	std::cerr.clear();
+	std::cin.clear();
+	// std::wcout, std::wclog, std::wcerr, std::wcin
+	HANDLE hConOut = CreateFile(_T("CONOUT$"), GENERIC_READ | GENERIC_WRITE, FILE_SHARE_READ | FILE_SHARE_WRITE, NULL, OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, NULL);
+	HANDLE hConIn = CreateFile(_T("CONIN$"), GENERIC_READ | GENERIC_WRITE, FILE_SHARE_READ | FILE_SHARE_WRITE, NULL, OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, NULL);
+	SetStdHandle(STD_OUTPUT_HANDLE, hConOut);
+	SetStdHandle(STD_ERROR_HANDLE, hConOut);
+	SetStdHandle(STD_INPUT_HANDLE, hConIn);
+	std::wcout.clear();
+	std::wclog.clear();
+	std::wcerr.clear();
+	std::wcin.clear();
+}
+HOOK(void, __fastcall, SonicMissileUpdate, 0xE6BF20, Sonic::Player::CPlayerSpeed* This, void* _, const hh::fnd::SUpdateInfo& updateInfo) {
+	originalSonicMissileUpdate(This, _, updateInfo);
+	if (BlueBlurCommon::IsModern()) {
+		if (missileTimer > 0) { missileTimer -= updateInfo.DeltaTime; }
+		if (missileTimer <= 0 && !cursorHidden) 
+		{ 
+			cursorHidden = true;
+			cursor_enemy->SetHideFlag(true);
+		}
+	}
+}
 void Missile::Install() {
+	CreateConsole();
+	INSTALL_HOOK(SonicMissileUpdate);
 	INSTALL_HOOK(missile);
 	INSTALL_HOOK(CHudSonicStageDelayProcessImpMissile);
 	INSTALL_HOOK(CHudSonicStageUpdateParallelMissile);

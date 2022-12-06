@@ -44,7 +44,7 @@ extern "C" _declspec(dllexport) void Init()
 
 	//if (Common::SUHud) Medal::Install();
 
-	//Missile::Install();
+	Missile::Install();
 }
 
 extern "C" __declspec(dllexport) void PostInit() {
