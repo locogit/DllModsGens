@@ -238,11 +238,11 @@ uint32_t __fastcall getEnemyChaosEnergyAmountImpl(uint32_t* pEnemy)
 	printf("0x%08X\n", pEnemy[0]);
 	switch (pEnemy[0])
 	{
-	case 0x016F593C: return 5; // EFighter
-	case 0x016F70BC: return 3; // Spinner
-	case 0x016FB1FC: return 5; // EFighterMissile
-	case 0x016FB62C: return 4; // AirCannon
-	case 0x016F912C: return 8; // Mole
+	case 0x016F593C: return (rand() % 3 + 1); // EFighter
+	case 0x016F70BC: return (rand() % 3 + 1); // Spinner
+	case 0x016FB1FC: return (rand() % 5 + 1); // EFighterMissile
+	case 0x016FB62C: return (rand() % 4 + 1); // AirCannon
+	case 0x016F912C: return (rand() % 5 + 1); // Mole
 	default: return 5;
 	}
 }

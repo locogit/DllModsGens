@@ -42,11 +42,76 @@ void __declspec(naked) airBoostSuperSonicOnly()
 }
 
 bool bobsleighBoostCancel = false;
+
+float paraloopTime;
+bool paraloop = false;
+
+struct ParaloopInfo {
+	std::vector<float> startPos = { 0, 0, 0 };
+	float distanceThreshold = 3.0f;
+	float duration = 2.0f;
+	bool condition;
+	void Update(Hedgehog::Math::CVector playerPos) {
+		float dist = (playerPos - Hedgehog::Math::CVector(startPos[0], startPos[1], startPos[2])).norm();
+		dist = abs(dist);
+		if (dist <= distanceThreshold && condition) {
+			MessageBeep(MB_ICONINFORMATION);
+			paraloop = true;
+			paraloopTime = duration;
+		}
+	}
+};
+
+void Paraloop(Sonic::Player::CPlayerSpeedContext* sonic) {
+
+	if (paraloop) return;
+
+	// Mazuri
+	if (Common::CheckCurrentStage("cpz200")) {
+		Hedgehog::Math::CVector pos = sonic->m_spMatrixNode->m_Transform.m_Position;
+		{
+			ParaloopInfo info;
+			info.startPos = { 666.0f, -129.898f, 1364.824f };
+			info.distanceThreshold = 1.0f;
+			info.condition = Common::IsPlayerIn2D();
+			info.duration = 1.0f;
+			info.Update(pos);
+		}
+
+		{
+			ParaloopInfo info;
+			info.startPos = { 697.287f, -92.5f, 1174.389f };
+			info.distanceThreshold = 1.0f;
+			info.condition = Common::IsPlayerIn2D();
+			info.duration = 1.0f;
+			info.Update(pos);
+		}
+
+		// Paraloop (Rail)
+		{
+			ParaloopInfo info;
+			info.startPos = { -5.615f, -53.5f, 449.415f };
+			info.distanceThreshold = 1.0f;
+			info.condition = Common::IsPlayerIn2D();
+			info.duration = 1.0f;
+			info.Update(pos);
+		}
+	}
+}
 HOOK(void, __fastcall, SonicAddonUpdate, 0xE6BF20, Sonic::Player::CPlayerSpeed* This, void* _, const hh::fnd::SUpdateInfo& updateInfo) {
 	originalSonicAddonUpdate(This, _, updateInfo);
 	if (BlueBlurCommon::IsModern()) {
 		Sonic::Player::CPlayerSpeedContext* sonic = This->GetContext();
 		Hedgehog::Base::CSharedString state = This->m_StateMachine.GetCurrentState()->GetStateName();
+
+		Paraloop(sonic);
+
+		if (paraloopTime > 0 && paraloop) paraloopTime -= updateInfo.DeltaTime;
+		if (paraloopTime <= 0 && paraloop) {
+			paraloop = false;
+			MessageBeep(MB_ICONERROR);
+		}
+
 		if (strstr(state.c_str(), "Board")) {
 			if (!bobsleighBoostCancel) { bobsleighBoostCancel = true; }
 			Common::SonicContextSetCollision(TypeSonicBoost, true);
@@ -64,7 +129,7 @@ HOOK(void, __fastcall, SonicAddonUpdate, 0xE6BF20, Sonic::Player::CPlayerSpeed* 
 }
 void UPC::Install() {
 	// Credit to Skyth
-	WRITE_MEMORY(0xDFF622, byte, 0xEB); // Disables Drifting when using bobsleigh
+	WRITE_MEMORY(0xDFF622, ::byte, 0xEB); // Disables Drifting when using bobsleigh
 
 	// Speed Highway Rocket Explosion
 	WRITE_MEMORY(0x164D90C, char, "fireworks");

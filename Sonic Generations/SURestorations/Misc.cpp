@@ -24,7 +24,7 @@ HOOK(int, __fastcall, MiscRestart, 0xE76810, uint32_t* This, void* Edx, void* me
 }
 HOOK(void, __fastcall, SonicMiscUpdate, 0xE6BF20, Sonic::Player::CPlayerSpeed* This, void* _, const hh::fnd::SUpdateInfo& updateInfo)
 {
-	if ((byte)Common::GetMultiLevelAddress(0xD59A67, { 0x6 }) == 150 && *Common::GetPlayerLives() != 99 && InfLivesCodeChange)
+	if ((::byte)Common::GetMultiLevelAddress(0xD59A67, { 0x6 }) == 150 && *Common::GetPlayerLives() != 99 && InfLivesCodeChange)
 		*Common::GetPlayerLives() = 99;
 
 	originalSonicMiscUpdate(This, _, updateInfo);
@@ -129,7 +129,7 @@ void Misc::Install()
 	// Unwiished Fall
 	if (Common::reader.GetBoolean("Changes", "WiiFall", false)) {
 		WRITE_MEMORY(0x111913A, uint8_t, 0x72, 0x27);
-		WRITE_MEMORY(0x15E812C, const char*, "sn_wall_fly02_loop");
+		WRITE_MEMORY(0x15E812C, char, "sn_wall_fly02_loop");
 	}
 
 	for(std::string modName : SUModelMods)
@@ -147,8 +147,8 @@ void Misc::Install()
 
 	if (DisableBoard) {
 		//Credit to Skyth
-		WRITE_MEMORY(0xD947CC, byte, 0xEB);
-		WRITE_MEMORY(0xE6B750, byte, 0xC2, 0x04, 0x00);
+		WRITE_MEMORY(0xD947CC, ::byte, 0xEB);
+		WRITE_MEMORY(0xE6B750, ::byte, 0xC2, 0x04, 0x00);
 		printf("[SU Restorations] Disabling Board...\n");
 	}
 

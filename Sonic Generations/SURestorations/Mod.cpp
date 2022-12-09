@@ -3,9 +3,9 @@
 /// </summary>
 extern "C" _declspec(dllexport) void Init()
 {
-	if (Common::reader.GetBoolean("Restorations", "Explosion", true)) {
-		ArchiveTreePatcher::m_archiveDependencies.push_back(ArchiveDependency("Explosion", { "EnemyCommon" }));
-	}
+	if(Common::reader.GetBoolean("Restorations", "Explosion", true)) ArchiveTreePatcher::m_archiveDependencies.push_back(ArchiveDependency("Explosion", { "EnemyCommon" }));
+
+	ArchiveTreePatcher::m_archiveDependencies.push_back(ArchiveDependency("EXPOrb", { "EnemyCommon" }));
 	ArchiveTreePatcher::m_archiveDependencies.push_back(ArchiveDependency("Pole", { "ActionCommon" }));
 	ArchiveTreePatcher::m_archiveDependencies.push_back(ArchiveDependency("SonicCrawl", { "Sonic" }));
 	ArchiveTreePatcher::m_archiveDependencies.push_back(ArchiveDependency("SonicSweepKick", { "Sonic" }));
@@ -38,9 +38,9 @@ extern "C" _declspec(dllexport) void Init()
 
 	if(Common::reader.GetBoolean("Restorations", "PoleTrail", true)) Pole::Install();
 
-	if (Common::reader.GetBoolean("Restorations", "Ramp", true) || Common::reader.GetBoolean("Restorations", "BoostRamp", true)) Ramp::Install();
+	if(Common::reader.GetBoolean("Restorations", "Ramp", true) || Common::reader.GetBoolean("Restorations", "BoostRamp", true)) Ramp::Install();
 
-	if (Common::UPC) UPC::Install();
+	if(Common::UPC) UPC::Install();
 
 	//if (Common::SUHud) Medal::Install();
 

@@ -122,7 +122,6 @@ HOOK(void, __fastcall, SonicMissileUpdate, 0xE6BF20, Sonic::Player::CPlayerSpeed
 	}
 }
 void Missile::Install() {
-	CreateConsole();
 	INSTALL_HOOK(SonicMissileUpdate);
 	INSTALL_HOOK(missile);
 	INSTALL_HOOK(CHudSonicStageDelayProcessImpMissile);
