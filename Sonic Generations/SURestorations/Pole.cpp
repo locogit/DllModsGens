@@ -4,6 +4,7 @@ HOOK(void, __fastcall, SonicPoleUpdate, 0xE6BF20, Sonic::Player::CPlayerSpeed* T
 	if (BlueBlurCommon::IsModern()) {
 		Sonic::Player::CPlayerSpeedContext* sonic = This->GetContext();
 		Hedgehog::Base::CSharedString anim = sonic->GetCurrentAnimationName();
+
 		if (strstr(anim.c_str(), "PoleSpinJump") && !poleTrail) {
 			poleTrail = true;
 			Common::SonicContextRequestLocusEffect();

@@ -16,6 +16,7 @@ extern "C" _declspec(dllexport) void Init()
 	ArchiveTreePatcher::m_archiveDependencies.push_back(ArchiveDependency("SunMedal", { "Sonic" }));
 	ArchiveTreePatcher::m_archiveDependencies.push_back(ArchiveDependency("MoonMedal", { "Sonic" }));
 	ArchiveTreePatcher::m_archiveDependencies.push_back(ArchiveDependency("SonicFirework", { "Sonic" }));
+	ArchiveTreePatcher::m_archiveDependencies.push_back(ArchiveDependency("SonicParaloop", { "Sonic" }));
 
 	ArchiveTreePatcher::applyPatches();
 	AnimationSetPatcher::applyPatches();

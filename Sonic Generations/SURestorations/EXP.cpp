@@ -192,7 +192,7 @@ void chaosEnergyParticle() {
 			CSDCommon::PlayAnimation(*exp_count, "Intro_Anim", Chao::CSD::eMotionRepeatType_PlayOnce, 0, 1);
 		}
 		if (!maxEXP) {
-			expAmount += 0.35f;
+			expAmount += Common::rand_FloatRange(0.15f, 0.35f);
 			if (expAmount >= 63 && expLevel < 99) {
 				expAmount -= 63;
 				expLevel++;

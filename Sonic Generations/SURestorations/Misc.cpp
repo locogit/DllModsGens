@@ -128,6 +128,7 @@ void Misc::Install()
 {
 	// Unwiished Fall
 	if (Common::reader.GetBoolean("Changes", "WiiFall", false)) {
+		// Thanks Hyper.
 		WRITE_MEMORY(0x111913A, uint8_t, 0x72, 0x27);
 		WRITE_MEMORY(0x15E812C, char, "sn_wall_fly02_loop");
 	}

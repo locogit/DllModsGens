@@ -2146,6 +2146,10 @@ namespace Common
 		}
 		return false;
 	}
+	inline float rand_FloatRange(float a, float b)
+	{
+		return ((b - a) * ((float)rand() / RAND_MAX)) + a;
+	}
 	static INIReader reader("mod.ini");
 	static bool SUHud = Common::IsModEnabledID("ptkickass.sonicgenerations.unleashedhud");
 	static bool UP = Common::IsModEnabled("Unleashed Project");
