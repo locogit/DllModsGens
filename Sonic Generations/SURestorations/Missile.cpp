@@ -25,27 +25,30 @@ void CreateScreenMissile(Sonic::CGameObject* pParentGameObject)
 }
 HOOK(void, __fastcall, CHudSonicStageDelayProcessImpMissile, 0x109A8D0, Sonic::CGameObject* This) {
 	originalCHudSonicStageDelayProcessImpMissile(This);
-	CHudSonicStageRemoveCallbackMissile(This, nullptr, nullptr);
+	if (BlueBlurCommon::IsModern()) {
+		CHudSonicStageRemoveCallbackMissile(This, nullptr, nullptr);
 
-	Sonic::CCsdDatabaseWrapper wrapperLockOn(This->m_pMember->m_pGameDocument->m_pMember->m_spDatabase.get());
+		Sonic::CCsdDatabaseWrapper wrapperLockOn(This->m_pMember->m_pGameDocument->m_pMember->m_spDatabase.get());
 
-	auto spCsdProjectLockOn = wrapperLockOn.GetCsdProject("ui_lcursor_enemy");
+		auto spCsdProjectLockOn = wrapperLockOn.GetCsdProject("ui_lcursor_launcher");
 
-	size_t& flags = ((size_t*)This)[151];
-	rcLockOn = spCsdProjectLockOn->m_rcProject;
-	cursor_enemy = rcLockOn->CreateScene("cursor_enemy");
-	cursor_enemy->SetHideFlag(true);
-	CSDCommon::FreezeMotion(*cursor_enemy);
-	cursorHidden = true;
+		size_t& flags = ((size_t*)This)[151];
 
-	flags &= ~(0x1 | 0x2 | 0x4 | 0x200 | 0x800); // Mask to prevent crash when game tries accessing the elements we disabled later on
+		rcLockOn = spCsdProjectLockOn->m_rcProject;
+		cursor_enemy = rcLockOn->CreateScene("cursor_enemy");
+		CSDCommon::FreezeMotion(*cursor_enemy);
+		cursor_enemy->SetHideFlag(true);
+		cursorHidden = true;
 
-	CreateScreenMissile(This);
+		flags &= ~(0x1 | 0x2 | 0x4 | 0x200 | 0x800); // Mask to prevent crash when game tries accessing the elements we disabled later on
+
+		CreateScreenMissile(This);
+	}
 }
 HOOK(void, __fastcall, CHudSonicStageUpdateParallelMissile, 0x1098A50, Sonic::CGameObject* This, void* Edx, const hh::fnd::SUpdateInfo& in_rUpdateInfo) {
 	originalCHudSonicStageUpdateParallelMissile(This, Edx, in_rUpdateInfo);
 	Sonic::Player::CPlayerSpeedContext* sonic = Sonic::Player::CPlayerSpeedContext::GetInstance();
-	if (!cursorHidden) {
+	if (!cursorHidden && BlueBlurCommon::IsModern()) {
 		Hedgehog::Math::CVector& position = Sonic::Player::CPlayerSpeedContext::GetInstance()->m_spMatrixNode->m_Transform.m_Position;
 		const auto camera = Sonic::CGameDocument::GetInstance()->GetWorld()->GetCamera();
 		hh::math::CVector4 screenPosition = camera->m_MyCamera.m_View * hh::math::CVector4(position.x(), position.y(), position.z(), 1.0f);
@@ -58,7 +61,7 @@ HOOK(void, __fastcall, CHudSonicStageUpdateParallelMissile, 0x1098A50, Sonic::CG
 }
 HOOK(int, __fastcall, ProcMsgRestartStageMissile, 0xE76810, uint32_t* This, void* Edx, void* message)
 {
-	if (!cursorHidden) {
+	if (!cursorHidden && BlueBlurCommon::IsModern()) {
 		cursorHidden = true;
 		cursor_enemy->SetHideFlag(true);
 	}
@@ -66,11 +69,11 @@ HOOK(int, __fastcall, ProcMsgRestartStageMissile, 0xE76810, uint32_t* This, void
 }
 HOOK(void, __fastcall, HudResult_MsgStartGoalResultMissile, 0x10B58A0, uint32_t* This, void* Edx, void* message)
 {
-	if (!cursorHidden) {
+	originalHudResult_MsgStartGoalResultMissile(This, Edx, message);
+	if (!cursorHidden && BlueBlurCommon::IsModern()) {
 		cursorHidden = true;
 		cursor_enemy->SetHideFlag(true);
 	}
-	originalHudResult_MsgStartGoalResultMissile(This, Edx, message);
 }
 HOOK(__int8, __fastcall, missile, 0x60EFF0, DWORD** This, int a2, int* a3, void* Edx) {
 	if (BlueBlurCommon::IsModern()) {
@@ -83,39 +86,13 @@ HOOK(__int8, __fastcall, missile, 0x60EFF0, DWORD** This, int a2, int* a3, void*
 	}
 	return originalmissile(This, a2, a3, Edx);
 }
-void CreateConsole()
-{
-	if (!AllocConsole()) {
-		// Add some error handling here.
-		// You can call GetLastError() to get more info about the error.
-		return;
-	}
-	// std::cout, std::clog, std::cerr, std::cin
-	FILE* fDummy;
-	freopen_s(&fDummy, "CONOUT$", "w", stdout);
-	freopen_s(&fDummy, "CONOUT$", "w", stderr);
-	freopen_s(&fDummy, "CONIN$", "r", stdin);
-	std::cout.clear();
-	std::clog.clear();
-	std::cerr.clear();
-	std::cin.clear();
-	// std::wcout, std::wclog, std::wcerr, std::wcin
-	HANDLE hConOut = CreateFile(_T("CONOUT$"), GENERIC_READ | GENERIC_WRITE, FILE_SHARE_READ | FILE_SHARE_WRITE, NULL, OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, NULL);
-	HANDLE hConIn = CreateFile(_T("CONIN$"), GENERIC_READ | GENERIC_WRITE, FILE_SHARE_READ | FILE_SHARE_WRITE, NULL, OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, NULL);
-	SetStdHandle(STD_OUTPUT_HANDLE, hConOut);
-	SetStdHandle(STD_ERROR_HANDLE, hConOut);
-	SetStdHandle(STD_INPUT_HANDLE, hConIn);
-	std::wcout.clear();
-	std::wclog.clear();
-	std::wcerr.clear();
-	std::wcin.clear();
-}
+
 HOOK(void, __fastcall, SonicMissileUpdate, 0xE6BF20, Sonic::Player::CPlayerSpeed* This, void* _, const hh::fnd::SUpdateInfo& updateInfo) {
 	originalSonicMissileUpdate(This, _, updateInfo);
 	if (BlueBlurCommon::IsModern()) {
 		if (missileTimer > 0) { missileTimer -= updateInfo.DeltaTime; }
-		if (missileTimer <= 0 && !cursorHidden) 
-		{ 
+		if (missileTimer <= 0 && !cursorHidden)
+		{
 			cursorHidden = true;
 			cursor_enemy->SetHideFlag(true);
 		}
@@ -124,7 +101,7 @@ HOOK(void, __fastcall, SonicMissileUpdate, 0xE6BF20, Sonic::Player::CPlayerSpeed
 void Missile::Install() {
 	INSTALL_HOOK(SonicMissileUpdate);
 	INSTALL_HOOK(missile);
-	INSTALL_HOOK(CHudSonicStageDelayProcessImpMissile);
+	INSTALL_HOOK(CHudSonicStageDelayProcessImpMissile); //cause issue
 	INSTALL_HOOK(CHudSonicStageUpdateParallelMissile);
 	INSTALL_HOOK(ProcMsgRestartStageMissile);
 	INSTALL_HOOK(HudResult_MsgStartGoalResultMissile);

@@ -1,14 +1,45 @@
 /// <summary>
 /// The main entry point for the injection.
 /// </summary>
+
+void CreateConsole()
+{
+	if (!AllocConsole()) {
+		// Add some error handling here.
+		// You can call GetLastError() to get more info about the error.
+		return;
+	}
+	// std::cout, std::clog, std::cerr, std::cin
+	FILE* fDummy;
+	freopen_s(&fDummy, "CONOUT$", "w", stdout);
+	freopen_s(&fDummy, "CONOUT$", "w", stderr);
+	freopen_s(&fDummy, "CONIN$", "r", stdin);
+	std::cout.clear();
+	std::clog.clear();
+	std::cerr.clear();
+	std::cin.clear();
+	// std::wcout, std::wclog, std::wcerr, std::wcin
+	HANDLE hConOut = CreateFile(_T("CONOUT$"), GENERIC_READ | GENERIC_WRITE, FILE_SHARE_READ | FILE_SHARE_WRITE, NULL, OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, NULL);
+	HANDLE hConIn = CreateFile(_T("CONIN$"), GENERIC_READ | GENERIC_WRITE, FILE_SHARE_READ | FILE_SHARE_WRITE, NULL, OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, NULL);
+	SetStdHandle(STD_OUTPUT_HANDLE, hConOut);
+	SetStdHandle(STD_ERROR_HANDLE, hConOut);
+	SetStdHandle(STD_INPUT_HANDLE, hConIn);
+	std::wcout.clear();
+	std::wclog.clear();
+	std::wcerr.clear();
+	std::wcin.clear();
+}
+
 extern "C" _declspec(dllexport) void Init()
 {
+	//CreateConsole();
+
 	if(Common::reader.GetBoolean("Restorations", "Explosion", true)) ArchiveTreePatcher::m_archiveDependencies.push_back(ArchiveDependency("Explosion", { "EnemyCommon" }));
 
 	ArchiveTreePatcher::m_archiveDependencies.push_back(ArchiveDependency("EXPOrb", { "EnemyCommon" }));
 	ArchiveTreePatcher::m_archiveDependencies.push_back(ArchiveDependency("Pole", { "ActionCommon" }));
 	ArchiveTreePatcher::m_archiveDependencies.push_back(ArchiveDependency("SonicCrawl", { "Sonic" }));
-	ArchiveTreePatcher::m_archiveDependencies.push_back(ArchiveDependency("SonicSweepKick", { "Sonic" }));
+	ArchiveTreePatcher::m_archiveDependencies.push_back(ArchiveDependency("SonicSweepKick", { "SonicActionCommon" }));
 	ArchiveTreePatcher::m_archiveDependencies.push_back(ArchiveDependency("SonicUI", { "Sonic" }));
 	ArchiveTreePatcher::m_archiveDependencies.push_back(ArchiveDependency("SonicRamp", { "Sonic" }));
 	ArchiveTreePatcher::m_archiveDependencies.push_back(ArchiveDependency("SonicEXP", { "Sonic" }));
@@ -16,7 +47,7 @@ extern "C" _declspec(dllexport) void Init()
 	ArchiveTreePatcher::m_archiveDependencies.push_back(ArchiveDependency("SunMedal", { "Sonic" }));
 	ArchiveTreePatcher::m_archiveDependencies.push_back(ArchiveDependency("MoonMedal", { "Sonic" }));
 	ArchiveTreePatcher::m_archiveDependencies.push_back(ArchiveDependency("SonicFirework", { "Sonic" }));
-	ArchiveTreePatcher::m_archiveDependencies.push_back(ArchiveDependency("SonicParaloop", { "Sonic" }));
+	ArchiveTreePatcher::m_archiveDependencies.push_back(ArchiveDependency("SonicParaloop", { "SonicActionCommon" }));
 
 	ArchiveTreePatcher::applyPatches();
 	AnimationSetPatcher::applyPatches();

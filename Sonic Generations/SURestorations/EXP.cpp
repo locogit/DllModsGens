@@ -1,5 +1,5 @@
 // Recycled code from Brianuu's 06 Experience
-float const c_chaosEnergyReward = 1.5f;
+float const c_chaosEnergyReward = 2.0f;
 bool expCountDown = false;
 float expTimer = 4;
 float expTime = 0;
@@ -243,7 +243,7 @@ uint32_t __fastcall getEnemyChaosEnergyAmountImpl(uint32_t* pEnemy)
 	case 0x016FB1FC: return (rand() % 5 + 1); // EFighterMissile
 	case 0x016FB62C: return (rand() % 4 + 1); // AirCannon
 	case 0x016F912C: return (rand() % 5 + 1); // Mole
-	default: return 5;
+	default: return (rand() % 4 + 1);
 	}
 }
 void __declspec(naked) getEnemyChaosEnergyAmount()
@@ -287,7 +287,7 @@ void EXP::Install() {
 	INSTALL_HOOK(HudResult_MsgStartGoalResultEXP);
 
 	// 06 Experience Code
-	// Set absorb time to 1.2s
+	// Set absorb time to config settings
 	static float ChaosEnergyParam[] =
 	{
 		Common::reader.GetFloat("EXP","UpHeight",0.0f),	// UpHeight

@@ -114,7 +114,7 @@ void Paraloop(Sonic::Player::CPlayerSpeedContext* sonic) {
 			info.startPos = { -1.464, 18.020f, -1502.584f };
 			info.distanceThreshold = 1.0f;
 			info.condition = Common::IsPlayerIn2D();
-			info.duration = 1.75f;
+			info.duration = 1.9f;
 			info.soundDelay = 0.0f;
 			info.Update(sonic);
 		}
@@ -124,7 +124,7 @@ void Paraloop(Sonic::Player::CPlayerSpeedContext* sonic) {
 			info.startPos = { -1.468f, 7.859f, -1517.009f };
 			info.distanceThreshold = 1.0f;
 			info.condition = Common::IsPlayerIn2D();
-			info.duration = 1.5f;
+			info.duration = 1.6f;
 			info.soundDelay = 0.0f;
 			info.Update(sonic);
 		}

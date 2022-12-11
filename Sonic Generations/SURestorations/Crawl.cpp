@@ -11,7 +11,6 @@ HOOK(void, __stdcall, CrawlRotate, 0xE310A0, void* a1, float* targetDir, float t
 HOOK(void, __fastcall, SquatAdvanceCrawl, 0x1230B60, void* This)
 {
 	if (!BlueBlurCommon::IsSuper()) {
-
 		Eigen::Vector3f inputDirection;
 		Hedgehog::Math::CVector crawlVelocity;
 		Common::GetWorldInputDirection(inputDirection);

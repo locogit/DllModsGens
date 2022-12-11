@@ -1,6 +1,6 @@
 bool SUMouthFix;
 
-float ringEnergyAmount = 2.0f;
+float ringEnergyAmount = 2.75f;
 size_t prevRingCount;
 float previousChaosEnergy;
 
@@ -22,6 +22,26 @@ HOOK(int, __fastcall, MiscRestart, 0xE76810, uint32_t* This, void* Edx, void* me
 	prevRingCount = 0;
 	return result;
 }
+HOOK(void, __fastcall, HudMiscUpdate, 0x1098A50, void* This, void* edx, float* updateInfo)
+{
+	originalHudMiscUpdate(This, edx, updateInfo);
+
+	Sonic::Player::CPlayerSpeedContext* sonic = Sonic::Player::CPlayerSpeedContext::GetInstance();
+
+	if (EnergyChange) {
+		if (prevRingCount < sonic->m_RingCount) {
+			if (sonic->m_ChaosEnergy < 100.0f) sonic->m_ChaosEnergy = std::clamp(previousChaosEnergy + ringEnergyAmount, 0.0f, 100.0f);
+			prevRingCount = sonic->m_RingCount;
+			previousChaosEnergy = sonic->m_ChaosEnergy;
+		}
+		else {
+			if (prevRingCount > sonic->m_RingCount) {
+				prevRingCount = sonic->m_RingCount;
+			}
+			previousChaosEnergy = sonic->m_ChaosEnergy;
+		}
+	}
+}
 HOOK(void, __fastcall, SonicMiscUpdate, 0xE6BF20, Sonic::Player::CPlayerSpeed* This, void* _, const hh::fnd::SUpdateInfo& updateInfo)
 {
 	if ((::byte)Common::GetMultiLevelAddress(0xD59A67, { 0x6 }) == 150 && *Common::GetPlayerLives() != 99 && InfLivesCodeChange)
@@ -37,20 +57,6 @@ HOOK(void, __fastcall, SonicMiscUpdate, 0xE6BF20, Sonic::Player::CPlayerSpeed* T
 
 		if (HomingX && sonic->m_spParameter->Get<bool>(Sonic::Player::ePlayerSpeedParameter_XButtonHoming) != true) {
 			sonic->m_spParameter->m_scpNode->m_ValueMap[Sonic::Player::ePlayerSpeedParameter_XButtonHoming] = true;
-		}
-
-		if (EnergyChange) {
-			if (prevRingCount < sonic->m_RingCount) {
-				if (sonic->m_ChaosEnergy < 100.0f && previousChaosEnergy + ringEnergyAmount < 100.0f)
-					sonic->m_ChaosEnergy = max(previousChaosEnergy + ringEnergyAmount, 0);
-				prevRingCount = sonic->m_RingCount;
-			}
-			else {
-				if (prevRingCount > sonic->m_RingCount) {
-					prevRingCount = sonic->m_RingCount;
-				}
-				previousChaosEnergy = sonic->m_ChaosEnergy;
-			}
 		}
 
 		if (anim == "IdleInWater" && WaterIdle) {
@@ -173,7 +179,7 @@ void Misc::Install()
 
 	INSTALL_HOOK(SonicMiscUpdate);
 	INSTALL_HOOK(MiscYPrompt);
-
+	INSTALL_HOOK(HudMiscUpdate);
 	INSTALL_HOOK(MiscRestart);
 
 	if (MoreVoice) { INSTALL_HOOK(MiscLife); }
