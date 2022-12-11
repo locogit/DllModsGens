@@ -232,6 +232,7 @@ void Paraloop(Sonic::Player::CPlayerSpeedContext* sonic) {
 		}
 	}
 }
+
 HOOK(void, __fastcall, SonicAddonUpdate, 0xE6BF20, Sonic::Player::CPlayerSpeed* This, void* _, const hh::fnd::SUpdateInfo& updateInfo) {
 	originalSonicAddonUpdate(This, _, updateInfo);
 	if (BlueBlurCommon::IsModern()) {

@@ -35,8 +35,10 @@ extern "C" _declspec(dllexport) void Init()
 	//CreateConsole();
 
 	if(Common::reader.GetBoolean("Restorations", "Explosion", true)) ArchiveTreePatcher::m_archiveDependencies.push_back(ArchiveDependency("Explosion", { "EnemyCommon" }));
-
-	ArchiveTreePatcher::m_archiveDependencies.push_back(ArchiveDependency("EXPOrb", { "EnemyCommon" }));
+	if (Common::SUHud && Common::reader.GetBoolean("EXP", "Use", true)) { 
+		ArchiveTreePatcher::m_archiveDependencies.push_back(ArchiveDependency("EXPOrb", { "EnemyCommon" }));
+		EXP::Install(); 
+	}
 	ArchiveTreePatcher::m_archiveDependencies.push_back(ArchiveDependency("Pole", { "ActionCommon" }));
 	ArchiveTreePatcher::m_archiveDependencies.push_back(ArchiveDependency("SonicCrawl", { "Sonic" }));
 	ArchiveTreePatcher::m_archiveDependencies.push_back(ArchiveDependency("SonicSweepKick", { "SonicActionCommon" }));
@@ -48,6 +50,9 @@ extern "C" _declspec(dllexport) void Init()
 	ArchiveTreePatcher::m_archiveDependencies.push_back(ArchiveDependency("MoonMedal", { "Sonic" }));
 	ArchiveTreePatcher::m_archiveDependencies.push_back(ArchiveDependency("SonicFirework", { "Sonic" }));
 	ArchiveTreePatcher::m_archiveDependencies.push_back(ArchiveDependency("SonicParaloop", { "SonicActionCommon" }));
+	ArchiveTreePatcher::m_archiveDependencies.push_back(ArchiveDependency("SonicLife", { "Sonic" }));
+
+	WRITE_STRING(0x15E90DC, "oneUpChanged");
 
 	ArchiveTreePatcher::applyPatches();
 	AnimationSetPatcher::applyPatches();
@@ -55,8 +60,6 @@ extern "C" _declspec(dllexport) void Init()
 	Misc::Install();
 
 	if(Common::SUHud && Common::UPC) HubUI::Install();
-
-	if(Common::SUHud && Common::reader.GetBoolean("EXP", "Use", true)) EXP::Install();
 
 	if(Common::reader.GetBoolean("Restorations", "SweepKick", true)) Sweepkick::Install();
 

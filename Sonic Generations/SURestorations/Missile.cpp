@@ -40,8 +40,6 @@ HOOK(void, __fastcall, CHudSonicStageDelayProcessImpMissile, 0x109A8D0, Sonic::C
 		cursor_enemy->SetHideFlag(true);
 		cursorHidden = true;
 
-		flags &= ~(0x1 | 0x2 | 0x4 | 0x200 | 0x800); // Mask to prevent crash when game tries accessing the elements we disabled later on
-
 		CreateScreenMissile(This);
 	}
 }
