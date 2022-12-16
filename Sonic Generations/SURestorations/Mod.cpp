@@ -39,6 +39,7 @@ extern "C" _declspec(dllexport) void Init()
 		ArchiveTreePatcher::m_archiveDependencies.push_back(ArchiveDependency("EXPOrb", { "EnemyCommon" }));
 		EXP::Install(); 
 	}
+
 	ArchiveTreePatcher::m_archiveDependencies.push_back(ArchiveDependency("Pole", { "ActionCommon" }));
 	ArchiveTreePatcher::m_archiveDependencies.push_back(ArchiveDependency("SonicCrawl", { "Sonic" }));
 	ArchiveTreePatcher::m_archiveDependencies.push_back(ArchiveDependency("SonicSweepKick", { "SonicActionCommon" }));
