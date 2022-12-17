@@ -16,6 +16,8 @@ bool WaterIdle = Common::reader.GetBoolean("Restorations", "WaterIdle", true);
 
 bool HomingX = Common::reader.GetBoolean("Restorations", "XHoming", true);
 
+bool BDrift = Common::reader.GetBoolean("Restorations", "BDrift", true);
+
 HOOK(int, __fastcall, MiscRestart, 0xE76810, uint32_t* This, void* Edx, void* message)
 {
 	int result = originalMiscRestart(This, Edx, message);
@@ -54,6 +56,7 @@ HOOK(void, __fastcall, SonicMiscUpdate, 0xE6BF20, Sonic::Player::CPlayerSpeed* T
 		Sonic::Player::CPlayerSpeedContext* sonic = This->GetContext();
 		Hedgehog::Base::CSharedString state = This->m_StateMachine.GetCurrentState()->GetStateName();
 		Hedgehog::Base::CSharedString anim = sonic->GetCurrentAnimationName();
+		Sonic::SPadState input = Sonic::CInputState::GetInstance()->GetPadState();
 
 		if (HomingX && sonic->m_spParameter->Get<bool>(Sonic::Player::ePlayerSpeedParameter_XButtonHoming) != true) {
 			sonic->m_spParameter->m_scpNode->m_ValueMap[Sonic::Player::ePlayerSpeedParameter_XButtonHoming] = true;
@@ -101,6 +104,16 @@ HOOK(void, __fastcall, SonicMiscUpdate, 0xE6BF20, Sonic::Player::CPlayerSpeed* T
 
 		if (sonic->m_ChaosEnergy != 100 && Common::CheckCurrentStage("pam000")) // For Boost Gauge Starts Empty Code
 			sonic->m_ChaosEnergy = 100;
+
+		// B Button Drift
+		if (BDrift) {
+			if (input.IsDown(Sonic::eKeyState_B) && abs(input.LeftStickHorizontal) > 0.75f && state != "Drift") {
+				sonic->ChangeState("Drift");
+			}
+			else if (input.IsUp(Sonic::eKeyState_B) && state == "Drift" && input.IsUp(Sonic::eKeyState_LeftTrigger) && input.IsUp(Sonic::eKeyState_RightTrigger)) {
+				sonic->ChangeState("Walk");
+			}
+		}
 	}
 }
 // https://github.com/brianuuu/DllMods/blob/master/Source/NavigationLightdashSound/NavigationSound.cpp#L14

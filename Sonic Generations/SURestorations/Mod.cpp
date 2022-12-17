@@ -29,10 +29,13 @@ void CreateConsole()
 	std::wcerr.clear();
 	std::wcin.clear();
 }
-
+void TestBuild() {
+	MessageBox(nullptr, "This is a test build, please give feedback or bug reports if you encounter any. Thanks!", "SU Restorations", MB_ICONINFORMATION);
+}
 extern "C" _declspec(dllexport) void Init()
 {
 	//CreateConsole();
+	TestBuild();
 
 	if(Common::reader.GetBoolean("Restorations", "Explosion", true)) ArchiveTreePatcher::m_archiveDependencies.push_back(ArchiveDependency("Explosion", { "EnemyCommon" }));
 	if (Common::SUHud && Common::reader.GetBoolean("EXP", "Use", true)) { 
