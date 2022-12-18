@@ -35,7 +35,7 @@ void TestBuild() {
 extern "C" _declspec(dllexport) void Init()
 {
 	//CreateConsole();
-	TestBuild();
+	//TestBuild();
 
 	if(Common::reader.GetBoolean("Restorations", "Explosion", true)) ArchiveTreePatcher::m_archiveDependencies.push_back(ArchiveDependency("Explosion", { "EnemyCommon" }));
 	if (Common::SUHud && Common::reader.GetBoolean("EXP", "Use", true)) { 
