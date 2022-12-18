@@ -107,7 +107,7 @@ HOOK(void, __fastcall, SonicMiscUpdate, 0xE6BF20, Sonic::Player::CPlayerSpeed* T
 
 		// B Button Drift
 		if (BDrift && !sonic->m_Is2DMode && !Common::IsPlayerInForwardPath()) {
-			if (input.IsDown(Sonic::eKeyState_B) && abs(input.LeftStickHorizontal) > 0.75f && state == "Walk") {
+			if (input.IsDown(Sonic::eKeyState_B) && abs(input.LeftStickHorizontal) >= 0.85f && (state == "Walk" || state == "Sliding")) {
 				sonic->ChangeState("Drift");
 			}
 			else if (input.IsUp(Sonic::eKeyState_B) && state == "Drift" && input.IsUp(Sonic::eKeyState_LeftTrigger) && input.IsUp(Sonic::eKeyState_RightTrigger)) {
