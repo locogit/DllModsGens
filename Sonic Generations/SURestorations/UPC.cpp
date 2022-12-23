@@ -81,7 +81,7 @@ void Paraloop(Sonic::Player::CPlayerSpeedContext* sonic) {
 			ParaloopInfo info;
 			info.startPos = { 666.0f, -129.898f, 1364.824f };
 			info.distanceThreshold = 1.0f;
-			info.condition = Common::IsPlayerIn2D();
+			info.condition = true;
 			info.duration = 2.0f;
 			info.soundDelay = 1.0f;
 			info.Update(sonic);
@@ -91,7 +91,7 @@ void Paraloop(Sonic::Player::CPlayerSpeedContext* sonic) {
 			ParaloopInfo info;
 			info.startPos = { 697.287f, -92.5f, 1174.389f };
 			info.distanceThreshold = 1.0f;
-			info.condition = Common::IsPlayerIn2D();
+			info.condition = true;
 			info.duration = 1.35f;
 			info.soundDelay = 0.8f;
 			info.Update(sonic);
@@ -102,7 +102,7 @@ void Paraloop(Sonic::Player::CPlayerSpeedContext* sonic) {
 			ParaloopInfo info;
 			info.startPos = { -5.615f, -53.5f, 449.415f };
 			info.distanceThreshold = 1.0f;
-			info.condition = Common::IsPlayerIn2D();
+			info.condition = true;
 			info.duration = 1.5f;
 			info.soundDelay = 1.0f;
 			info.Update(sonic);
@@ -113,7 +113,7 @@ void Paraloop(Sonic::Player::CPlayerSpeedContext* sonic) {
 			ParaloopInfo info;
 			info.startPos = { -1.464, 18.020f, -1502.584f };
 			info.distanceThreshold = 1.0f;
-			info.condition = Common::IsPlayerIn2D();
+			info.condition = true;
 			info.duration = 1.9f;
 			info.soundDelay = 0.0f;
 			info.Update(sonic);
@@ -123,7 +123,7 @@ void Paraloop(Sonic::Player::CPlayerSpeedContext* sonic) {
 			ParaloopInfo info;
 			info.startPos = { -1.468f, 7.859f, -1517.009f };
 			info.distanceThreshold = 1.0f;
-			info.condition = Common::IsPlayerIn2D();
+			info.condition = true;
 			info.duration = 1.6f;
 			info.soundDelay = 0.0f;
 			info.Update(sonic);
@@ -134,7 +134,7 @@ void Paraloop(Sonic::Player::CPlayerSpeedContext* sonic) {
 			ParaloopInfo info;
 			info.startPos = { -698.696f, 90.0f, 50.010f };
 			info.distanceThreshold = 1.0f;
-			info.condition = Common::IsPlayerIn2D();
+			info.condition = true;
 			info.duration = 1.3f;
 			info.soundDelay = 1.3f;
 			info.Update(sonic);
@@ -144,7 +144,7 @@ void Paraloop(Sonic::Player::CPlayerSpeedContext* sonic) {
 			ParaloopInfo info;
 			info.startPos = { 868.926f, 26.941f, 171.875f };
 			info.distanceThreshold = 1.0f;
-			info.condition = Common::IsPlayerIn2D();
+			info.condition = true;
 			info.duration = 1.0f;
 			info.soundDelay = 1.0f;
 			info.Update(sonic);
@@ -152,9 +152,9 @@ void Paraloop(Sonic::Player::CPlayerSpeedContext* sonic) {
 
 		{
 			ParaloopInfo info;
-			info.startPos = { -22.0f, 63.0f, 5.372f };
+			info.startPos = { -22.0f, 63.0f, 5.37f };
 			info.distanceThreshold = 1.0f;
-			info.condition = Common::IsPlayerIn2D();
+			info.condition = true;
 			info.duration = 1.65f;
 			info.soundDelay = 1.65f;
 			info.Update(sonic);
@@ -184,7 +184,7 @@ void Paraloop(Sonic::Player::CPlayerSpeedContext* sonic) {
 			ParaloopInfo info;
 			info.startPos = { 2153.9f, -96.707f, -461.3f };
 			info.distanceThreshold = 1.0f;
-			info.condition = Common::IsPlayerIn2D();
+			info.condition = true;
 			info.duration = 1.0f;
 			info.soundDelay = 1.0f;
 			info.Update(sonic);
@@ -194,7 +194,7 @@ void Paraloop(Sonic::Player::CPlayerSpeedContext* sonic) {
 			ParaloopInfo info;
 			info.startPos = { 2222.497f, -172.588f, -1110.001f };
 			info.distanceThreshold = 1.0f;
-			info.condition = Common::IsPlayerIn2D();
+			info.condition = true;
 			info.duration = 1.35f;
 			info.soundDelay = 1.35f;
 			info.Update(sonic);
@@ -205,7 +205,7 @@ void Paraloop(Sonic::Player::CPlayerSpeedContext* sonic) {
 			ParaloopInfo info;
 			info.startPos = { -508.074f, 46.021f, 206.315f };
 			info.distanceThreshold = 1.0f;
-			info.condition = Common::IsPlayerIn2D();
+			info.condition = true;
 			info.duration = 1.2f;
 			info.soundDelay = 1.2f;
 			info.Update(sonic);
@@ -215,7 +215,7 @@ void Paraloop(Sonic::Player::CPlayerSpeedContext* sonic) {
 			ParaloopInfo info;
 			info.startPos = { 561.526f, 20.047f, -1449.837f };
 			info.distanceThreshold = 1.0f;
-			info.condition = Common::IsPlayerIn2D();
+			info.condition = true;
 			info.duration = 1.4f;
 			info.soundDelay = 1.4f;
 			info.Update(sonic);
