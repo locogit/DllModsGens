@@ -64,7 +64,7 @@ HOOK(void, __fastcall, SquatAdvanceCrawl, 0x1230B60, void* This)
 				isCrawling = false;
 				if (!inputDirection.isZero()) {
 					sonic->m_Velocity = Hedgehog::Math::CVector::Zero();
-					sonic->ChangeState("Stand");
+					originalSquatAdvanceCrawl(This);
 				}
 				else {
 					originalSquatAdvanceCrawl(This);

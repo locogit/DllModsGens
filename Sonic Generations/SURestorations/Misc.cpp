@@ -57,7 +57,7 @@ HOOK(void, __fastcall, SonicMiscUpdate, 0xE6BF20, Sonic::Player::CPlayerSpeed* T
 		Hedgehog::Base::CSharedString state = This->m_StateMachine.GetCurrentState()->GetStateName();
 		Hedgehog::Base::CSharedString anim = sonic->GetCurrentAnimationName();
 		Sonic::SPadState input = Sonic::CInputState::GetInstance()->GetPadState();
-		//printf("\n%s", state.c_str());
+		//printf("\n%f", sonic->m_Velocity.norm());
 		if (HomingX && sonic->m_spParameter->Get<bool>(Sonic::Player::ePlayerSpeedParameter_XButtonHoming) != true) {
 			sonic->m_spParameter->m_scpNode->m_ValueMap[Sonic::Player::ePlayerSpeedParameter_XButtonHoming] = true;
 		}
@@ -106,7 +106,7 @@ HOOK(void, __fastcall, SonicMiscUpdate, 0xE6BF20, Sonic::Player::CPlayerSpeed* T
 			sonic->m_ChaosEnergy = 100;
 
 		// B Button Drift
-		if (BDrift && !sonic->m_Is2DMode && !Common::IsPlayerInForwardPath() && !sonic->StateFlag(eStateFlag_OutOfControl) && !strstr(anim.c_str(),"Grind")) {
+		if (BDrift && abs(sonic->m_Velocity.norm()) >= 30.0f && !sonic->m_Is2DMode && !Common::IsPlayerInForwardPath() && !sonic->StateFlag(eStateFlag_OutOfControl) && !strstr(anim.c_str(),"Grind")) {
 			// Regular Drift
 			if (input.IsDown(Sonic::eKeyState_B) && abs(input.LeftStickHorizontal) >= 0.85f && (state == "Walk" || state == "Sliding")) {
 				sonic->ChangeState("Drift");
