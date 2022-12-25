@@ -1,44 +1,15 @@
-// Original code by Brianuuu: https://github.com/brianuuu
-void __declspec(naked) groundBoostSuperSonicOnly()
-{
-	static uint32_t returnAddress = 0xDFF270;
-	static uint32_t failAddress = 0xDFF2CB;
-	__asm
-	{
-		// disable air boost for normal Sonic
-		mov     eax, [ebx + 534h]
-		mov     eax, [eax + 4]
-		cmp     byte ptr[eax + 6Fh], 0
-		jz      jump
-
-		// original function
-		movss   xmm0, dword ptr[ebx + 5BCh]
-		jmp[returnAddress]
-
-		jump:
-		jmp[failAddress]
-	}
-}
-
-void __declspec(naked) airBoostSuperSonicOnly()
-{
-	static uint32_t returnAddress = 0xDFE094;
-	static uint32_t failAddress = 0xDFDFE6;
-	__asm
-	{
-		// disable air boost for normal Sonic
-		mov     eax, [esi + 534h]
-		mov     eax, [eax + 4]
-		cmp     byte ptr[eax + 6Fh], 0
-		jz      jump
-
-		// original function
-		movss   xmm0, dword ptr[esi + 5BCh]
-		jmp[returnAddress]
-
-		jump:
-		jmp[failAddress]
-	}
+// https://github.com/brianuuu/DllMods/blob/master/Source/Sonic06DefinitiveExperience/NextGenPhysics.cpp
+void ToggleBoost(bool enabled) {
+	int button = enabled ? 4 : -1;
+	WRITE_MEMORY(0xDFDF4C, uint32_t, button); // Air Boost
+	WRITE_MEMORY(0xDFF25B, uint32_t, button); // Grind Boost
+	WRITE_MEMORY(0xE4776B, uint32_t, button); // Dummy Boost
+	WRITE_MEMORY(0x11177EE, uint32_t, button); // Boost
+	WRITE_MEMORY(0x1118CEE, uint32_t, button); // Fall Boost
+	WRITE_MEMORY(0x111BE61, uint32_t, button); // Null Boost?
+	WRITE_MEMORY(0x111BEE8, uint32_t, button); // Dummy Boost plugin
+	WRITE_MEMORY(0x111D801, uint32_t, button); // Board Fall Boost
+	WRITE_MEMORY(0x11A0716, uint32_t, button); // Dummy Boost External
 }
 
 bool bobsleighBoostCancel = false;
@@ -80,7 +51,7 @@ void Paraloop(Sonic::Player::CPlayerSpeedContext* sonic) {
 		{
 			ParaloopInfo info;
 			info.startPos = { 666.0f, -129.898f, 1364.824f };
-			info.distanceThreshold = 1.0f;
+			info.distanceThreshold = 1.5f;
 			info.condition = true;
 			info.duration = 2.0f;
 			info.soundDelay = 1.0f;
@@ -90,7 +61,7 @@ void Paraloop(Sonic::Player::CPlayerSpeedContext* sonic) {
 		{
 			ParaloopInfo info;
 			info.startPos = { 697.287f, -92.5f, 1174.389f };
-			info.distanceThreshold = 1.0f;
+			info.distanceThreshold = 1.5f;
 			info.condition = true;
 			info.duration = 1.35f;
 			info.soundDelay = 0.8f;
@@ -101,7 +72,7 @@ void Paraloop(Sonic::Player::CPlayerSpeedContext* sonic) {
 		{
 			ParaloopInfo info;
 			info.startPos = { -5.615f, -53.5f, 449.415f };
-			info.distanceThreshold = 1.0f;
+			info.distanceThreshold = 1.5f;
 			info.condition = true;
 			info.duration = 1.5f;
 			info.soundDelay = 1.0f;
@@ -112,7 +83,7 @@ void Paraloop(Sonic::Player::CPlayerSpeedContext* sonic) {
 		{
 			ParaloopInfo info;
 			info.startPos = { -1.464, 18.020f, -1502.584f };
-			info.distanceThreshold = 1.0f;
+			info.distanceThreshold = 1.5f;
 			info.condition = true;
 			info.duration = 1.9f;
 			info.soundDelay = 0.0f;
@@ -122,7 +93,7 @@ void Paraloop(Sonic::Player::CPlayerSpeedContext* sonic) {
 		{
 			ParaloopInfo info;
 			info.startPos = { -1.468f, 7.859f, -1517.009f };
-			info.distanceThreshold = 1.0f;
+			info.distanceThreshold = 1.5f;
 			info.condition = true;
 			info.duration = 1.6f;
 			info.soundDelay = 0.0f;
@@ -133,7 +104,7 @@ void Paraloop(Sonic::Player::CPlayerSpeedContext* sonic) {
 		{
 			ParaloopInfo info;
 			info.startPos = { -698.696f, 90.0f, 50.010f };
-			info.distanceThreshold = 1.0f;
+			info.distanceThreshold = 1.5f;
 			info.condition = true;
 			info.duration = 1.3f;
 			info.soundDelay = 1.3f;
@@ -143,7 +114,7 @@ void Paraloop(Sonic::Player::CPlayerSpeedContext* sonic) {
 		{
 			ParaloopInfo info;
 			info.startPos = { 868.926f, 26.941f, 171.875f };
-			info.distanceThreshold = 1.0f;
+			info.distanceThreshold = 1.5f;
 			info.condition = true;
 			info.duration = 1.0f;
 			info.soundDelay = 1.0f;
@@ -153,7 +124,7 @@ void Paraloop(Sonic::Player::CPlayerSpeedContext* sonic) {
 		{
 			ParaloopInfo info;
 			info.startPos = { -22.0f, 63.0f, 5.37f };
-			info.distanceThreshold = 1.0f;
+			info.distanceThreshold = 2.0f;
 			info.condition = true;
 			info.duration = 1.65f;
 			info.soundDelay = 1.65f;
@@ -183,7 +154,7 @@ void Paraloop(Sonic::Player::CPlayerSpeedContext* sonic) {
 		{
 			ParaloopInfo info;
 			info.startPos = { 2153.9f, -96.707f, -461.3f };
-			info.distanceThreshold = 1.0f;
+			info.distanceThreshold = 1.5f;
 			info.condition = true;
 			info.duration = 1.0f;
 			info.soundDelay = 1.0f;
@@ -193,7 +164,7 @@ void Paraloop(Sonic::Player::CPlayerSpeedContext* sonic) {
 		{
 			ParaloopInfo info;
 			info.startPos = { 2222.497f, -172.588f, -1110.001f };
-			info.distanceThreshold = 1.0f;
+			info.distanceThreshold = 1.5f;
 			info.condition = true;
 			info.duration = 1.35f;
 			info.soundDelay = 1.35f;
@@ -204,7 +175,7 @@ void Paraloop(Sonic::Player::CPlayerSpeedContext* sonic) {
 		{
 			ParaloopInfo info;
 			info.startPos = { -508.074f, 46.021f, 206.315f };
-			info.distanceThreshold = 1.0f;
+			info.distanceThreshold = 1.5f;
 			info.condition = true;
 			info.duration = 1.2f;
 			info.soundDelay = 1.2f;
@@ -214,7 +185,7 @@ void Paraloop(Sonic::Player::CPlayerSpeedContext* sonic) {
 		{
 			ParaloopInfo info;
 			info.startPos = { 561.526f, 20.047f, -1449.837f };
-			info.distanceThreshold = 1.0f;
+			info.distanceThreshold = 1.5f;
 			info.condition = true;
 			info.duration = 1.4f;
 			info.soundDelay = 1.4f;
@@ -224,7 +195,7 @@ void Paraloop(Sonic::Player::CPlayerSpeedContext* sonic) {
 		{
 			ParaloopInfo info;
 			info.startPos = { 743.021f, -10.195f, -1490.299f };
-			info.distanceThreshold = 1.0f;
+			info.distanceThreshold = 1.5f;
 			info.condition = true;
 			info.duration = 1.5f;
 			info.soundDelay = 1.5f;
@@ -253,22 +224,20 @@ HOOK(void, __fastcall, SonicAddonUpdate, 0xE6BF20, Sonic::Player::CPlayerSpeed* 
 			sonic->PlaySound(2002501, true);
 			sound = false;
 		}
-
 		if (strstr(state.c_str(), "Board")) {
 			if (!bobsleighBoostCancel) { bobsleighBoostCancel = true; }
 			Common::SonicContextSetCollision(TypeSonicBoost, true);
 			sonic->StateFlag(eStateFlag_EndBoost) = true;
-			WRITE_JUMP(0xDFF268, groundBoostSuperSonicOnly);
-			WRITE_JUMP(0xDFE05F, airBoostSuperSonicOnly);
+			ToggleBoost(false);
 		}
 		else if (bobsleighBoostCancel) {
 			Common::SonicContextSetCollision(TypeSonicBoost, false);
-			WRITE_MEMORY(0xDFF268, uint8_t, 0xF3, 0x0F, 0x10, 0x83, 0xBC);
-			WRITE_MEMORY(0xDFE05F, uint8_t, 0xF3, 0x0F, 0x10, 0x86, 0xBC);
+			ToggleBoost(true);
 			bobsleighBoostCancel = false;
 		}
 	}
 }
+
 void UPC::Install() {
 	// Credit to Skyth
 	WRITE_MEMORY(0xDFF622, ::byte, 0xEB); // Disables Drifting when using bobsleigh
