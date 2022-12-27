@@ -18,10 +18,14 @@ bool HomingX = Common::reader.GetBoolean("Restorations", "XHoming", true);
 
 bool BDrift = Common::reader.GetBoolean("Restorations", "BDrift", true);
 
+bool UseRingLife = Common::reader.GetBoolean("Restorations", "Ring Life", true);
+
+bool ringLife = false;
 HOOK(int, __fastcall, MiscRestart, 0xE76810, uint32_t* This, void* Edx, void* message)
 {
 	int result = originalMiscRestart(This, Edx, message);
 	prevRingCount = 0;
+	ringLife = false;
 	return result;
 }
 HOOK(void, __fastcall, HudMiscUpdate, 0x1098A50, void* This, void* edx, float* updateInfo)
@@ -30,6 +34,7 @@ HOOK(void, __fastcall, HudMiscUpdate, 0x1098A50, void* This, void* edx, float* u
 
 	Sonic::Player::CPlayerSpeedContext* sonic = Sonic::Player::CPlayerSpeedContext::GetInstance();
 
+	// Ring Energy
 	if (EnergyChange) {
 		if (prevRingCount < sonic->m_RingCount) {
 			if (sonic->m_ChaosEnergy < 100.0f) sonic->m_ChaosEnergy = std::clamp(previousChaosEnergy + ringEnergyAmount, 0.0f, 100.0f);
@@ -42,6 +47,31 @@ HOOK(void, __fastcall, HudMiscUpdate, 0x1098A50, void* This, void* edx, float* u
 			}
 			previousChaosEnergy = sonic->m_ChaosEnergy;
 		}
+	}
+}
+// Unleashed HUD
+HOOK(void, __stdcall, MiscLife, 0xE75520, Sonic::Player::CPlayerContext* context, int lifeCount, bool playSound)
+{
+	if (lifeCount > 0)
+	{
+		Sonic::Player::CPlayerSpeedContext* sonic = Sonic::Player::CPlayerSpeedContext::GetInstance();
+
+		if (sonic && BlueBlurCommon::IsModern() && MoreVoice) {
+			sonic->PlaySound(2002499, true);
+		}
+
+		if (sonic->m_RingCount % 100 == 0 && sonic->m_RingCount != 0) {
+			ringLife = true;
+		}
+	}
+	originalMiscLife(context, lifeCount, playSound);
+}
+HOOK(void, __fastcall, MiscLifeRing, 0xE761A0, int a1) {
+	if (UseRingLife) {
+		if (!ringLife) { originalMiscLifeRing(a1); }
+	}
+	else {
+		originalMiscLifeRing(a1);
 	}
 }
 HOOK(void, __fastcall, SonicMiscUpdate, 0xE6BF20, Sonic::Player::CPlayerSpeed* This, void* _, const hh::fnd::SUpdateInfo& updateInfo)
@@ -57,7 +87,9 @@ HOOK(void, __fastcall, SonicMiscUpdate, 0xE6BF20, Sonic::Player::CPlayerSpeed* T
 		Hedgehog::Base::CSharedString state = This->m_StateMachine.GetCurrentState()->GetStateName();
 		Hedgehog::Base::CSharedString anim = sonic->GetCurrentAnimationName();
 		Sonic::SPadState input = Sonic::CInputState::GetInstance()->GetPadState();
-		//printf("\n%f", sonic->m_Velocity.norm());
+
+		//printf("\n%d", ringLife);
+
 		if (HomingX && sonic->m_spParameter->Get<bool>(Sonic::Player::ePlayerSpeedParameter_XButtonHoming) != true) {
 			sonic->m_spParameter->m_scpNode->m_ValueMap[Sonic::Player::ePlayerSpeedParameter_XButtonHoming] = true;
 		}
@@ -127,19 +159,6 @@ HOOK(void, __fastcall, MiscYPrompt, 0x5289A0, void* thisDeclaration, void* edx, 
 	originalMiscYPrompt(thisDeclaration, edx, a2);
 }
 
-// Unleashed HUD
-HOOK(void, __stdcall, MiscLife, 0xE75520, Sonic::Player::CPlayerContext* context, int lifeCount, bool playSound)
-{
-	originalMiscLife(context, lifeCount, playSound);
-
-	if (lifeCount > 0)
-	{
-		Sonic::Player::CPlayerSpeedContext* sonic = Sonic::Player::CPlayerSpeedContext::GetInstance();
-		if (sonic && BlueBlurCommon::IsModern()) {
-			sonic->PlaySound(2002499, true);
-		}
-	}
-}
 std::vector<std::string> SUModelMods = { "Chip Bracelet (Unleashed)", "Pure SU Sonic", "SU Marza Sonic", "Unleashed Sonic Model"};
 
 bool DisableBoard = Common::reader.GetBoolean("Changes", "DisableBoard", false);
@@ -196,5 +215,6 @@ void Misc::Install()
 	INSTALL_HOOK(HudMiscUpdate);
 	INSTALL_HOOK(MiscRestart);
 
-	if (MoreVoice) { INSTALL_HOOK(MiscLife); }
+	INSTALL_HOOK(MiscLife);
+	INSTALL_HOOK(MiscLifeRing);
 }
