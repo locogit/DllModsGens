@@ -2150,6 +2150,10 @@ namespace Common
 	{
 		return ((b - a) * ((float)rand() / RAND_MAX)) + a;
 	}
+	inline float Lerp(float firstFloat, float secondFloat, float by)
+	{
+		return firstFloat + (secondFloat - firstFloat) * by;
+	}
 	static INIReader reader("mod.ini");
 	static bool SUHud = Common::IsModEnabledID("ptkickass.sonicgenerations.unleashedhud");
 	static bool UP = Common::IsModEnabled("Unleashed Project");

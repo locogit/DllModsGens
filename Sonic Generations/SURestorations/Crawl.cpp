@@ -1,12 +1,14 @@
 bool isCrawling = false;
-const float crawlSpeed = 8;
+const float crawlSpeed = 5.75f;
 float crawlEnterTime = 0;
 float crawlExitTime = 0;
 
-float crawlTurnRate = 400;
+float crawlTurnRate = 150;
 
 float crawlSpeedMult = 1.0f;
 float slopeDot;
+
+float desiredCrawlSpeed = 0.0f;
 HOOK(void, __stdcall, CrawlRotate, 0xE310A0, void* a1, float* targetDir, float turnRate1, float turnRateMultiplier, bool noLockDirection, float turnRate2)
 {
 	originalCrawlRotate(a1, targetDir, turnRate1, turnRateMultiplier, noLockDirection, turnRate2);
@@ -18,7 +20,7 @@ HOOK(void, __fastcall, SquatAdvanceCrawl, 0x1230B60, void* This)
 
 	slopeDot = sonic->m_UpVector.dot(sonic->m_spMatrixNode->m_Transform.m_Rotation * Eigen::Vector3f::UnitZ());
 
-	printf("\n%f, %f", slopeDot, crawlSpeedMult);
+	//printf("\n%f, %f", slopeDot, crawlSpeedMult);
 	if (!BlueBlurCommon::IsSuper()) {
 		Eigen::Vector3f inputDirection;
 		Common::GetWorldInputDirection(inputDirection);
@@ -44,18 +46,19 @@ HOOK(void, __fastcall, SquatAdvanceCrawl, 0x1230B60, void* This)
 				message.m_pathInterpolate = false;
 				message.m_alwaysMinusOne = -1.0f;
 
-				message.m_impulse *= crawlSpeed * moveMult * (slopeDot >= .15f ? crawlSpeedMult : 1.0f);
+				message.m_impulse *= desiredCrawlSpeed * moveMult;
 
 				Common::ApplyPlayerApplyImpulse(message);
 			}
 
 			alignas(16) float dir[4] = { inputDirection.x(), inputDirection.y(), inputDirection.z(), 0 };
 			if (!Common::IsPlayerIn2D()) {
-				originalCrawlRotate(This, dir, 100, PI_F * 10.0f, false, crawlTurnRate * moveMult);
+				originalCrawlRotate(This, dir, 75, PI_F * 10.0f, false, crawlTurnRate * moveMult);
 			}
 			else {
 				originalCrawlRotate(This, dir, 1000, 1000, false, 1000);
 			}
+
 			if (!inputDirection.isZero()) {
 				if (anim != "CrawlLoop" && crawlEnterTime <= 0)
 				{
@@ -114,13 +117,21 @@ HOOK(void, __fastcall, SonicCrawlUpdate, 0xE6BF20, Sonic::Player::CPlayerSpeed* 
 	if (BlueBlurCommon::IsModern()) {
 		Eigen::Vector3f inputDirection;
 		Common::GetWorldInputDirection(inputDirection);
+		//printf("\n%f", desiredCrawlSpeed);
 		if (crawlEnterTime > 0) { crawlEnterTime -= updateInfo.DeltaTime; }
 		if (crawlExitTime > 0) { crawlExitTime -= updateInfo.DeltaTime; }
-		if (slopeDot >= .15f && !inputDirection.isZero()) { crawlSpeedMult += updateInfo.DeltaTime * 0.75f; }
-		else { crawlSpeedMult = 1.0f; }
+		if (slopeDot >= .15f && !inputDirection.isZero()) {
+			crawlSpeedMult += updateInfo.DeltaTime * 0.75f;
+			desiredCrawlSpeed = crawlSpeed * crawlSpeedMult; 
+		}
+		else { 
+			crawlSpeedMult = 1.0f; 
+			desiredCrawlSpeed = Common::Lerp(desiredCrawlSpeed, crawlSpeed, updateInfo.DeltaTime);
+		}
 	}
 }
 void Crawl::Install() {
+	desiredCrawlSpeed = crawlSpeed;
 	INSTALL_HOOK(SquatAdvanceCrawl);
 	INSTALL_HOOK(SonicCrawlUpdate);
 }
