@@ -210,20 +210,27 @@ HOOK(void, __fastcall, SonicAddonUpdate, 0xE6BF20, Sonic::Player::CPlayerSpeed* 
 		Sonic::Player::CPlayerSpeedContext* sonic = This->GetContext();
 		Hedgehog::Base::CSharedString state = This->m_StateMachine.GetCurrentState()->GetStateName();
 		Sonic::SPadState input = Sonic::CInputState::GetInstance()->GetPadState();
-
+		//printf("\n%s", state);
+		
+		//Paraloop
 		Paraloop(sonic);
 
 		if (paraloopTime > 0 && paraloop) paraloopTime -= updateInfo.DeltaTime;
+
 		if (paraloopTime <= 0 && paraloop) {
 			Common::fCGlitterEnd(sonic, paraloopHandle, true);
 			paraloopHandle = nullptr;
 			paraloop = false;
 		}
+
 		if (soundTime > 0 && sound) soundTime -= updateInfo.DeltaTime;
+
 		if (soundTime <= 0 && sound) {
 			sonic->PlaySound(2002501, true);
 			sound = false;
 		}
+
+		// Bobsleigh
 		if (strstr(state.c_str(), "Board")) {
 			if (!bobsleighBoostCancel) { bobsleighBoostCancel = true; }
 			Common::SonicContextSetCollision(TypeSonicBoost, true);
