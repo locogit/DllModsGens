@@ -169,7 +169,7 @@ void AnimationSetPatcher::applyPatches()
     m_newAnimationData.emplace_back(CrawlEnter, "sn_crawlS", 1.0f, false, nullptr);
     m_newAnimationData.emplace_back(CrawlExit, "sn_crawlE", 1.0f, false, nullptr);
     m_newAnimationData.emplace_back(CrawlLoop, "sn_crawl_loop", 1.75f, true, nullptr);
-    m_newAnimationData.emplace_back(JumpBoardLoop, "sn_jumpstand_loop", 1.0f, true, nullptr);
+    m_newAnimationData.emplace_back(JumpBoardLoop, "sn_jumpstand_s", 1.0f, false, nullptr);
     if (!m_newAnimationData.empty())
     {
         INSTALL_HOOK(InitializeSonicAnimationList);

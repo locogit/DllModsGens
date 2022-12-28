@@ -2154,6 +2154,9 @@ namespace Common
 	{
 		return firstFloat + (secondFloat - firstFloat) * by;
 	}
+	inline float Clamp01(float num) {
+		return std::clamp(num, 0.0f, 1.0f);
+	}
 	static INIReader reader("mod.ini");
 	static bool SUHud = Common::IsModEnabledID("ptkickass.sonicgenerations.unleashedhud");
 	static bool UP = Common::IsModEnabled("Unleashed Project");

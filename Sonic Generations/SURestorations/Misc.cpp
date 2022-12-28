@@ -1,8 +1,7 @@
 bool SUMouthFix;
 
-float ringEnergyAmount = 2.75f;
+float ringEnergyAmount = 2.0f;
 size_t prevRingCount;
-float previousChaosEnergy;
 
 bool MoreVoice = Common::reader.GetBoolean("Changes", "MoreVoice", false);
 
@@ -38,15 +37,13 @@ HOOK(void, __fastcall, HudMiscUpdate, 0x1098A50, void* This, void* edx, float* u
 	// Ring Energy
 	if (EnergyChange) {
 		if (prevRingCount < sonic->m_RingCount) {
-			if (sonic->m_ChaosEnergy < 100.0f) sonic->m_ChaosEnergy = std::clamp(previousChaosEnergy + ringEnergyAmount, 0.0f, 100.0f);
+			if (sonic->m_ChaosEnergy < 100.0f) sonic->m_ChaosEnergy = std::clamp(sonic->m_ChaosEnergy + ringEnergyAmount, 0.0f, 100.0f);
 			prevRingCount = sonic->m_RingCount;
-			previousChaosEnergy = sonic->m_ChaosEnergy;
 		}
 		else {
 			if (prevRingCount > sonic->m_RingCount) {
 				prevRingCount = sonic->m_RingCount;
 			}
-			previousChaosEnergy = sonic->m_ChaosEnergy;
 		}
 	}
 }
@@ -160,8 +157,21 @@ std::vector<std::string> SUModelMods = { "Chip Bracelet (Unleashed)", "Pure SU S
 
 bool DisableBoard = Common::reader.GetBoolean("Changes", "DisableBoard", false);
 
+//Patch "Never Receive Boost From Rings" in "Gameplay" by "Hyper"
+void NOP(int floatInstrAddr, int paramStrAddr)
+{
+	WRITE_MEMORY(floatInstrAddr, ::byte, 0xD9, 0xEE); /* fldz */
+	WRITE_NOP(floatInstrAddr + 2, 6);
+	WRITE_MEMORY(paramStrAddr, ::byte, 0x00);
+}
 void Misc::Install()
 {
+	if (EnergyChange) {
+		NOP(0x120628B, 0x15FA690); /* ChaosEnergyRecoverRateByRing */
+		NOP(0x1206335, 0x15FA6DC); /* ChaosEnergyRecoverRateByRingBonus */
+		NOP(0x12063DF, 0x15FA72C); /* ChaosEnergyRecoverRateByRingPenalty */
+	}
+
 	// Unwiished Fall
 	if (Common::reader.GetBoolean("Changes", "WiiFall", false)) {
 		// Thanks Hyper.

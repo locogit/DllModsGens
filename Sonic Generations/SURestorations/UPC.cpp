@@ -203,12 +203,13 @@ void Paraloop(Sonic::Player::CPlayerSpeedContext* sonic) {
 		}
 	}
 }
-
+float rotationFloatBobsleigh;
 HOOK(void, __fastcall, SonicAddonUpdate, 0xE6BF20, Sonic::Player::CPlayerSpeed* This, void* _, const hh::fnd::SUpdateInfo& updateInfo) {
 	originalSonicAddonUpdate(This, _, updateInfo);
 	if (BlueBlurCommon::IsModern()) {
 		Sonic::Player::CPlayerSpeedContext* sonic = This->GetContext();
 		Hedgehog::Base::CSharedString state = This->m_StateMachine.GetCurrentState()->GetStateName();
+		Hedgehog::Base::CSharedString anim = sonic->GetCurrentAnimationName();
 		Sonic::SPadState input = Sonic::CInputState::GetInstance()->GetPadState();
 		//printf("\n%s", state);
 		
@@ -231,16 +232,34 @@ HOOK(void, __fastcall, SonicAddonUpdate, 0xE6BF20, Sonic::Player::CPlayerSpeed* 
 		}
 
 		// Bobsleigh
-		if (strstr(state.c_str(), "Board")) {
-			if (!bobsleighBoostCancel) { bobsleighBoostCancel = true; }
-			Common::SonicContextSetCollision(TypeSonicBoost, true);
-			sonic->StateFlag(eStateFlag_EndBoost) = true;
-			ToggleBoost(false);
-		}
-		else if (bobsleighBoostCancel) {
-			Common::SonicContextSetCollision(TypeSonicBoost, false);
-			ToggleBoost(true);
-			bobsleighBoostCancel = false;
+		if (Common::CheckCurrentStage("cte200")) {
+			if (strstr(state.c_str(), "Board")) {
+				if (!bobsleighBoostCancel) { bobsleighBoostCancel = true; }
+				Common::SonicContextSetCollision(TypeSonicBoost, true);
+				sonic->StateFlag(eStateFlag_EndBoost) = true;
+				ToggleBoost(false);
+
+				float desiredRotationFloatBobsleigh;
+
+				if (sonic->m_Grounded) {
+					desiredRotationFloatBobsleigh = 0.0f;
+				}
+				else {
+					desiredRotationFloatBobsleigh = -Common::Lerp(-0.35f, 1.0f, Common::Clamp01(sonic->m_Velocity.y() * updateInfo.DeltaTime * 4.0f));
+				}
+
+				rotationFloatBobsleigh = Common::Lerp(rotationFloatBobsleigh, desiredRotationFloatBobsleigh, updateInfo.DeltaTime * 5.0f);
+				Hedgehog::Math::CQuaternion m_Rotation = Hedgehog::Math::CQuaternion::Identity() * Eigen::AngleAxis<float>(rotationFloatBobsleigh, Eigen::Vector3f::UnitX());
+				sonic->m_spModelMatrixNode->m_LocalMatrix.matrix() = (Eigen::Translation3f(Eigen::Vector3f::Zero()) * m_Rotation).matrix();
+			}
+			else if (bobsleighBoostCancel) {
+				Common::SonicContextSetCollision(TypeSonicBoost, false);
+				ToggleBoost(true);
+				bobsleighBoostCancel = false;
+
+				Hedgehog::Math::CQuaternion m_Rotation = Hedgehog::Math::CQuaternion::Identity() * Eigen::AngleAxis<float>(0.0f, Eigen::Vector3f::UnitX());
+				sonic->m_spModelMatrixNode->m_LocalMatrix.matrix() = (Eigen::Translation3f(Eigen::Vector3f::Zero()) * m_Rotation).matrix();
+			}
 		}
 	}
 }

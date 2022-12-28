@@ -12,7 +12,7 @@ HOOK(void, __fastcall, SonicRampUpdate, 0xE6BF20, Sonic::Player::CPlayerSpeed* T
 		Hedgehog::Base::CSharedString anim = sonic->GetCurrentAnimationName();
 
 		if (RampLoop) {
-			if (anim == "Fall" && state == "SpecialJump" && !sonic->StateFlag(eStateFlag_Boost)) {
+			if (anim == "JumpBoard" && state == "SpecialJump" && !sonic->StateFlag(eStateFlag_Boost)) {
 				sonic->ChangeAnimation("JumpBoardLoop");
 			}
 		}
