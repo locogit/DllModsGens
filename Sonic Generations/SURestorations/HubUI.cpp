@@ -6,6 +6,7 @@ float yAspectOffsetTownScreen = 0.0f;
 
 int ringCount = 0;
 std::string hubFileName = "hub.sav";
+
 std::string readHubFile(int index)
 {
 	std::string line;
@@ -24,6 +25,7 @@ std::string readHubFile(int index)
 		return "NULL";
 	}
 }
+
 void writeToHubFile() {
 	std::ofstream hubFile(hubFileName);
 	if (hubFile.is_open())
@@ -38,6 +40,7 @@ void CreateScreenTownScreen(Sonic::CGameObject* pParentGameObject)
 	if (rcTownScreen && !spTownScreen)
 		pParentGameObject->m_pMember->m_pGameDocument->AddGameObject(spTownScreen = boost::make_shared<Sonic::CGameObjectCSD>(rcTownScreen, 0.5f, "HUD", false), "main", pParentGameObject);
 }
+
 void KillScreenTownScreen()
 {
 	if (spTownScreen) {
@@ -45,6 +48,7 @@ void KillScreenTownScreen()
 		spTownScreen = nullptr;
 	}
 }
+
 //Brianuu/Skyth
 void CalculateAspectOffsetsTownScreen()
 {
@@ -69,6 +73,7 @@ void CalculateAspectOffsetsTownScreen()
 		yAspectOffsetTownScreen = 0.0f;
 	}
 }
+
 void __fastcall RemoveHubCallbackTownScreen(Sonic::CGameObject* This, void*, Sonic::CGameDocument* pGameDocument)
 {
 	KillScreenTownScreen();
@@ -78,6 +83,7 @@ void __fastcall RemoveHubCallbackTownScreen(Sonic::CGameObject* This, void*, Son
 		Chao::CSD::CProject::DestroyScene(rcTownScreen.Get(), cam);
 	rcTownScreen = nullptr;
 }
+
 HOOK(void, __fastcall, HudResult_MsgStartGoalResultHUB, 0x10B58A0, uint32_t* This, void* Edx, void* message)
 {
 	Sonic::Player::CPlayerSpeedContext* sonic = Sonic::Player::CPlayerSpeedContext::GetInstance();
@@ -85,6 +91,7 @@ HOOK(void, __fastcall, HudResult_MsgStartGoalResultHUB, 0x10B58A0, uint32_t* Thi
 	writeToHubFile();
 	originalHudResult_MsgStartGoalResultHUB(This, Edx, message);
 }
+
 HOOK(void, __fastcall, CHudPlayableMenuStart, 0x108DEB0, Sonic::CGameObject *This, int a2, int a3, void **a4, void* Edx) {
 	originalCHudPlayableMenuStart(This, a2, a3, a4, Edx);
 	RemoveHubCallbackTownScreen(This, nullptr, nullptr);
@@ -124,6 +131,7 @@ HOOK(void, __fastcall, CHudPlayableMenuStart, 0x108DEB0, Sonic::CGameObject *Thi
 
 	CreateScreenTownScreen(This);
 }
+
 void HubUI::Install() {
 	ringCount = std::clamp(stoi(readHubFile(1)), 0, 999999);
 	INSTALL_HOOK(HudResult_MsgStartGoalResultHUB);

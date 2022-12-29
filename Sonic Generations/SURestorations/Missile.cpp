@@ -3,6 +3,7 @@ Chao::CSD::RCPtr<Chao::CSD::CProject> rcLockOn;
 Chao::CSD::RCPtr<Chao::CSD::CScene> cursor_enemy;
 bool cursorHidden = true;
 float missileTimer;
+
 void KillScreenMissile()
 {
 	if (spLockOn)
@@ -11,6 +12,7 @@ void KillScreenMissile()
 		spLockOn = nullptr;
 	}
 }
+
 void __fastcall CHudSonicStageRemoveCallbackMissile(Sonic::CGameObject* This, void*, Sonic::CGameDocument* pGameDocument)
 {
 	KillScreenMissile();
@@ -18,11 +20,13 @@ void __fastcall CHudSonicStageRemoveCallbackMissile(Sonic::CGameObject* This, vo
 	rcLockOn = nullptr;
 	cursor_enemy = nullptr;
 }
+
 void CreateScreenMissile(Sonic::CGameObject* pParentGameObject)
 {
 	if (rcLockOn && !spLockOn)
 		pParentGameObject->m_pMember->m_pGameDocument->AddGameObject(spLockOn = boost::make_shared<Sonic::CGameObjectCSD>(rcLockOn, 0.5f, "HUD", false), "main", pParentGameObject);
 }
+
 HOOK(void, __fastcall, CHudSonicStageDelayProcessImpMissile, 0x109A8D0, Sonic::CGameObject* This) {
 	originalCHudSonicStageDelayProcessImpMissile(This);
 	if (BlueBlurCommon::IsModern()) {
@@ -43,6 +47,7 @@ HOOK(void, __fastcall, CHudSonicStageDelayProcessImpMissile, 0x109A8D0, Sonic::C
 		CreateScreenMissile(This);
 	}
 }
+
 HOOK(void, __fastcall, CHudSonicStageUpdateParallelMissile, 0x1098A50, Sonic::CGameObject* This, void* Edx, const hh::fnd::SUpdateInfo& in_rUpdateInfo) {
 	originalCHudSonicStageUpdateParallelMissile(This, Edx, in_rUpdateInfo);
 	Sonic::Player::CPlayerSpeedContext* sonic = Sonic::Player::CPlayerSpeedContext::GetInstance();
@@ -57,6 +62,7 @@ HOOK(void, __fastcall, CHudSonicStageUpdateParallelMissile, 0x1098A50, Sonic::CG
 		cursor_enemy->SetPosition(screenPosition.x(), screenPosition.y());
 	}
 }
+
 HOOK(int, __fastcall, ProcMsgRestartStageMissile, 0xE76810, uint32_t* This, void* Edx, void* message)
 {
 	if (!cursorHidden && BlueBlurCommon::IsModern()) {
@@ -65,6 +71,7 @@ HOOK(int, __fastcall, ProcMsgRestartStageMissile, 0xE76810, uint32_t* This, void
 	}
 	return originalProcMsgRestartStageMissile(This, Edx, message);
 }
+
 HOOK(void, __fastcall, HudResult_MsgStartGoalResultMissile, 0x10B58A0, uint32_t* This, void* Edx, void* message)
 {
 	originalHudResult_MsgStartGoalResultMissile(This, Edx, message);
@@ -73,6 +80,7 @@ HOOK(void, __fastcall, HudResult_MsgStartGoalResultMissile, 0x10B58A0, uint32_t*
 		cursor_enemy->SetHideFlag(true);
 	}
 }
+
 HOOK(__int8, __fastcall, missile, 0x60EFF0, DWORD** This, int a2, int* a3, void* Edx) {
 	if (BlueBlurCommon::IsModern()) {
 		missileTimer = 1.5f;

@@ -20,6 +20,7 @@ bool BDrift = Common::reader.GetBoolean("Restorations", "BDrift", true);
 bool UseRingLife = Common::reader.GetBoolean("Restorations", "RingLife", true);
 
 bool ringLife = false;
+
 HOOK(int, __fastcall, MiscRestart, 0xE76810, uint32_t* This, void* Edx, void* message)
 {
 	int result = originalMiscRestart(This, Edx, message);

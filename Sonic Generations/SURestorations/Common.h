@@ -2157,6 +2157,68 @@ namespace Common
 	inline float Clamp01(float num) {
 		return std::clamp(num, 0.0f, 1.0f);
 	}
+	// Score Generations Code
+	inline bool FileExists(const std::string& path)
+	{
+		struct stat buffer;
+
+		return stat(path.c_str(), &buffer) == 0;
+	}
+
+	inline std::string GetExecutablePath()
+	{
+		char buffer[MAX_PATH];
+
+		GetModuleFileNameA(NULL, buffer, MAX_PATH);
+
+		return buffer;
+	}
+
+	inline std::string GetWorkingDirectory()
+	{
+		std::string executablePath = GetExecutablePath();
+
+		return executablePath.substr(0, executablePath.find_last_of("\\"));
+	}
+
+	inline std::string GetCpkRedirConfig()
+	{
+		return GetWorkingDirectory() + "\\cpkredir.ini";
+	}
+
+	inline std::string ToLower(std::string str)
+	{
+		if (!str.empty())
+			std::transform(str.begin(), str.end(), str.begin(), ::tolower);
+
+		return str;
+	}
+
+	inline bool Compare(const char* charPtr1, const char* charPtr2)
+	{
+		return strcmp(charPtr1, charPtr2) == 0 ? true : false;
+	}
+
+	inline std::string GetModsDatabase()
+	{
+		std::string cpkRedirConfig = GetCpkRedirConfig();
+
+		std::string modsDatabase;
+		const char* mod_default = "mods\\ModsDB.ini";
+		if (FileExists(cpkRedirConfig))
+		{
+			INIReader reader(cpkRedirConfig);
+
+			modsDatabase = reader.Get("CPKREDIR", "ModsDbIni", mod_default);
+		}
+
+		// Early builds of Hedge Mod Manager use relative paths.
+		if (Compare(ToLower(modsDatabase).c_str(), ToLower(mod_default).c_str()))
+			return GetWorkingDirectory() + "\\" + "mods\\ModsDB.ini";
+
+		return modsDatabase;
+	}
+
 	static INIReader reader("mod.ini");
 	static bool SUHud = Common::IsModEnabledID("ptkickass.sonicgenerations.unleashedhud");
 	static bool UP = Common::IsModEnabled("Unleashed Project");

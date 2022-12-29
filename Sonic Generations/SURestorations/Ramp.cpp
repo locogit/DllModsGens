@@ -31,6 +31,7 @@ HOOK(void, __fastcall, SonicRampUpdate, 0xE6BF20, Sonic::Player::CPlayerSpeed* T
 		}
 	}
 }
+
 void Ramp::Install() {
 	INSTALL_HOOK(SonicRampUpdate);
 }

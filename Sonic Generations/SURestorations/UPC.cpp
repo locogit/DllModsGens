@@ -20,6 +20,7 @@ bool sound = false;
 bool paraloop = false;
 
 SharedPtrTypeless paraloopHandle;
+
 struct ParaloopInfo {
 	std::vector<float> startPos = { 0, 0, 0 };
 	float distanceThreshold = 3.0f;
@@ -203,7 +204,9 @@ void Paraloop(Sonic::Player::CPlayerSpeedContext* sonic) {
 		}
 	}
 }
+
 float rotationFloatBobsleigh;
+
 HOOK(void, __fastcall, SonicAddonUpdate, 0xE6BF20, Sonic::Player::CPlayerSpeed* This, void* _, const hh::fnd::SUpdateInfo& updateInfo) {
 	originalSonicAddonUpdate(This, _, updateInfo);
 	if (BlueBlurCommon::IsModern()) {
@@ -211,7 +214,7 @@ HOOK(void, __fastcall, SonicAddonUpdate, 0xE6BF20, Sonic::Player::CPlayerSpeed* 
 		Hedgehog::Base::CSharedString state = This->m_StateMachine.GetCurrentState()->GetStateName();
 		Hedgehog::Base::CSharedString anim = sonic->GetCurrentAnimationName();
 		Sonic::SPadState input = Sonic::CInputState::GetInstance()->GetPadState();
-		//printf("\n%s", state);
+		printf("\n%s", state);
 		
 		//Paraloop
 		Paraloop(sonic);

@@ -9,6 +9,7 @@ float crawlSpeedMult = 1.0f;
 float slopeDot;
 
 float desiredCrawlSpeed = 0.0f;
+
 HOOK(void, __stdcall, CrawlRotate, 0xE310A0, void* a1, float* targetDir, float turnRate1, float turnRateMultiplier, bool noLockDirection, float turnRate2)
 {
 	originalCrawlRotate(a1, targetDir, turnRate1, turnRateMultiplier, noLockDirection, turnRate2);
@@ -112,6 +113,7 @@ HOOK(void, __fastcall, SquatAdvanceCrawl, 0x1230B60, void* This)
 		originalSquatAdvanceCrawl(This);
 	}
 }
+
 HOOK(void, __fastcall, SonicCrawlUpdate, 0xE6BF20, Sonic::Player::CPlayerSpeed* This, void* _, const hh::fnd::SUpdateInfo& updateInfo) {
 	originalSonicCrawlUpdate(This, _, updateInfo);
 	if (BlueBlurCommon::IsModern()) {
@@ -130,6 +132,7 @@ HOOK(void, __fastcall, SonicCrawlUpdate, 0xE6BF20, Sonic::Player::CPlayerSpeed* 
 		}
 	}
 }
+
 void Crawl::Install() {
 	desiredCrawlSpeed = crawlSpeed;
 	INSTALL_HOOK(SquatAdvanceCrawl);
