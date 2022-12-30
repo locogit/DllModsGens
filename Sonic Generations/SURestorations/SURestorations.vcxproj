@@ -127,6 +127,7 @@
     <ClCompile Include="AnimationSetPatcher.cpp" />
     <ClCompile Include="ArchiveTreePatcher.cpp" />
     <ClCompile Include="Crawl.cpp" />
+    <ClCompile Include="CSDCommon.cpp" />
     <ClCompile Include="DllMain.cpp" />
     <ClCompile Include="Misc.cpp" />
     <ClCompile Include="EXP.cpp" />

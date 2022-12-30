@@ -57,7 +57,6 @@ extern "C" _declspec(dllexport) void Init()
 	ArchiveTreePatcher::m_archiveDependencies.push_back(ArchiveDependency("SonicFirework", { "Sonic" }));
 	ArchiveTreePatcher::m_archiveDependencies.push_back(ArchiveDependency("SonicParaloop", { "SonicActionCommon" }));
 	ArchiveTreePatcher::m_archiveDependencies.push_back(ArchiveDependency("SonicLife", { "Sonic" }));
-
 	WRITE_STRING(0x15E90DC, "oneUpChanged");
 
 	ArchiveTreePatcher::applyPatches();
@@ -86,6 +85,8 @@ extern "C" _declspec(dllexport) void Init()
 	//if (Common::SUHud) Medal::Install();
 
 	Missile::Install();
+
+	CSDCommon::Initialize();
 }
 
 extern "C" __declspec(dllexport) void PostInit() {
