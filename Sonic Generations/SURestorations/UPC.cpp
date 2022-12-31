@@ -30,7 +30,7 @@ struct ParaloopInfo {
 	void Update(Sonic::Player::CPlayerSpeedContext* sonic) {
 		float dist = (sonic->m_spMatrixNode->m_Transform.m_Position - Hedgehog::Math::CVector(startPos[0], startPos[1], startPos[2])).norm();
 		dist = abs(dist);
-		if (dist <= distanceThreshold && condition) {
+		if (dist <= distanceThreshold && condition && abs(sonic->m_Velocity.norm()) >= sonic->m_spParameter->Get<float>(Sonic::Player::ePlayerSpeedParameter_ParaloopMinSpeed)) {
 			void* middlematrixNode = (void*)((uint32_t)sonic + 0x30);
 			Common::fCGlitterCreate(sonic, paraloopHandle, middlematrixNode, (BlueBlurCommon::IsSuper() ? "ss_paraloop" : "paraloop"), 0);
 			paraloop = true;
@@ -225,6 +225,14 @@ HOOK(void, __fastcall, SonicAddonUpdate, 0xE6BF20, Sonic::Player::CPlayerSpeed* 
 			Common::fCGlitterEnd(sonic, paraloopHandle, true);
 			paraloopHandle = nullptr;
 			paraloop = false;
+		}
+
+		if (abs(sonic->m_Velocity.norm()) < sonic->m_spParameter->Get<float>(Sonic::Player::ePlayerSpeedParameter_ParaloopMinSpeed)) {
+			Common::fCGlitterEnd(sonic, paraloopHandle, true);
+			paraloopHandle = nullptr;
+			paraloop = false;
+			soundTime = 0.1f;
+			sound = false;
 		}
 
 		if (soundTime > 0 && sound) soundTime -= updateInfo.DeltaTime;

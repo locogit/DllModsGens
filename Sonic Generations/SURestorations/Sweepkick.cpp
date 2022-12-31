@@ -14,6 +14,8 @@ float sweepLightTime = 0.0f;
 INIReader sweepIni;
 bool customSweepIniFound = false;
 
+bool sweepLightBool = Common::reader.GetBoolean("Changes", "SweepLight", false);
+
 Hedgehog::Math::CVector GetSweepOffset() {
 	Sonic::Player::CPlayerSpeedContext* sonic = Sonic::Player::CPlayerSpeedContext::GetInstance();
 
@@ -224,12 +226,12 @@ HOOK(void, __fastcall, SonicUpdateSweep, 0xE6BF20, Sonic::Player::CPlayerSpeed* 
 		if (sweepLight != nullptr) {
 			sweepLightAlpha = Common::Lerp(sweepLightAlpha, desiredSweepLightAlpha, updateInfo.DeltaTime * sweepLightAlphaSpeed);
 
-			float lightColor[3] = {};
-			lightColor[0] = Common::Lerp(0.0f, sweepIni.GetFloat("Color", "ColorR", 0.0f), sweepLightAlpha);
-			lightColor[1] = Common::Lerp(0.0f, sweepIni.GetFloat("Color", "ColorG", 0.0f), sweepLightAlpha);
-			lightColor[2] = Common::Lerp(0.0f, sweepIni.GetFloat("Color", "ColorB", 0.0f), sweepLightAlpha);
-			lightColor[3] = Common::Lerp(0.0f, 1.0f, sweepLightAlpha);
-			
+			float lightColor[3] = {}; // RGBA (A doesn't do anything so we lerp to black)
+			lightColor[0] = sweepLightBool ? Common::Lerp(0.0f, sweepIni.GetFloat("Color", "ColorR", 0.0f), sweepLightAlpha) : 0.0f;
+			lightColor[1] = sweepLightBool ? Common::Lerp(0.0f, sweepIni.GetFloat("Color", "ColorG", 0.0f), sweepLightAlpha) : 0.0f;
+			lightColor[2] = sweepLightBool ? Common::Lerp(0.0f, sweepIni.GetFloat("Color", "ColorB", 0.0f), sweepLightAlpha) : 0.0f;
+			lightColor[3] = 1.0f;
+
 			sweepLight->m_spLight->m_Color = { lightColor[0], lightColor[1], lightColor[2], lightColor[3] };
 
 			Hedgehog::Math::CVector position = sonic->m_spMatrixNode->m_Transform.m_Position + GetSweepOffset();
