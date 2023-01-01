@@ -67,7 +67,7 @@ HOOK(void, __fastcall, CSonicStateSquatKickAdvance, 0x1252810, hh::fnd::CStateMa
 
 HOOK(void, __fastcall, CSonicStateSquatKickEnd, 0x12527B0, void* This)
 {
-	Common::fCGlitterEnd(BlueBlurCommon::GetContext(), squatKickParticleHandle, true);
+	Common::fCGlitterEnd(BlueBlurCommon::GetContext(), squatKickParticleHandle, false);
 
 	desiredSweepLightAlpha = 0.0f;
 	sweepLightAlpha = 0.0f;

@@ -207,6 +207,12 @@ void Paraloop(Sonic::Player::CPlayerSpeedContext* sonic) {
 
 float rotationFloatBobsleigh;
 
+HOOK(int, __fastcall, ProcMsgRestartStageUPC, 0xE76810, uint32_t* This, void* Edx, void* message)
+{
+	ToggleBoost(true);
+	return originalProcMsgRestartStageUPC(This, Edx, message);
+}
+
 HOOK(void, __fastcall, SonicAddonUpdate, 0xE6BF20, Sonic::Player::CPlayerSpeed* This, void* _, const hh::fnd::SUpdateInfo& updateInfo) {
 	originalSonicAddonUpdate(This, _, updateInfo);
 	if (BlueBlurCommon::IsModern()) {
@@ -283,4 +289,6 @@ void UPC::Install() {
 	WRITE_MEMORY(0x164D90C, char, "fireworks");
 
 	INSTALL_HOOK(SonicAddonUpdate);
+
+	INSTALL_HOOK(ProcMsgRestartStageUPC);
 }
