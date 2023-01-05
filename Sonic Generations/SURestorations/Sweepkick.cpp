@@ -5,7 +5,7 @@ float sweepkickColTime = 0.0f;
 SharedPtrTypeless squatKickParticleHandle;
 Hedgehog::Math::CQuaternion squatKickRotation;
 
-hh::base::CRefPtr<Sonic::CLocalLight> sweepLight = nullptr;
+hh::base::CRefPtr<Sonic::CLocalLight> sweepLight;
 float sweepLightAlpha = 0.0f;
 float desiredSweepLightAlpha = 0.0f;
 float sweepLightAlphaSpeed = 0.0f;
@@ -15,7 +15,7 @@ INIReader sweepIni;
 bool customSweepIniFound = false;
 
 bool sweepLightBool = Common::reader.GetBoolean("Changes", "SweepLight", false);
-
+bool sweepLightSpawned = false;
 Hedgehog::Math::CVector GetSweepOffset() {
 	Sonic::Player::CPlayerSpeedContext* sonic = Sonic::Player::CPlayerSpeedContext::GetInstance();
 
@@ -29,7 +29,10 @@ Hedgehog::Math::CVector GetSweepOffset() {
 }
 
 void SweepLightFunc() {
-	if (sweepLight != nullptr) { return; }
+	if (sweepLightSpawned) { return; }
+
+	sweepLightSpawned = true;
+
 	Hedgehog::Base::TSynchronizedPtr gameDoc = Sonic::CGameDocument::GetInstance();
 
 	Sonic::Player::CPlayerSpeedContext* sonic = Sonic::Player::CPlayerSpeedContext::GetInstance();
@@ -67,7 +70,7 @@ HOOK(void, __fastcall, CSonicStateSquatKickAdvance, 0x1252810, hh::fnd::CStateMa
 
 HOOK(void, __fastcall, CSonicStateSquatKickEnd, 0x12527B0, void* This)
 {
-	Common::fCGlitterEnd(BlueBlurCommon::GetContext(), squatKickParticleHandle, false);
+	Common::fCGlitterEnd(BlueBlurCommon::GetContext(), squatKickParticleHandle, true);
 
 	desiredSweepLightAlpha = 0.0f;
 	sweepLightAlpha = 0.0f;
@@ -223,7 +226,7 @@ HOOK(void, __fastcall, SonicUpdateSweep, 0xE6BF20, Sonic::Player::CPlayerSpeed* 
 			}
 		}
 
-		if (sweepLight != nullptr) {
+		if (sweepLightSpawned) {
 			sweepLightAlpha = Common::Lerp(sweepLightAlpha, desiredSweepLightAlpha, updateInfo.DeltaTime * sweepLightAlphaSpeed);
 
 			float lightColor[3] = {}; // RGBA (A doesn't do anything so we lerp to black)

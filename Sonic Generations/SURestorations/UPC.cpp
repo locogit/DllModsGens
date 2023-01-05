@@ -229,13 +229,11 @@ HOOK(void, __fastcall, SonicAddonUpdate, 0xE6BF20, Sonic::Player::CPlayerSpeed* 
 
 		if (paraloopTime <= 0 && paraloop) {
 			Common::fCGlitterEnd(sonic, paraloopHandle, true);
-			paraloopHandle = nullptr;
 			paraloop = false;
 		}
 
-		if (abs(sonic->m_Velocity.norm()) < sonic->m_spParameter->Get<float>(Sonic::Player::ePlayerSpeedParameter_ParaloopMinSpeed)) {
+		if (abs(sonic->m_Velocity.norm()) < sonic->m_spParameter->Get<float>(Sonic::Player::ePlayerSpeedParameter_ParaloopMinSpeed) && paraloop) {
 			Common::fCGlitterEnd(sonic, paraloopHandle, true);
-			paraloopHandle = nullptr;
 			paraloop = false;
 			soundTime = 0.1f;
 			sound = false;

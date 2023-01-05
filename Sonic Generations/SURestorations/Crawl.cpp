@@ -54,7 +54,7 @@ HOOK(void, __fastcall, SquatAdvanceCrawl, 0x1230B60, void* This)
 
 			alignas(16) float dir[4] = { inputDirection.x(), inputDirection.y(), inputDirection.z(), 0 };
 			if (!Common::IsPlayerIn2D()) {
-				originalCrawlRotate(This, dir, 75, PI_F * 10.0f, false, crawlTurnRate * moveMult);
+				originalCrawlRotate(This, dir, 75, PI_F * 10.0f, true, crawlTurnRate * moveMult);
 			}
 			else {
 				originalCrawlRotate(This, dir, 1000, 1000, false, 1000);
