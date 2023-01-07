@@ -1,15 +1,20 @@
-// https://github.com/brianuuu/DllMods/blob/master/Source/Sonic06DefinitiveExperience/NextGenPhysics.cpp
+float regularBoostEnableChaosEnergy = 1.0f;
+const float disableBoostChaosEnergy = 9999.9999f;
+
+float regularAirBoostEnableChaosEnergy = 1.0f;
+const float disableAirBoostChaosEnergy = 9999.9999f;
+
+bool toggleBoostEnabled = true;
 void ToggleBoost(bool enabled) {
-	int button = enabled ? 4 : -1;
-	WRITE_MEMORY(0xDFDF4C, uint32_t, button); // Air Boost
-	WRITE_MEMORY(0xDFF25B, uint32_t, button); // Grind Boost
-	WRITE_MEMORY(0xE4776B, uint32_t, button); // Dummy Boost
-	WRITE_MEMORY(0x11177EE, uint32_t, button); // Boost
-	WRITE_MEMORY(0x1118CEE, uint32_t, button); // Fall Boost
-	WRITE_MEMORY(0x111BE61, uint32_t, button); // Null Boost?
-	WRITE_MEMORY(0x111BEE8, uint32_t, button); // Dummy Boost plugin
-	WRITE_MEMORY(0x111D801, uint32_t, button); // Board Fall Boost
-	WRITE_MEMORY(0x11A0716, uint32_t, button); // Dummy Boost External
+	toggleBoostEnabled = enabled;
+
+	Sonic::Player::CPlayerSpeedContext* sonic = Sonic::Player::CPlayerSpeedContext::GetInstance();
+
+	float boostEnable = enabled ? regularBoostEnableChaosEnergy : disableBoostChaosEnergy;
+	float airBoostEnable = enabled ? regularBoostEnableChaosEnergy : disableBoostChaosEnergy;
+
+	sonic->m_spParameter->m_scpNode->m_ValueMap[Sonic::Player::ePlayerSpeedParameter_BoostEnableChaosEnergy] = boostEnable;
+	sonic->m_spParameter->m_scpNode->m_ValueMap[Sonic::Player::ePlayerSpeedParameter_AirBoostEnableChaosEnergy] = airBoostEnable;
 }
 
 bool bobsleighBoostCancel = false;
@@ -246,8 +251,20 @@ HOOK(void, __fastcall, SonicAddonUpdate, 0xE6BF20, Sonic::Player::CPlayerSpeed* 
 			sound = false;
 		}
 
+		if (Common::CheckCurrentStage("cpz200")) {
+			float dist = (sonic->m_spMatrixNode->m_Transform.m_Position - Hedgehog::Math::CVector(71.332f, -108.133f, 606.234f)).norm();
+			dist = abs(dist);
+			if (dist <= 2.0f && state == "SpecialJump" && anim != "Fall") {
+				sonic->ChangeAnimation("Fall");
+			}
+		}
+
 		// Bobsleigh
 		if (Common::CheckCurrentStage("cte200")) {
+			if (toggleBoostEnabled) {
+				regularAirBoostEnableChaosEnergy = sonic->m_spParameter->Get<float>(Sonic::Player::ePlayerSpeedParameter_AirBoostEnableChaosEnergy);
+				regularBoostEnableChaosEnergy = sonic->m_spParameter->Get<float>(Sonic::Player::ePlayerSpeedParameter_BoostEnableChaosEnergy);
+			}
 			if (strstr(state.c_str(), "Board")) {
 				if (!bobsleighBoostCancel) { bobsleighBoostCancel = true; }
 				Common::SonicContextSetCollision(TypeSonicBoost, true);

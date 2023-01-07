@@ -16,6 +16,9 @@ bool customSweepIniFound = false;
 
 bool sweepLightBool = Common::reader.GetBoolean("Changes", "SweepLight", false);
 bool sweepLightSpawned = false;
+
+float sweepLightDelay = 0.0f;
+
 Hedgehog::Math::CVector GetSweepOffset() {
 	Sonic::Player::CPlayerSpeedContext* sonic = Sonic::Player::CPlayerSpeedContext::GetInstance();
 
@@ -29,7 +32,10 @@ Hedgehog::Math::CVector GetSweepOffset() {
 }
 
 void SweepLightFunc() {
-	if (sweepLightSpawned) { return; }
+	if (sweepLightSpawned) { 
+		sweepLight->m_spLight->m_Color = { 0.0f, 0.0f, 0.0f, 0.0f };
+		return; 
+	}
 
 	sweepLightSpawned = true;
 
@@ -50,7 +56,9 @@ HOOK(void, __fastcall, CSonicStateSquatKickBegin, 0x12526D0, hh::fnd::CStateMach
 
 	context->PlaySound(2002497, true);
 
-	sweepkickColTime = 0.2f;
+	sweepkickColTime = sweepIni.GetFloat("Gameplay", "SupportShockWaveDelay", 0.2f);
+
+	sweepLightDelay = sweepIni.GetFloat("Timing", "LightInDelay", 0);
 
 	sweepLightTime = sweepIni.GetFloat("Timing", "LightLifeTime", 0);
 	desiredSweepLightAlpha = 1.0f;
@@ -64,7 +72,7 @@ HOOK(void, __fastcall, CSonicStateSquatKickBegin, 0x12526D0, hh::fnd::CStateMach
 HOOK(void, __fastcall, CSonicStateSquatKickAdvance, 0x1252810, hh::fnd::CStateMachineBase::CStateBase* This) {
 	auto* context = (Sonic::Player::CPlayerSpeedContext*)This->GetContextBase();
 	Hedgehog::Math::CVector pos = context->m_spMatrixNode->m_Transform.m_Position;
-	if (sweepkickColTime <= 0) Common::CreatePlayerSupportShockWave(pos, 0.5f, 2.5f, 0.1f);
+	if (sweepkickColTime <= 0 && sweepIni.GetBoolean("Gameplay", "UseSupportShockWave", true)) { Common::CreatePlayerSupportShockWave(pos, 0.5f, 2.5f, 0.1f); }
 	originalCSonicStateSquatKickAdvance(This);
 }
 
@@ -227,15 +235,21 @@ HOOK(void, __fastcall, SonicUpdateSweep, 0xE6BF20, Sonic::Player::CPlayerSpeed* 
 		}
 
 		if (sweepLightSpawned) {
-			sweepLightAlpha = Common::Lerp(sweepLightAlpha, desiredSweepLightAlpha, updateInfo.DeltaTime * sweepLightAlphaSpeed);
+			sweepLightDelay -= updateInfo.DeltaTime;
 
-			float lightColor[3] = {}; // RGBA (A doesn't do anything so we lerp to black)
-			lightColor[0] = sweepLightBool ? Common::Lerp(0.0f, sweepIni.GetFloat("Color", "ColorR", 0.0f), sweepLightAlpha) : 0.0f;
-			lightColor[1] = sweepLightBool ? Common::Lerp(0.0f, sweepIni.GetFloat("Color", "ColorG", 0.0f), sweepLightAlpha) : 0.0f;
-			lightColor[2] = sweepLightBool ? Common::Lerp(0.0f, sweepIni.GetFloat("Color", "ColorB", 0.0f), sweepLightAlpha) : 0.0f;
-			lightColor[3] = 1.0f;
+			if (sweepLightDelay <= 0) {
+				sweepLightDelay = 0;
 
-			sweepLight->m_spLight->m_Color = { lightColor[0], lightColor[1], lightColor[2], lightColor[3] };
+				sweepLightAlpha = Common::Lerp(sweepLightAlpha, desiredSweepLightAlpha, updateInfo.DeltaTime * sweepLightAlphaSpeed);
+
+				float lightColor[3] = {}; // RGBA (A doesn't do anything so we lerp to black)
+				lightColor[0] = sweepLightBool ? Common::Lerp(0.0f, sweepIni.GetFloat("Color", "ColorR", 0.0f), sweepLightAlpha) : 0.0f;
+				lightColor[1] = sweepLightBool ? Common::Lerp(0.0f, sweepIni.GetFloat("Color", "ColorG", 0.0f), sweepLightAlpha) : 0.0f;
+				lightColor[2] = sweepLightBool ? Common::Lerp(0.0f, sweepIni.GetFloat("Color", "ColorB", 0.0f), sweepLightAlpha) : 0.0f;
+				lightColor[3] = 1.0f;
+
+				sweepLight->m_spLight->m_Color = { lightColor[0], lightColor[1], lightColor[2], lightColor[3] };
+			}
 
 			Hedgehog::Math::CVector position = sonic->m_spMatrixNode->m_Transform.m_Position + GetSweepOffset();
 			sweepLight->SetPosition(position);
@@ -266,23 +280,27 @@ void Sweepkick::Install() {
 	SweepConfig();
 
 	//Original code by Brianuu
-	static double const c_sweepKickActivateTime = 0.0f;
+	static double const c_sweepKickActivateTime = sweepIni.GetFloat("Gameplay", "SweepKickActivateTime", 0.0f);
 	WRITE_MEMORY(0x125299E, double*, &c_sweepKickActivateTime);
 
-	// Change SquatKick's collision the same as sliding
-	WRITE_MEMORY(0xDFCD6D, uint8_t, 0x5); // switch 6 cases
-	static uint32_t const collisionSwitchTable[6] =
-	{
-		0xDFCD7B, // normal
-		0xDFCDC0, // slide
-		0xDFCD7B, // boost
-		0xDFCD7B,
-		0xDFCDFA, // unused
-		0xDFCDC0  // squat kick
-	};
-	WRITE_MEMORY(0xDFCD77, uint32_t*, collisionSwitchTable);
+	if (sweepIni.GetBoolean("Gameplay", "UseSlideCollision", true)) {
+		// Change SquatKick's collision the same as sliding
+		WRITE_MEMORY(0xDFCD6D, uint8_t, 0x5); // switch 6 cases
+		static uint32_t const collisionSwitchTable[6] =
+		{
+			0xDFCD7B, // normal
+			0xDFCDC0, // slide
+			0xDFCD7B, // boost
+			0xDFCD7B,
+			0xDFCDFA, // unused
+			0xDFCDC0  // squat kick
+		};
+		WRITE_MEMORY(0xDFCD77, uint32_t*, collisionSwitchTable);
+	}
 
-	WRITE_JUMP(0x125291F, CSonicStateSquatKickAdvanceTransitionOut);
+	if (sweepIni.GetBoolean("Gameplay", "TransitionToStand", true)) {
+		WRITE_JUMP(0x125291F, CSonicStateSquatKickAdvanceTransitionOut);
+	}
 
 	INSTALL_HOOK(SonicUpdateSweep);
 	INSTALL_HOOK(CSonicStateSquatKickBegin);

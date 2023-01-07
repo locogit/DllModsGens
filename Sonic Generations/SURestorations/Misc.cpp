@@ -21,6 +21,8 @@ bool UseRingLife = Common::reader.GetBoolean("Restorations", "RingLife", true);
 
 bool ringLife = false;
 
+bool hangOn = false;
+
 HOOK(int, __fastcall, MiscRestart, 0xE76810, uint32_t* This, void* Edx, void* message)
 {
 	int result = originalMiscRestart(This, Edx, message);
@@ -113,6 +115,17 @@ HOOK(void, __fastcall, SonicMiscUpdate, 0xE6BF20, Sonic::Player::CPlayerSpeed* T
 			case 5:
 				sonic->ChangeAnimation("IdleE");
 				break;
+			}
+		}
+
+		if (Common::CheckPlayerNodeExist("SonicRoot")) {
+			if (state == "HangOn" && !hangOn) {
+				sonic->m_spModelMatrixNode->m_LocalMatrix.matrix() = (Eigen::Translation3f(Eigen::Vector3f(0.0f,-0.035f,0.05f)) * Hedgehog::Math::CQuaternion::Identity()).matrix();
+				hangOn = true;
+			}
+			if(state != "HangOn" && hangOn) {
+				sonic->m_spModelMatrixNode->m_LocalMatrix.matrix() = (Eigen::Translation3f(Eigen::Vector3f::Zero()) * Hedgehog::Math::CQuaternion::Identity()).matrix();
+				hangOn = false;
 			}
 		}
 
