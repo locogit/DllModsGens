@@ -1,9 +1,9 @@
 bool isCrawling = false;
-const float crawlSpeed = 5.75f;
+const float crawlSpeed = 6.75f;
 float crawlEnterTime = 0;
 float crawlExitTime = 0;
 
-float crawlTurnRate = 150;
+float crawlTurnRate = 175;
 
 float crawlSpeedMult = 1.0f;
 float slopeDot;
@@ -17,11 +17,12 @@ HOOK(void, __stdcall, CrawlRotate, 0xE310A0, void* a1, float* targetDir, float t
 
 HOOK(void, __fastcall, SquatAdvanceCrawl, 0x1230B60, void* This)
 {
+	originalSquatAdvanceCrawl(This);
+
 	Sonic::Player::CPlayerSpeedContext* sonic = Sonic::Player::CPlayerSpeedContext::GetInstance();
 
 	slopeDot = sonic->m_UpVector.dot(sonic->m_spMatrixNode->m_Transform.m_Rotation * Eigen::Vector3f::UnitZ());
 
-	//printf("\n%f, %f", slopeDot, crawlSpeedMult);
 	if (!BlueBlurCommon::IsSuper()) {
 		Eigen::Vector3f inputDirection;
 		Common::GetWorldInputDirection(inputDirection);
@@ -36,28 +37,14 @@ HOOK(void, __fastcall, SquatAdvanceCrawl, 0x1230B60, void* This)
 			Eigen::Vector3f playerPosition = sonic->m_spMatrixNode->m_Transform.m_Position;
 			Eigen::Quaternionf playerRotation = sonic->m_spMatrixNode->m_Transform.m_Rotation;
 
-			alignas(16) MsgApplyImpulse message {};
-			{
-				message.m_position = playerPosition;
-				message.m_impulse = playerRotation * Eigen::Vector3f::UnitZ();
-				message.m_impulseType = ImpulseType::None;
-				message.m_outOfControl = 0.0f;
-				message.m_notRelative = true;
-				message.m_snapPosition = false;
-				message.m_pathInterpolate = false;
-				message.m_alwaysMinusOne = -1.0f;
-
-				message.m_impulse *= desiredCrawlSpeed * moveMult;
-
-				Common::ApplyPlayerApplyImpulse(message);
-			}
+			sonic->SetHorizontalVelocity(playerRotation * Eigen::Vector3f::UnitZ() * desiredCrawlSpeed * moveMult);
 
 			alignas(16) float dir[4] = { inputDirection.x(), inputDirection.y(), inputDirection.z(), 0 };
 			if (!Common::IsPlayerIn2D()) {
-				originalCrawlRotate(This, dir, 75, PI_F * 10.0f, true, crawlTurnRate * moveMult);
+				originalCrawlRotate(This, dir, 95, PI_F * 10.0f, true, crawlTurnRate * moveMult);
 			}
 			else {
-				originalCrawlRotate(This, dir, 1000, 1000, false, 1000);
+				originalCrawlRotate(This, dir, 1000, 1000, true, 1000);
 			}
 
 			if (!inputDirection.isZero()) {
@@ -67,61 +54,78 @@ HOOK(void, __fastcall, SquatAdvanceCrawl, 0x1230B60, void* This)
 				}
 			}
 		}
+
 		if (crawlExitTime <= 0 && anim == "CrawlExit" && !isCrawling) {
 			sonic->ChangeAnimation("Squat");
 		}
 
 		if (sonic->m_Grounded) {
-			if (!inputDirection.isZero() && input.IsDown(Sonic::eKeyState_B)) {
-				if (!isCrawling && crawlEnterTime <= 0) {
-					crawlEnterTime = 0.3f;
-					sonic->ChangeAnimation("CrawlEnter");
+			if (!inputDirection.isZero()) {
+				if (input.IsDown(Sonic::eKeyState_B)) {
+					if (!isCrawling && crawlEnterTime <= 0) {
+						crawlEnterTime = 0.3f;
+						sonic->ChangeAnimation("CrawlEnter");
+					}
+					isCrawling = true;
 				}
-				isCrawling = true;
+				else if (input.IsReleased(Sonic::eKeyState_B)) {
+					isCrawling = false;
+					sonic->SetVelocity(Hedgehog::Math::CVector::Zero());
+					sonic->SetHorizontalVelocity(Hedgehog::Math::CVector::Zero());
+				}
 			}
 			else if (inputDirection.isZero()) {
 				isCrawling = false;
 				if (anim == "CrawlLoop" || anim == "CrawlEnter") {
-					if (anim != "Squat") {
-						crawlExitTime = 0.3f;
-						sonic->ChangeAnimation("CrawlExit");
-					}
+					crawlExitTime = 0.3f;
+					sonic->ChangeAnimation("CrawlExit");
 				}
-				originalSquatAdvanceCrawl(This);
-			}
-			else if (input.IsUp(Sonic::eKeyState_B)) {
-				isCrawling = false;
-				if (!inputDirection.isZero()) {
-					sonic->m_Velocity = Hedgehog::Math::CVector::Zero();
-					originalSquatAdvanceCrawl(This);
-				}
-				else {
-					originalSquatAdvanceCrawl(This);
+				if (input.IsReleased(Sonic::eKeyState_B)) {
+					isCrawling = false;
+					sonic->SetVelocity(Hedgehog::Math::CVector::Zero());
+					sonic->SetHorizontalVelocity(Hedgehog::Math::CVector::Zero());
 				}
 			}
+
 			if (input.IsTapped(Sonic::eKeyState_A)) {
-				originalSquatAdvanceCrawl(This);
 				isCrawling = false;
 			}
 		}
 		else if (!sonic->m_Grounded) {
+			sonic->ChangeAnimation("Fall");
 			isCrawling = false;
-			originalSquatAdvanceCrawl(This);
 		}
 	}
+}
+// Brianuuu 06 Experience
+HOOK(int, __fastcall, SlideStart, 0x11D7110, void* This) {
+	Sonic::Player::CPlayerSpeedContext* sonic = Sonic::Player::CPlayerSpeedContext::GetInstance();
+	Sonic::SPadState input = Sonic::CInputState::GetInstance()->GetPadState();
+
+	Eigen::Vector3f inputDirection;
+	Common::GetWorldInputDirection(inputDirection);
+
+	if (sonic->m_Velocity.norm() <= 3.0f && input.IsDown(Sonic::eKeyState_B) && !inputDirection.isZero()) {
+		sonic->ChangeState("Squat");
+	}
 	else {
-		originalSquatAdvanceCrawl(This);
+		return originalSlideStart(This);
 	}
 }
 
 HOOK(void, __fastcall, SonicCrawlUpdate, 0xE6BF20, Sonic::Player::CPlayerSpeed* This, void* _, const hh::fnd::SUpdateInfo& updateInfo) {
 	originalSonicCrawlUpdate(This, _, updateInfo);
 	if (BlueBlurCommon::IsModern()) {
+		Sonic::Player::CPlayerSpeedContext* sonic = This->GetContext();
+		Hedgehog::Base::CSharedString state = This->m_StateMachine.GetCurrentState()->GetStateName();
+		Sonic::SPadState input = Sonic::CInputState::GetInstance()->GetPadState();
+
 		Eigen::Vector3f inputDirection;
 		Common::GetWorldInputDirection(inputDirection);
-		//printf("\n%f", desiredCrawlSpeed);
+
 		if (crawlEnterTime > 0) { crawlEnterTime -= updateInfo.DeltaTime; }
 		if (crawlExitTime > 0) { crawlExitTime -= updateInfo.DeltaTime; }
+
 		if (slopeDot >= .15f && !inputDirection.isZero()) {
 			crawlSpeedMult += updateInfo.DeltaTime * 0.75f;
 			desiredCrawlSpeed = crawlSpeed * crawlSpeedMult; 
@@ -135,6 +139,13 @@ HOOK(void, __fastcall, SonicCrawlUpdate, 0xE6BF20, Sonic::Player::CPlayerSpeed* 
 
 void Crawl::Install() {
 	desiredCrawlSpeed = crawlSpeed;
+
+	// Brianuuu 06 Experience
+	// Don't allow stick move start sliding from squat
+	WRITE_MEMORY(0x1230D62, uint8_t, 0xEB);
+	WRITE_MEMORY(0x1230DA9, uint8_t, 0xE9, 0xA8, 0x00, 0x00, 0x00, 0x90);
+
+	INSTALL_HOOK(SlideStart);
 	INSTALL_HOOK(SquatAdvanceCrawl);
 	INSTALL_HOOK(SonicCrawlUpdate);
 }

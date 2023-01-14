@@ -15,9 +15,6 @@ boost::shared_ptr<Sonic::CGameObjectCSD> spExp;
 Chao::CSD::RCPtr<Chao::CSD::CProject> rcExp;
 Chao::CSD::RCPtr<Chao::CSD::CScene> exp_count;
 
-float xAspectOffsetExp = 0.0f;
-float yAspectOffsetExp = 0.0f;
-
 SharedPtrTypeless ChaosEnergyHandle;
 
 void CreateScreenEXP(Sonic::CGameObject* pParentGameObject)
@@ -39,36 +36,11 @@ void __fastcall CHudSonicStageRemoveCallbackEXP(Sonic::CGameObject* This, void*,
 	rcExp = nullptr;
 	exp_count = nullptr;
 }
-//Brianuu/Skyth
-void CalculateAspectOffsetsExp()
-{
-	if (*(size_t*)0x6F23C6 != 0x75D8C0D9) // Widescreen Support
-	{
-		const float aspect = (float)*(size_t*)0x1DFDDDC / (float)*(size_t*)0x1DFDDE0;
 
-		if (aspect * 9.0f > 16.0f)
-		{
-			xAspectOffsetExp = 720.0f * aspect - 1280.0f;
-			yAspectOffsetExp = 0.0f;
-		}
-		else
-		{
-			xAspectOffsetExp = 0.0f;
-			yAspectOffsetExp = 1280.0f / aspect - 720.0f;
-		}
-	}
-	else
-	{
-		xAspectOffsetExp = 0.0f;
-		yAspectOffsetExp = 0.0f;
-	}
-}
 HOOK(void, __fastcall, CHudSonicStageDelayProcessImpEXP, 0x109A8D0, Sonic::CGameObject* This) {
 	originalCHudSonicStageDelayProcessImpEXP(This);
 	if (BlueBlurCommon::IsModern()) {
 		CHudSonicStageRemoveCallbackEXP(This, nullptr, nullptr);
-
-		CalculateAspectOffsetsExp();
 
 		Sonic::CCsdDatabaseWrapper wrapperExp(This->m_pMember->m_pGameDocument->m_pMember->m_spDatabase.get());
 
@@ -82,7 +54,7 @@ HOOK(void, __fastcall, CHudSonicStageDelayProcessImpEXP, 0x109A8D0, Sonic::CGame
 		sprintf(text, "%02d", expLevel);
 		exp_count->GetNode("exp")->SetText(text);
 		//exp_count->GetNode("gauge")->SetScale(expAmount, 0.65f);
-		exp_count->SetPosition(xAspectOffsetExp, 0);
+		exp_count->SetPosition(0, 0);
 		CSDCommon::FreezeMotion(*exp_count);
 		expHidden = true;
 

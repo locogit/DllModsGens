@@ -217,7 +217,23 @@ HOOK(int, __fastcall, ProcMsgRestartStageUPC, 0xE76810, uint32_t* This, void* Ed
 	ToggleBoost(true);
 	return originalProcMsgRestartStageUPC(This, Edx, message);
 }
+HOOK(void, __fastcall, SpecialJumpUPC, 0x11DE240, int This) {
+	originalSpecialJumpUPC(This);
+	if (BlueBlurCommon::IsModern()) {
+		Sonic::Player::CPlayerSpeedContext* sonic = Sonic::Player::CPlayerSpeedContext::GetInstance();
 
+		Hedgehog::Base::CSharedString state = sonic->m_pPlayer->m_StateMachine.GetCurrentState()->GetStateName();
+		Hedgehog::Base::CSharedString anim = sonic->GetCurrentAnimationName();
+
+		if (Common::CheckCurrentStage("cpz200")) {
+			float dist = (sonic->m_spMatrixNode->m_Transform.m_Position - Hedgehog::Math::CVector(71.332f, -108.133f, 606.234f)).norm();
+			dist = abs(dist);
+			if (dist <= 2.0f && anim != "Fall") {
+				sonic->ChangeAnimation("Fall");
+			}
+		}
+	}
+}
 HOOK(void, __fastcall, SonicAddonUpdate, 0xE6BF20, Sonic::Player::CPlayerSpeed* This, void* _, const hh::fnd::SUpdateInfo& updateInfo) {
 	originalSonicAddonUpdate(This, _, updateInfo);
 	if (BlueBlurCommon::IsModern()) {
@@ -225,7 +241,6 @@ HOOK(void, __fastcall, SonicAddonUpdate, 0xE6BF20, Sonic::Player::CPlayerSpeed* 
 		Hedgehog::Base::CSharedString state = This->m_StateMachine.GetCurrentState()->GetStateName();
 		Hedgehog::Base::CSharedString anim = sonic->GetCurrentAnimationName();
 		Sonic::SPadState input = Sonic::CInputState::GetInstance()->GetPadState();
-		//printf("\n%s", state);
 		
 		//Paraloop
 		Paraloop(sonic);
@@ -249,14 +264,6 @@ HOOK(void, __fastcall, SonicAddonUpdate, 0xE6BF20, Sonic::Player::CPlayerSpeed* 
 		if (soundTime <= 0 && sound) {
 			sonic->PlaySound(2002501, true);
 			sound = false;
-		}
-
-		if (Common::CheckCurrentStage("cpz200")) {
-			float dist = (sonic->m_spMatrixNode->m_Transform.m_Position - Hedgehog::Math::CVector(71.332f, -108.133f, 606.234f)).norm();
-			dist = abs(dist);
-			if (dist <= 2.0f && state == "SpecialJump" && anim != "Fall") {
-				sonic->ChangeAnimation("Fall");
-			}
 		}
 
 		// Bobsleigh
@@ -303,7 +310,16 @@ void UPC::Install() {
 	// Speed Highway Rocket Explosion
 	WRITE_MEMORY(0x164D90C, char, "fireworks");
 
-	INSTALL_HOOK(SonicAddonUpdate);
+	//brianuuu 06 Experience
+	// Use idle animation on stage gates
+	WRITE_MEMORY(0x127ADF1, uint32_t, 0x15E7670);
+	WRITE_MEMORY(0x127AE58, uint32_t, 0x15E7670);
+	WRITE_MEMORY(0x127AEAC, uint32_t, 0x15E7670);
+	WRITE_MEMORY(0x127AF2A, uint32_t, 0x15E7670);
+	WRITE_MEMORY(0x127AF91, uint32_t, 0x15E7670);
+	WRITE_MEMORY(0x127AFF8, uint32_t, 0x15E7670);
 
+	INSTALL_HOOK(SonicAddonUpdate);
+	INSTALL_HOOK(SpecialJumpUPC);
 	INSTALL_HOOK(ProcMsgRestartStageUPC);
 }

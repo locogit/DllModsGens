@@ -107,6 +107,7 @@
     <ClInclude Include="AnimationSetPatcher.h" />
     <ClInclude Include="ArchiveTreePatcher.h" />
     <ClInclude Include="Common.h" />
+    <ClInclude Include="LetterboxHelper.h" />
     <ClInclude Include="Misc.h" />
     <ClInclude Include="Crawl.h" />
     <ClInclude Include="CSDCommon.h" />
@@ -129,6 +130,7 @@
     <ClCompile Include="Crawl.cpp" />
     <ClCompile Include="CSDCommon.cpp" />
     <ClCompile Include="DllMain.cpp" />
+    <ClCompile Include="LetterboxHelper.cpp" />
     <ClCompile Include="Misc.cpp" />
     <ClCompile Include="EXP.cpp" />
     <ClCompile Include="HubUI.cpp" />

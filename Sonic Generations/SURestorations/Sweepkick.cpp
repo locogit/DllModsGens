@@ -78,7 +78,9 @@ HOOK(void, __fastcall, CSonicStateSquatKickAdvance, 0x1252810, hh::fnd::CStateMa
 
 HOOK(void, __fastcall, CSonicStateSquatKickEnd, 0x12527B0, void* This)
 {
-	Common::fCGlitterEnd(BlueBlurCommon::GetContext(), squatKickParticleHandle, true);
+	Sonic::Player::CPlayerSpeedContext* sonic = Sonic::Player::CPlayerSpeedContext::GetInstance();
+
+	Common::fCGlitterEnd(BlueBlurCommon::GetContext(), squatKickParticleHandle, false);
 
 	desiredSweepLightAlpha = 0.0f;
 	sweepLightAlpha = 0.0f;
@@ -263,6 +265,11 @@ HOOK(void, __fastcall, SonicUpdateSweep, 0xE6BF20, Sonic::Player::CPlayerSpeed* 
 			}
 
 			if (sonic->m_Velocity.norm() == 0.0f) { sonic->m_spMatrixNode->m_Transform.SetRotation(squatKickRotation); }
+		}
+		else {
+			if (state != "Walk" && state != "Stand" && state != "Sliding" && state != "Squat") {
+				Common::fCGlitterEnd(BlueBlurCommon::GetContext(), squatKickParticleHandle, true);
+			}
 		}
 
 		if (BResetTimerEnable) {

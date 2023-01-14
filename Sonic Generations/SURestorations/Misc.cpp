@@ -21,8 +21,6 @@ bool UseRingLife = Common::reader.GetBoolean("Restorations", "RingLife", true);
 
 bool ringLife = false;
 
-bool hangOn = false;
-
 HOOK(int, __fastcall, MiscRestart, 0xE76810, uint32_t* This, void* Edx, void* message)
 {
 	int result = originalMiscRestart(This, Edx, message);
@@ -86,7 +84,7 @@ HOOK(void, __fastcall, SonicMiscUpdate, 0xE6BF20, Sonic::Player::CPlayerSpeed* T
 		Hedgehog::Base::CSharedString state = This->m_StateMachine.GetCurrentState()->GetStateName();
 		Hedgehog::Base::CSharedString anim = sonic->GetCurrentAnimationName();
 		Sonic::SPadState input = Sonic::CInputState::GetInstance()->GetPadState();
-		//printf("\n%s", state);
+		//printf("\n%s", anim);
 
 		if (HomingX && sonic->m_spParameter->Get<bool>(Sonic::Player::ePlayerSpeedParameter_XButtonHoming) != true) {
 			sonic->m_spParameter->m_scpNode->m_ValueMap[Sonic::Player::ePlayerSpeedParameter_XButtonHoming] = true;
@@ -115,17 +113,6 @@ HOOK(void, __fastcall, SonicMiscUpdate, 0xE6BF20, Sonic::Player::CPlayerSpeed* T
 			case 5:
 				sonic->ChangeAnimation("IdleE");
 				break;
-			}
-		}
-
-		if (Common::CheckPlayerNodeExist("SonicRoot")) {
-			if (state == "HangOn" && !hangOn) {
-				sonic->m_spModelMatrixNode->m_LocalMatrix.matrix() = (Eigen::Translation3f(Eigen::Vector3f(0.0f,-0.035f,0.05f)) * Hedgehog::Math::CQuaternion::Identity()).matrix();
-				hangOn = true;
-			}
-			if(state != "HangOn" && hangOn) {
-				sonic->m_spModelMatrixNode->m_LocalMatrix.matrix() = (Eigen::Translation3f(Eigen::Vector3f::Zero()) * Hedgehog::Math::CQuaternion::Identity()).matrix();
-				hangOn = false;
 			}
 		}
 
@@ -158,6 +145,42 @@ HOOK(void, __fastcall, SonicMiscUpdate, 0xE6BF20, Sonic::Player::CPlayerSpeed* T
 		}
 	}
 }
+// Skyth (Unleashed Drift) & Briannu (06 Experience)
+HOOK(void, __fastcall, CSonicStatePluginOnWaterUpdate, 0x119BED0, Hedgehog::Universe::TStateMachine<Sonic::Player::CPlayerSpeedContext>::TState* This)
+{
+	Sonic::Player::CPlayerSpeedContext* sonic = This->GetContext();
+	Hedgehog::Base::CSharedString state = sonic->m_pPlayer->m_StateMachine.GetCurrentState()->GetStateName();
+	Hedgehog::Base::CSharedString anim = sonic->GetCurrentAnimationName();
+
+	if (sonic->StateFlag(eStateFlag_OnWater) && state == "Drift" && !sonic->StateFlag(eStateFlag_Boost))
+	{
+		if (sonic->m_Velocity.norm() >= 10.0f) {
+			Common::GetSonicStateFlags()->AcceptBuoyancyForce = true;
+			WRITE_NOP(0x119C0E5, 2); // float even if speed is 0
+			WRITE_NOP(0xDED132, 3);  // don't reset AcceptBuoyancyForce
+			WRITE_MEMORY(0xDFB98A, uint8_t, 0x90, 0x90, 0xF3, 0x0F, 0x10, 0x05, 0x00,   // always use BuoyantForceMaxGravityRate
+				0xB5, 0x58, 0x01, 0x90, 0x90, 0x90, 0x90, 0x90, 0x90, 0x90, 0x90);      // and set it as 10.0f
+			WRITE_MEMORY(0x119C00E, uint8_t, 0x0F, 0x57, 0xC0, 0x90, 0x90, 0x90, 0x90, 0x90, 0x90, 0x90); // Set WaterDecreaseForce = 0
+		}
+		else {
+			WRITE_MEMORY(0x119C0E5, uint8_t, 0x76, 0x59);
+			WRITE_MEMORY(0xDED132, uint8_t, 0x88, 0x59, 0x59);
+			WRITE_MEMORY(0xDFB98A, uint8_t, 0x74, 0x3A, 0x8B, 0x86, 0x7C, 0x02, 0x00,
+				0x00, 0x68, 0xA6, 0x00, 0x00, 0x00, 0xE8, 0x54, 0xF0, 0x73, 0xFF);
+			WRITE_MEMORY(0x119C00E, uint8_t, 0x68, 0xA7, 0x00, 0x00, 0x00, 0xE8, 0xD8, 0xE9, 0x39, 0xFF);
+		}
+	}
+	else
+	{
+		WRITE_MEMORY(0x119C0E5, uint8_t, 0x76, 0x59);
+		WRITE_MEMORY(0xDED132, uint8_t, 0x88, 0x59, 0x59);
+		WRITE_MEMORY(0xDFB98A, uint8_t, 0x74, 0x3A, 0x8B, 0x86, 0x7C, 0x02, 0x00,
+			0x00, 0x68, 0xA6, 0x00, 0x00, 0x00, 0xE8, 0x54, 0xF0, 0x73, 0xFF);
+		WRITE_MEMORY(0x119C00E, uint8_t, 0x68, 0xA7, 0x00, 0x00, 0x00, 0xE8, 0xD8, 0xE9, 0x39, 0xFF);
+	}
+
+	originalCSonicStatePluginOnWaterUpdate(This);
+}
 // https://github.com/brianuuu/DllMods/blob/master/Source/NavigationLightdashSound/NavigationSound.cpp#L14
 HOOK(void, __fastcall, MiscYPrompt, 0x5289A0, void* thisDeclaration, void* edx, uint32_t a2)
 {
@@ -181,6 +204,8 @@ void NOP(int floatInstrAddr, int paramStrAddr)
 }
 void Misc::Install()
 {
+	INSTALL_HOOK(CSonicStatePluginOnWaterUpdate);
+
 	if (EnergyChange) {
 		NOP(0x120628B, 0x15FA690); /* ChaosEnergyRecoverRateByRing */
 		NOP(0x1206335, 0x15FA6DC); /* ChaosEnergyRecoverRateByRingBonus */

@@ -1,8 +1,6 @@
 boost::shared_ptr<Sonic::CGameObjectCSD> spTownScreen;
 Chao::CSD::RCPtr<Chao::CSD::CProject> rcTownScreen;
 Chao::CSD::RCPtr<Chao::CSD::CScene> info, cam;
-float xAspectOffsetTownScreen = 0.0f;
-float yAspectOffsetTownScreen = 0.0f;
 
 int ringCount = 0;
 std::string hubFileName = "hub.sav";
@@ -49,31 +47,6 @@ void KillScreenTownScreen()
 	}
 }
 
-//Brianuu/Skyth
-void CalculateAspectOffsetsTownScreen()
-{
-	if (*(size_t*)0x6F23C6 != 0x75D8C0D9) // Widescreen Support
-	{
-		const float aspect = (float)*(size_t*)0x1DFDDDC / (float)*(size_t*)0x1DFDDE0;
-
-		if (aspect * 9.0f > 16.0f)
-		{
-			xAspectOffsetTownScreen = 720.0f * aspect - 1280.0f;
-			yAspectOffsetTownScreen = 0.0f;
-		}
-		else
-		{
-			xAspectOffsetTownScreen = 0.0f;
-			yAspectOffsetTownScreen = 1280.0f / aspect - 720.0f;
-		}
-	}
-	else
-	{
-		xAspectOffsetTownScreen = 0.0f;
-		yAspectOffsetTownScreen = 0.0f;
-	}
-}
-
 void __fastcall RemoveHubCallbackTownScreen(Sonic::CGameObject* This, void*, Sonic::CGameDocument* pGameDocument)
 {
 	KillScreenTownScreen();
@@ -96,7 +69,6 @@ HOOK(void, __fastcall, CHudPlayableMenuStart, 0x108DEB0, Sonic::CGameObject *Thi
 	originalCHudPlayableMenuStart(This, a2, a3, a4, Edx);
 	RemoveHubCallbackTownScreen(This, nullptr, nullptr);
 
-	CalculateAspectOffsetsTownScreen();
 	Sonic::CCsdDatabaseWrapper wrapper(This->m_pMember->m_pGameDocument->m_pMember->m_spDatabase.get());
 
 	auto spCsdProjectTown = wrapper.GetCsdProject("ui_townscreen");
@@ -105,11 +77,11 @@ HOOK(void, __fastcall, CHudPlayableMenuStart, 0x108DEB0, Sonic::CGameObject *Thi
 
 	rcTownScreen = spCsdProjectTown->m_rcProject;
 	info = rcTownScreen->CreateScene("info");
-	info->SetPosition(xAspectOffsetTownScreen, 0);
+	info->SetPosition(0, 0);
 	CSDCommon::FreezeMotion(*info);
 
 	cam = rcTownScreen->CreateScene("cam");
-	cam->SetPosition(xAspectOffsetTownScreen, 0);
+	cam->SetPosition(0, 0);
 	CSDCommon::FreezeMotion(*cam);
 
 	CSDCommon::PlayAnimation(*info, "Usual_so_Anim", Chao::CSD::eMotionRepeatType_Loop, 1, 0);

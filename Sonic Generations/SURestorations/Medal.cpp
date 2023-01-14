@@ -2,9 +2,6 @@ boost::shared_ptr<Sonic::CGameObjectCSD> spMedal;
 Chao::CSD::RCPtr<Chao::CSD::CProject> rcMedal;
 Chao::CSD::RCPtr<Chao::CSD::CScene> u_info, medal_get_s, medal_get_m;
 
-float xAspectOffsetMedal = 0.0f;
-float yAspectOffsetMedal = 0.0f;
-
 void CreateScreenMedal(Sonic::CGameObject* pParentGameObject)
 {
 	if (rcMedal && !spMedal)
@@ -28,37 +25,12 @@ void __fastcall CHudSonicStageRemoveCallbackMedal(Sonic::CGameObject* This, void
 	medal_get_s = nullptr;
 	medal_get_m = nullptr;
 }
-//Brianuu/Skyth
-void CalculateAspectOffsetsMedal()
-{
-	if (*(size_t*)0x6F23C6 != 0x75D8C0D9) // Widescreen Support
-	{
-		const float aspect = (float)*(size_t*)0x1DFDDDC / (float)*(size_t*)0x1DFDDE0;
 
-		if (aspect * 9.0f > 16.0f)
-		{
-			xAspectOffsetMedal = 720.0f * aspect - 1280.0f;
-			yAspectOffsetMedal = 0.0f;
-		}
-		else
-		{
-			xAspectOffsetMedal = 0.0f;
-			yAspectOffsetMedal = 1280.0f / aspect - 720.0f;
-		}
-	}
-	else
-	{
-		xAspectOffsetMedal = 0.0f;
-		yAspectOffsetMedal = 0.0f;
-	}
-}
 bool medalVisible = false;
 HOOK(void, __fastcall, CHudSonicStageDelayProcessImpMedal, 0x109A8D0, Sonic::CGameObject* This) {
 	originalCHudSonicStageDelayProcessImpMedal(This);
 	if (BlueBlurCommon::IsModern()) {
 		CHudSonicStageRemoveCallbackMedal(This, nullptr, nullptr);
-
-		CalculateAspectOffsetsMedal();
 
 		Sonic::CCsdDatabaseWrapper wrapperMedal(This->m_pMember->m_pGameDocument->m_pMember->m_spDatabase.get());
 
@@ -71,15 +43,15 @@ HOOK(void, __fastcall, CHudSonicStageDelayProcessImpMedal, 0x109A8D0, Sonic::CGa
 		u_info = rcMedal->CreateScene("u_info");
 		u_info->SetHideFlag(true);
 		CSDCommon::FreezeMotion(*u_info);
-		u_info->SetPosition(xAspectOffsetMedal, 0);
+		u_info->SetPosition(0, 0);
 
 		medal_get_s = rcMedal->CreateScene("medal_get_s");
 		CSDCommon::FreezeMotion(*medal_get_s);
-		medal_get_s->SetPosition(xAspectOffsetMedal, 0);
+		medal_get_s->SetPosition(0, 0);
 
 		medal_get_m = rcMedal->CreateScene("medal_get_m");
 		CSDCommon::FreezeMotion(*medal_get_m);
-		medal_get_m->SetPosition(xAspectOffsetMedal, 0);
+		medal_get_m->SetPosition(0, 0);
 
 		flags &= ~(0x1 | 0x2 | 0x4 | 0x200 | 0x800); // Mask to prevent crash when game tries accessing the elements we disabled later on
 

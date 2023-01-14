@@ -66,6 +66,8 @@ extern "C" _declspec(dllexport) void Init()
 	ArchiveTreePatcher::applyPatches();
 	AnimationSetPatcher::applyPatches();
 
+	LetterboxHelper::Initialize(1280, 720);
+
 	Misc::Install();
 
 	if(Common::SUHud && Common::UPC) HubUI::Install();
