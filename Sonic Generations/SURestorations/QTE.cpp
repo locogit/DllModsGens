@@ -44,7 +44,7 @@ void __fastcall CHudSonicStageRemoveCallbackQTE(Sonic::CGameObject* This, void*,
 void CreateScreenQTE(Sonic::CGameObject* pParentGameObject)
 {
 	if (rcQTE && !spQTE)
-		pParentGameObject->m_pMember->m_pGameDocument->AddGameObject(spQTE = boost::make_shared<Sonic::CGameObjectCSD>(rcQTE, 0.5f, "HUD_A2", true), "main", pParentGameObject);
+		pParentGameObject->m_pMember->m_pGameDocument->AddGameObject(spQTE = boost::make_shared<Sonic::CGameObjectCSD>(rcQTE, 0.5f, "HUD", false), "main", pParentGameObject);
 }
 
 HOOK(void, __fastcall, CHudSonicStageDelayProcessImpQTE, 0x109A8D0, Sonic::CGameObject* This) {
@@ -495,24 +495,7 @@ HOOK(void, __fastcall, CHudSonicStageUpdateParallelQTE, 0x1098A50, Sonic::CGameO
 		CSDCommon::PlayAnimation(*m_timer, "Intro_Anim", Chao::CSD::eMotionRepeatType_PlayOnce, 1, frameBeforeTimer2);
 	}
 }
-Hedgehog::Math::CMatrix view;
-bool setView = false;
-HOOK(void, __fastcall, CameraUpdateQTE, 0x10FB770, Sonic::CCamera* This, void* Edx, const hh::fnd::SUpdateInfo& in_rUpdateInfo)
-{
-	Hedgehog::Universe::SUpdateInfo info = in_rUpdateInfo;
-	auto* context = Sonic::Player::CPlayerSpeedContext::GetInstance();
-	if (trick) {
-		info.DeltaTime *= timeMult;
-		Hedgehog::Math::CQuaternion rotationSlerp = Hedgehog::Math::CQuaternion(This->m_MyCamera.m_View.rotation().inverse()).slerp(in_rUpdateInfo.DeltaTime * 0.5f, context->m_spMatrixNode->m_Transform.m_Rotation);
-		This->m_MyCamera.m_View = (Eigen::Translation3f(This->m_MyCamera.m_Position) * rotationSlerp).inverse().matrix();
-		This->m_MyCamera.m_InputView = This->m_MyCamera.m_View;
-	}
-	if (setView) {
-		view = This->m_MyCamera.m_View;
-		setView = false;
-	}
-	originalCameraUpdateQTE(This, Edx, info);
-}
+
 HOOK(void, __fastcall, SonicQTEUpdate, 0xE6BF20, Sonic::Player::CPlayerSpeed* This, void* _, const hh::fnd::SUpdateInfo& updateInfo) {
 	Sonic::Player::CPlayerSpeedContext* sonic = This->GetContext();
 	Hedgehog::Base::CSharedString state = This->m_StateMachine.GetCurrentState()->GetStateName();
@@ -561,7 +544,6 @@ HOOK(void, __fastcall, SonicQTEUpdate, 0xE6BF20, Sonic::Player::CPlayerSpeed* Th
 		currentQTEPrompt.buttonPrompt.resize(static_cast<int>(currentQTEPrompt.size));
 		buttonPromptIndex = 0;
 		trick = true;
-		setView = true;
 		qte_txtTimerActive = false;
 		qte_txtFinish = false;
 		qteTimeSpent = 0.0f;
@@ -601,7 +583,6 @@ HOOK(void, __fastcall, SonicQTEUpdate, 0xE6BF20, Sonic::Player::CPlayerSpeed* Th
 	originalSonicQTEUpdate(This, _, info);
 }
 void QTE::Install() {
-	INSTALL_HOOK(CameraUpdateQTE);
 	INSTALL_HOOK(SonicQTEUpdate);
 	INSTALL_HOOK(CHudSonicStageDelayProcessImpQTE);
 	INSTALL_HOOK(ProcMsgRestartStageQTE);
