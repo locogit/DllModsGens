@@ -983,6 +983,31 @@ typedef void* __fastcall CSonicSpeedContextPlaySound(void*, void*, SharedPtrType
 
 namespace Common
 {
+	inline bool IsInputDown(Sonic::EKeyState key) {
+		Sonic::SPadState input = Sonic::CInputState::GetInstance()->GetPadState();
+		return input.IsDown(key);
+	}
+
+	inline bool IsInputTapped(Sonic::EKeyState key) {
+		Sonic::SPadState input = Sonic::CInputState::GetInstance()->GetPadState();
+		return input.IsTapped(key);
+	}
+
+	inline bool IsInputUp(Sonic::EKeyState key) {
+		Sonic::SPadState input = Sonic::CInputState::GetInstance()->GetPadState();
+		return input.IsUp(key);
+	}
+
+	inline bool IsInputReleased(Sonic::EKeyState key) {
+		Sonic::SPadState input = Sonic::CInputState::GetInstance()->GetPadState();
+		return input.IsReleased(key);
+	}
+
+	inline Eigen::Vector2f getLeftStick() {
+		Sonic::SPadState input = Sonic::CInputState::GetInstance()->GetPadState();
+		return Eigen::Vector2f(input.LeftStickHorizontal, input.LeftStickVertical);
+	}
+
 	inline float WrapFloat(float number, float bounds)
 	{
 		if (number > bounds) number -= bounds;

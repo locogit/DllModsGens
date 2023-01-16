@@ -117,6 +117,7 @@
     <ClInclude Include="Missile.h" />
     <ClInclude Include="Pch.h" />
     <ClInclude Include="Pole.h" />
+    <ClInclude Include="QTE.h" />
     <ClInclude Include="Ramp.h" />
     <ClInclude Include="ShortJump.h" />
     <ClInclude Include="Stumble.h" />
@@ -142,6 +143,7 @@
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Create</PrecompiledHeader>
     </ClCompile>
     <ClCompile Include="Pole.cpp" />
+    <ClCompile Include="QTE.cpp" />
     <ClCompile Include="Ramp.cpp" />
     <ClCompile Include="ShortJump.cpp" />
     <ClCompile Include="Stumble.cpp" />

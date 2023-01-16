@@ -108,7 +108,7 @@ HOOK(void, __fastcall, SonicMissileUpdate, 0xE6BF20, Sonic::Player::CPlayerSpeed
 void Missile::Install() {
 	INSTALL_HOOK(SonicMissileUpdate);
 	INSTALL_HOOK(missile);
-	INSTALL_HOOK(CHudSonicStageDelayProcessImpMissile); //cause issue
+	INSTALL_HOOK(CHudSonicStageDelayProcessImpMissile);
 	INSTALL_HOOK(CHudSonicStageUpdateParallelMissile);
 	INSTALL_HOOK(ProcMsgRestartStageMissile);
 	INSTALL_HOOK(HudResult_MsgStartGoalResultMissile);

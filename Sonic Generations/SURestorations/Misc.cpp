@@ -19,7 +19,11 @@ bool BDrift = Common::reader.GetBoolean("Restorations", "BDrift", true);
 
 bool UseRingLife = Common::reader.GetBoolean("Restorations", "RingLife", true);
 
+bool WaterDrift = Common::reader.GetBoolean("Restorations", "WaterDrift", true);
+
 bool ringLife = false;
+
+static float deltaTime;
 
 HOOK(int, __fastcall, MiscRestart, 0xE76810, uint32_t* This, void* Edx, void* message)
 {
@@ -70,13 +74,12 @@ HOOK(void, __stdcall, MiscLife, 0xE75520, Sonic::Player::CPlayerContext* context
 HOOK(void, __fastcall, MiscLifeRing, 0xE761A0, int a1) {
 	if (!ringLife) { originalMiscLifeRing(a1); }
 }
-
 HOOK(void, __fastcall, SonicMiscUpdate, 0xE6BF20, Sonic::Player::CPlayerSpeed* This, void* _, const hh::fnd::SUpdateInfo& updateInfo)
 {
+	deltaTime = updateInfo.DeltaTime;
+
 	if ((::byte)Common::GetMultiLevelAddress(0xD59A67, { 0x6 }) == 150 && *Common::GetPlayerLives() != 99 && InfLivesCodeChange)
 		*Common::GetPlayerLives() = 99;
-
-	originalSonicMiscUpdate(This, _, updateInfo);
 
 	if (BlueBlurCommon::IsModern()) {
 
@@ -85,7 +88,7 @@ HOOK(void, __fastcall, SonicMiscUpdate, 0xE6BF20, Sonic::Player::CPlayerSpeed* T
 		Hedgehog::Base::CSharedString anim = sonic->GetCurrentAnimationName();
 		Sonic::SPadState input = Sonic::CInputState::GetInstance()->GetPadState();
 		//printf("\n%s", anim);
-
+		
 		if (HomingX && sonic->m_spParameter->Get<bool>(Sonic::Player::ePlayerSpeedParameter_XButtonHoming) != true) {
 			sonic->m_spParameter->m_scpNode->m_ValueMap[Sonic::Player::ePlayerSpeedParameter_XButtonHoming] = true;
 		}
@@ -144,17 +147,23 @@ HOOK(void, __fastcall, SonicMiscUpdate, 0xE6BF20, Sonic::Player::CPlayerSpeed* T
 			}
 		}
 	}
+	originalSonicMiscUpdate(This, _, updateInfo);
 }
 // Skyth (Unleashed Drift) & Briannu (06 Experience)
 HOOK(void, __fastcall, CSonicStatePluginOnWaterUpdate, 0x119BED0, Hedgehog::Universe::TStateMachine<Sonic::Player::CPlayerSpeedContext>::TState* This)
 {
+	originalCSonicStatePluginOnWaterUpdate(This);
+
+	if (!WaterDrift) { return; }
+
 	Sonic::Player::CPlayerSpeedContext* sonic = This->GetContext();
 	Hedgehog::Base::CSharedString state = sonic->m_pPlayer->m_StateMachine.GetCurrentState()->GetStateName();
 	Hedgehog::Base::CSharedString anim = sonic->GetCurrentAnimationName();
 
 	if (sonic->StateFlag(eStateFlag_OnWater) && state == "Drift" && !sonic->StateFlag(eStateFlag_Boost))
 	{
-		if (sonic->m_Velocity.norm() >= 10.0f) {
+		if (sonic->m_Velocity.norm() >= 20.0f) {
+			sonic->m_Velocity *= 1.0f - deltaTime * 0.7f;
 			Common::GetSonicStateFlags()->AcceptBuoyancyForce = true;
 			WRITE_NOP(0x119C0E5, 2); // float even if speed is 0
 			WRITE_NOP(0xDED132, 3);  // don't reset AcceptBuoyancyForce
@@ -178,8 +187,6 @@ HOOK(void, __fastcall, CSonicStatePluginOnWaterUpdate, 0x119BED0, Hedgehog::Univ
 			0x00, 0x68, 0xA6, 0x00, 0x00, 0x00, 0xE8, 0x54, 0xF0, 0x73, 0xFF);
 		WRITE_MEMORY(0x119C00E, uint8_t, 0x68, 0xA7, 0x00, 0x00, 0x00, 0xE8, 0xD8, 0xE9, 0x39, 0xFF);
 	}
-
-	originalCSonicStatePluginOnWaterUpdate(This);
 }
 // https://github.com/brianuuu/DllMods/blob/master/Source/NavigationLightdashSound/NavigationSound.cpp#L14
 HOOK(void, __fastcall, MiscYPrompt, 0x5289A0, void* thisDeclaration, void* edx, uint32_t a2)
@@ -202,6 +209,7 @@ void NOP(int floatInstrAddr, int paramStrAddr)
 	WRITE_NOP(floatInstrAddr + 2, 6);
 	WRITE_MEMORY(paramStrAddr, ::byte, 0x00);
 }
+
 void Misc::Install()
 {
 	INSTALL_HOOK(CSonicStatePluginOnWaterUpdate);

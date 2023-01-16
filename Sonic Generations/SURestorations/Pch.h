@@ -42,3 +42,4 @@
 #include "Ramp.h"
 #include "UPC.h"
 #include "LetterboxHelper.h"
+#include "QTE.h"
