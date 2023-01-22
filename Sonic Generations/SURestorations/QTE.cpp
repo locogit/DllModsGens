@@ -44,7 +44,7 @@ void __fastcall CHudSonicStageRemoveCallbackQTE(Sonic::CGameObject* This, void*,
 void CreateScreenQTE(Sonic::CGameObject* pParentGameObject)
 {
 	if (rcQTE && !spQTE)
-		pParentGameObject->m_pMember->m_pGameDocument->AddGameObject(spQTE = boost::make_shared<Sonic::CGameObjectCSD>(rcQTE, 0.5f, "HUD", false), "main", pParentGameObject);
+		pParentGameObject->m_pMember->m_pGameDocument->AddGameObject(spQTE = boost::make_shared<Sonic::CGameObjectCSD>(rcQTE, 0.5f, "HUD_A2", true), "main", pParentGameObject);
 }
 
 HOOK(void, __fastcall, CHudSonicStageDelayProcessImpQTE, 0x109A8D0, Sonic::CGameObject* This) {
@@ -54,9 +54,7 @@ HOOK(void, __fastcall, CHudSonicStageDelayProcessImpQTE, 0x109A8D0, Sonic::CGame
 
 		Sonic::CCsdDatabaseWrapper wrapperQTE(This->m_pMember->m_pGameDocument->m_pMember->m_spDatabase.get());
 
-		auto spCsdProjectQTE = wrapperQTE.GetCsdProject("ui_quicktime");
-
-		size_t& flags = ((size_t*)This)[151];
+		auto spCsdProjectQTE = wrapperQTE.GetCsdProject("ui_qte");
 
 		rcQTE = spCsdProjectQTE->m_rcProject;
 		m_bg = rcQTE->CreateScene("m_bg");
@@ -120,9 +118,14 @@ enum QTEButtonType {
 };
 struct QTEPrompt {
 	QTEPromptSize size;
+	float duration;
 	std::vector<Sonic::EKeyState> buttonPrompt = {};
 
 } currentQTEPrompt;
+
+std::vector<QTEPrompt> qtePromptList = {};
+int qtePromptIndex = 0;
+
 std::vector<Sonic::EKeyState> buttons = {
 	Sonic::eKeyState_A,
 	Sonic::eKeyState_B,
@@ -211,6 +214,34 @@ int GetQTEPatternIndex(Sonic::EKeyState key) {
 	}
 }
 
+Sonic::EKeyState getRandomQTEKey() {
+	int num = rand() % 6 + 1;
+	switch (num)
+	{
+	case 1:
+		return Sonic::eKeyState_A;
+		break;
+	case 2:
+		return Sonic::eKeyState_B;
+		break;
+	case 3:
+		return Sonic::eKeyState_X;
+		break;
+	case 4:
+		return Sonic::eKeyState_Y;
+		break;
+	case 5:
+		return Sonic::eKeyState_LeftBumper;
+		break;
+	case 6:
+		return Sonic::eKeyState_RightBumper;
+		break;
+	default:
+		return Sonic::eKeyState_RightBumper;
+		break;
+	}
+}
+
 float trickToFallTimer = 0.0f;
 float trickTimer = 0.0f;
 
@@ -222,6 +253,11 @@ float qteLength = 2.0f;
 float qteTimeSpent = 0.0f;
 
 bool outOfControlTrick = false;
+
+bool trickIntro = false;
+float trickIntroTimer = 0.0f;
+
+bool setView = false;
 
 Eigen::Vector3f trickStartVel = Eigen::Vector3f::Zero();
 
@@ -350,62 +386,111 @@ void SetupButtons() {
 	qte_btn_5->GetNode("img")->SetPatternIndex(GetQTEPatternIndex(currentQTEPrompt.buttonPrompt[4]));
 	CSDCommon::PlayAnimation(*qte_btn_5, "Intro_Anim", Chao::CSD::eMotionRepeatType_PlayOnce, 1, 1);
 
-	// TODO: Implement animations L_pattern & R_pattern for bumpers
-
+	float buttonY = 360.0f;
+	// x2 = x1 + 115
 	switch (currentQTEPrompt.size)
 	{
 	case QTEPromptSize::Size3:
-		qte_btn_1->GetNode("position")->SetPosition(525.0f, 365.0f);
-		qte_btn_eff_1->GetNode("position")->SetPosition(525.0f, 365.0f);
+		qte_btn_1->GetNode("position")->SetPosition(525.0f, buttonY);
+		qte_btn_eff_1->GetNode("position")->SetPosition(525.0f, buttonY);
 
-		qte_btn_2->GetNode("position")->SetPosition(635.0f, 365.0f);
-		qte_btn_eff_2->GetNode("position")->SetPosition(635.0f, 365.0f);
+		qte_btn_2->GetNode("position")->SetPosition(640.0f, buttonY);
+		qte_btn_eff_2->GetNode("position")->SetPosition(640.0f, buttonY);
 
-		qte_btn_3->GetNode("position")->SetPosition(745.0f, 365.0f);
-		qte_btn_eff_3->GetNode("position")->SetPosition(745.0f, 365.0f);
+		qte_btn_3->GetNode("position")->SetPosition(755.0f, buttonY);
+		qte_btn_eff_3->GetNode("position")->SetPosition(755.0f, buttonY);
 
 		qte_btn_4->SetHideFlag(true);
 		qte_btn_5->SetHideFlag(true);
 		break;
 	case QTEPromptSize::Size4:
-		qte_btn_1->GetNode("position")->SetPosition(465.0f, 365.0f);
-		qte_btn_eff_1->GetNode("position")->SetPosition(465.0f, 365.0f);
+		qte_btn_1->GetNode("position")->SetPosition(465.0f, buttonY);
+		qte_btn_eff_1->GetNode("position")->SetPosition(465.0f, buttonY);
 
-		qte_btn_2->GetNode("position")->SetPosition(575.0f, 365.0f);
-		qte_btn_eff_2->GetNode("position")->SetPosition(575.0f, 365.0f);
+		qte_btn_2->GetNode("position")->SetPosition(580.0f, buttonY);
+		qte_btn_eff_2->GetNode("position")->SetPosition(580.0f, buttonY);
 
-		qte_btn_3->GetNode("position")->SetPosition(685.0f, 365.0f);
-		qte_btn_eff_3->GetNode("position")->SetPosition(685.0f, 365.0f);
+		qte_btn_3->GetNode("position")->SetPosition(695.0f, buttonY);
+		qte_btn_eff_3->GetNode("position")->SetPosition(695.0f, buttonY);
 
-		qte_btn_4->GetNode("position")->SetPosition(795.0f, 365.0f);
-		qte_btn_eff_4->GetNode("position")->SetPosition(795.0f, 365.0f);
+		qte_btn_4->GetNode("position")->SetPosition(810.0f, buttonY);
+		qte_btn_eff_4->GetNode("position")->SetPosition(810.0f, buttonY);
 
 		qte_btn_5->SetHideFlag(true);
 		break;
 	case QTEPromptSize::Size5:
-		qte_btn_1->GetNode("position")->SetPosition(425.0f, 365.0f);
-		qte_btn_eff_1->GetNode("position")->SetPosition(425.0f, 365.0f);
+		qte_btn_1->GetNode("position")->SetPosition(400.0f, buttonY);
+		qte_btn_eff_1->GetNode("position")->SetPosition(400.0f, buttonY);
 
-		qte_btn_2->GetNode("position")->SetPosition(540.0f, 365.0f);
-		qte_btn_eff_2->GetNode("position")->SetPosition(540.0f, 365.0f);
+		qte_btn_2->GetNode("position")->SetPosition(520.0f, buttonY);
+		qte_btn_eff_2->GetNode("position")->SetPosition(520.0f, buttonY);
 
-		qte_btn_3->GetNode("position")->SetPosition(655.0f, 365.0f);
-		qte_btn_eff_3->GetNode("position")->SetPosition(655.0f, 365.0f);
+		qte_btn_3->GetNode("position")->SetPosition(640.0f, buttonY);
+		qte_btn_eff_3->GetNode("position")->SetPosition(640.0f, buttonY);
 
-		qte_btn_4->GetNode("position")->SetPosition(780.0f, 365.0f);
-		qte_btn_eff_4->GetNode("position")->SetPosition(780.0f, 365.0f);
+		qte_btn_4->GetNode("position")->SetPosition(760.0f, buttonY);
+		qte_btn_eff_4->GetNode("position")->SetPosition(760.0f, buttonY);
 
-		qte_btn_5->GetNode("position")->SetPosition(885.0f, 365.0f);
-		qte_btn_eff_5->GetNode("position")->SetPosition(885.0f, 365.0f);
+		qte_btn_5->GetNode("position")->SetPosition(880.0f, buttonY);
+		qte_btn_eff_5->GetNode("position")->SetPosition(880.0f, buttonY);
 		break;
 	}
 }
+
+QTEPrompt RandomQTEPrompt(QTEPromptSize size, float dur) {
+	QTEPrompt prompt;
+	prompt.buttonPrompt = { getRandomQTEKey(), getRandomQTEKey(), getRandomQTEKey(), getRandomQTEKey(), getRandomQTEKey() };
+	prompt.size = size;
+	prompt.duration = dur;
+	prompt.buttonPrompt.resize(static_cast<int>(size));
+	return prompt;
+}
+
 void FinishTrick(Sonic::Player::CPlayerSpeedContext* sonic, bool failed) {
+	if (!failed) {
+		if (qtePromptIndex + 1 < qtePromptList.size()) {
+			qtePromptIndex++;
+
+			currentQTEPrompt = qtePromptList[qtePromptIndex];
+			qteLength = currentQTEPrompt.duration;
+
+			buttonPromptIndex = 0;
+
+			trick = true;
+			trickIntro = true;
+			trickIntroTimer = 0.0f;
+
+			setView = true;
+			qte_txtTimerActive = false;
+			qte_txtFinish = false;
+
+			qte_txt_1->SetHideFlag(true);
+			qte_txt_2->SetHideFlag(true);
+			qte_txt_3->SetHideFlag(true);
+			qte_txt_4->SetHideFlag(true);
+
+			qteTimeSpent = 0.0f;
+			trickTimer = (100.0f / 60.0f) * qteLength + 0.12f;
+
+			sonic->PlaySound(2002503, true);
+
+			CSDCommon::FreezeMotion(*qte_btn_eff_1);
+			CSDCommon::FreezeMotion(*qte_btn_eff_2);
+			CSDCommon::FreezeMotion(*qte_btn_eff_3);
+			CSDCommon::FreezeMotion(*qte_btn_eff_4);
+			CSDCommon::FreezeMotion(*qte_btn_eff_5);
+
+			return;
+		}
+	}
+
 	m_bg->SetHideFlag(true);
 	m_timer->SetHideFlag(true);
 
 	qte_txtTimer = 0.5f;
 	qte_txtTimerActive = true;
+
+	trickIntro = false;
 
 	*(bool*)Common::GetMultiLevelAddress(0x1E0BE5C, { 0x8, 0x19D }) = false;
 	*(float*)Common::GetMultiLevelAddress(0x1E0BE5C, { 0x8, 0x1A4 }) = 1.0f;
@@ -416,7 +501,13 @@ void FinishTrick(Sonic::Player::CPlayerSpeedContext* sonic, bool failed) {
 	trick = false;
 	timeMult = 1.0f;
 
+	qte_txt_1->SetHideFlag(true);
+	qte_txt_2->SetHideFlag(true);
+	qte_txt_3->SetHideFlag(true);
+	qte_txt_4->SetHideFlag(true);
+
 	if (failed) {
+		qtePromptIndex = 0;
 		sonic->m_Velocity *= 0.5f;
 		qte_txt_4->SetHideFlag(false);
 		CSDCommon::PlayAnimation(*qte_txt_4, "Intro_Anim", Chao::CSD::eMotionRepeatType_PlayOnce, 1, 1);
@@ -426,6 +517,8 @@ void FinishTrick(Sonic::Player::CPlayerSpeedContext* sonic, bool failed) {
 		qte_btn_3->SetHideFlag(true);
 		qte_btn_4->SetHideFlag(true);
 		qte_btn_5->SetHideFlag(true);
+
+		sonic->PlaySound(2002502, true);
 	}
 	else {
 		int randAnim = rand() % (3 - 0 + 1) + 0;
@@ -449,21 +542,66 @@ void FinishTrick(Sonic::Player::CPlayerSpeedContext* sonic, bool failed) {
 		static SharedPtrTypeless voiceHandle;
 		Common::SonicContextPlaySound(voiceHandle, 3002013, 0);
 
-		if (qteTimeSpent / qteLength >= 0.8f) {
+		if (qteTimeSpent / qteLength >= 0.9f) {
 			qte_txt_1->SetHideFlag(false);
 			CSDCommon::PlayAnimation(*qte_txt_1, "Intro_Anim", Chao::CSD::eMotionRepeatType_PlayOnce, 1, 1);
 		}
-		else if (qteTimeSpent / qteLength < 0.8f && qteTimeSpent / qteLength >= 0.4f) {
+		else if (qteTimeSpent / qteLength < 0.9f && qteTimeSpent / qteLength >= 0.6f) {
 			qte_txt_2->SetHideFlag(false);
 			CSDCommon::PlayAnimation(*qte_txt_2, "Intro_Anim", Chao::CSD::eMotionRepeatType_PlayOnce, 1, 1);
 		}
-		else if (qteTimeSpent / qteLength < 0.4f) {
+		else if (qteTimeSpent / qteLength < 0.6f) {
 			qte_txt_3->SetHideFlag(false);
 			CSDCommon::PlayAnimation(*qte_txt_3, "Intro_Anim", Chao::CSD::eMotionRepeatType_PlayOnce, 1, 1);
 		}
 
+		sonic->PlaySound(2002503, true);
 	}
 }
+
+Hedgehog::Math::CMatrix view;
+HOOK(void, __fastcall, CameraUpdateQTE, 0x10FB770, Sonic::CCamera* This, void* Edx, const hh::fnd::SUpdateInfo& in_rUpdateInfo)
+{
+	Hedgehog::Universe::SUpdateInfo info = in_rUpdateInfo;
+	info.DeltaTime *= timeMult;
+	if (setView) {
+		view = This->m_MyCamera.m_View;
+		This->m_MyCamera.m_View = view;
+		This->m_MyCamera.m_InputView = view;
+		setView = false;
+	}
+	originalCameraUpdateQTE(This, Edx, info);
+}
+
+// 06 experience code for pausing
+bool paused = false;
+HOOK(bool, __fastcall, QTE_MsgStartPause, 0x010BC130, void* This, void* Edx, void* a2)
+{
+	if (trick) {
+		*(bool*)Common::GetMultiLevelAddress(0x1E0BE5C, { 0x8, 0x19D }) = false;
+		*(float*)Common::GetMultiLevelAddress(0x1E0BE5C, { 0x8, 0x1A4 }) = 1.0f;
+		m_timer->m_MotionSpeed = 0.0f;
+		m_bg->m_MotionSpeed = 0.0f;
+	}
+	paused = true;
+	return originalQTE_MsgStartPause(This, Edx, a2);
+}
+
+HOOK(int, __fastcall, QTE_MsgFinishPause, 0x010BC110, void* This, void* Edx, void* a2)
+{
+	if (trick) {
+		*(bool*)Common::GetMultiLevelAddress(0x1E0BE5C, { 0x8, 0x19D }) = true;
+		*(float*)Common::GetMultiLevelAddress(0x1E0BE5C, { 0x8, 0x1A4 }) = 0.1f;
+	}
+	paused = false;
+	return originalQTE_MsgFinishPause(This, Edx, a2);
+}
+
+float frameBeforeBG;
+float frameBeforeTimer;
+
+bool timerIntro = false;
+
 HOOK(void, __fastcall, CHudSonicStageUpdateParallelQTE, 0x1098A50, Sonic::CGameObject* This, void* Edx, const hh::fnd::SUpdateInfo& in_rUpdateInfo)
 {
 	originalCHudSonicStageUpdateParallelQTE(This, Edx, in_rUpdateInfo);
@@ -477,23 +615,57 @@ HOOK(void, __fastcall, CHudSonicStageUpdateParallelQTE, 0x1098A50, Sonic::CGameO
 			CSDCommon::PlayAnimation(*qte_txt_4, "Fnish_Anim", Chao::CSD::eMotionRepeatType_PlayOnce, 1, 1);
 		}
 	}
-	if (trick) {
-		// TODO: fix bar not moving
+	if (trick && !trickIntro) {
+		if (qteTimeSpent >= 0.12f) {
+			if (timerIntro) {
+				timerIntro = false;
+				CSDCommon::PlayAnimation(*m_bg, "Timer_Anim", Chao::CSD::eMotionRepeatType_PlayOnce, 1, 1);
+				CSDCommon::PlayAnimation(*m_timer, "Timer_Anim", Chao::CSD::eMotionRepeatType_PlayOnce, 1, 1);
+			}
+			m_bg->m_MotionSpeed = 1 / qteLength;
+			m_timer->m_MotionSpeed = 1 / qteLength;
+		}
 
-		float frameBeforeBG = m_bg->m_MotionFrame;
-		CSDCommon::PlayAnimation(*m_bg, "Timer_Anim", Chao::CSD::eMotionRepeatType_PlayOnce, 1, frameBeforeBG);
-
-		float frameBeforeTimer = m_timer->m_MotionFrame;
-		CSDCommon::PlayAnimation(*m_timer, "Timer_Anim", Chao::CSD::eMotionRepeatType_PlayOnce, 1, frameBeforeTimer);
-
-		m_timer->m_MotionSpeed = 1.0f / qteLength;
-
-		float frameBeforeBG2 = m_bg->m_MotionFrame;
-		CSDCommon::PlayAnimation(*m_bg, "Intro_Anim", Chao::CSD::eMotionRepeatType_PlayOnce, 1, frameBeforeBG2);
-
-		float frameBeforeTimer2  = m_timer->m_MotionFrame;
-		CSDCommon::PlayAnimation(*m_timer, "Intro_Anim", Chao::CSD::eMotionRepeatType_PlayOnce, 1, frameBeforeTimer2);
+		Eigen::Vector2f flipPos = Eigen::Vector2f(2.35f, 0.0f);
+		if (GetQTEButtonName(GetQTEButtonType(0)) == "btn_2" && GetQTEPatternIndex(currentQTEPrompt.buttonPrompt[0]) == 1) {
+			qte_btn_1->GetNode("bg")->SetPosition(flipPos.x(),flipPos.y());
+			qte_btn_1->GetNode("bg")->SetScale(-1.0f, 1.0f);
+		}
+		if (GetQTEButtonName(GetQTEButtonType(1)) == "btn_2" && GetQTEPatternIndex(currentQTEPrompt.buttonPrompt[1]) == 1) {
+			qte_btn_2->GetNode("bg")->SetPosition(flipPos.x(), flipPos.y());
+			qte_btn_2->GetNode("bg")->SetScale(-1.0f, 1.0f);
+		}
+		if (GetQTEButtonName(GetQTEButtonType(2)) == "btn_2" && GetQTEPatternIndex(currentQTEPrompt.buttonPrompt[2]) == 1) {
+			qte_btn_3->GetNode("bg")->SetPosition(flipPos.x(), flipPos.y());
+			qte_btn_3->GetNode("bg")->SetScale(-1.0f, 1.0f);
+		}
+		if (GetQTEButtonName(GetQTEButtonType(3)) == "btn_2" && GetQTEPatternIndex(currentQTEPrompt.buttonPrompt[3]) == 1) {
+			qte_btn_4->GetNode("bg")->SetPosition(flipPos.x(), flipPos.y());
+			qte_btn_4->GetNode("bg")->SetScale(-1.0f, 1.0f);
+		}
+		if (GetQTEButtonName(GetQTEButtonType(4)) == "btn_2" && GetQTEPatternIndex(currentQTEPrompt.buttonPrompt[4]) == 1) {
+			qte_btn_5->GetNode("bg")->SetPosition(flipPos.x(), flipPos.y());
+			qte_btn_5->GetNode("bg")->SetScale(-1.0f, 1.0f);
+		}
 	}
+}
+
+void StartQTEVisuals() {
+	frameBeforeBG = 0.0f;
+	frameBeforeTimer = 0.0f;
+
+	timerIntro = true;
+
+	m_bg->SetHideFlag(false);
+	m_timer->SetHideFlag(false);
+
+	CSDCommon::PlayAnimation(*m_bg, GetQTESizeAnim(), Chao::CSD::eMotionRepeatType_PlayOnce, 1, 1);
+	CSDCommon::PlayAnimation(*m_timer, GetQTESizeAnim(), Chao::CSD::eMotionRepeatType_PlayOnce, 1, 1);
+
+	CSDCommon::PlayAnimation(*m_bg, "Intro_Anim", Chao::CSD::eMotionRepeatType_PlayOnce, 1, 1);
+	CSDCommon::PlayAnimation(*m_timer, "Intro_Anim", Chao::CSD::eMotionRepeatType_PlayOnce, 1, 1);
+
+	SetupButtons();
 }
 
 HOOK(void, __fastcall, SonicQTEUpdate, 0xE6BF20, Sonic::Player::CPlayerSpeed* This, void* _, const hh::fnd::SUpdateInfo& updateInfo) {
@@ -502,31 +674,35 @@ HOOK(void, __fastcall, SonicQTEUpdate, 0xE6BF20, Sonic::Player::CPlayerSpeed* Th
 	Hedgehog::Base::CSharedString anim = sonic->GetCurrentAnimationName();
 	Sonic::SPadState input = Sonic::CInputState::GetInstance()->GetPadState();
 	if (trick) {
-		timeMult = Common::Lerp(timeMult, 0.015f, updateInfo.DeltaTime * 3.0f);
-		qteTimeSpent += updateInfo.DeltaTime;
-		if (qteTimeSpent > qteLength) { qteTimeSpent = qteLength; }
-
-		if (trickTimer > 0) { trickTimer -= updateInfo.DeltaTime; }
-		else {
-			FinishTrick(sonic, true);
-		}
+		timeMult = Common::Lerp(timeMult, 0.015f, Common::EaseOutExpo(updateInfo.DeltaTime * 0.5f));
 
 		if (anim != "JumpSpring") {
 			sonic->ChangeAnimation("JumpSpring");
 		}
 
-		if (IsAnyInputTapped() == currentQTEPrompt.buttonPrompt[buttonPromptIndex]) {
-			ButtonEffect(buttonPromptIndex);
-			if (buttonPromptIndex + 1 >= currentQTEPrompt.buttonPrompt.size()) {
-				FinishTrick(sonic, false);
+		if (!trickIntro) {
+			qteTimeSpent += updateInfo.DeltaTime;
+			if (qteTimeSpent > qteLength + 0.12f) { qteTimeSpent = qteLength + 0.12f; }
+
+			if (trickTimer > 0) { trickTimer -= updateInfo.DeltaTime; }
+			else {
+				FinishTrick(sonic, true);
+			}
+
+			if (IsAnyInputTapped() == currentQTEPrompt.buttonPrompt[buttonPromptIndex]) {
+				ButtonEffect(buttonPromptIndex);
+				sonic->PlaySound(2002504, true);
+				if (buttonPromptIndex + 1 >= currentQTEPrompt.buttonPrompt.size()) {
+					FinishTrick(sonic, false);
+				}
+				else {
+					buttonPromptIndex++;
+				}
 			}
 			else {
-				buttonPromptIndex++;
-			}
-		}
-		else {
-			if (IsAnyInputTapped() != Sonic::eKeyState_None) {
-				FinishTrick(sonic, true);
+				if (IsAnyInputTapped() != Sonic::eKeyState_None) {
+					FinishTrick(sonic, true);
+				}
 			}
 		}
 	}
@@ -537,17 +713,44 @@ HOOK(void, __fastcall, SonicQTEUpdate, 0xE6BF20, Sonic::Player::CPlayerSpeed* Th
 			sonic->ChangeAnimation("Fall");
 		}
 	}
-
+	if (trickIntro) {
+		trickIntroTimer -= updateInfo.DeltaTime;
+		if (trickIntroTimer <= 0.0f) {
+			trickIntroTimer = 0.0f;
+			trickIntro = false;
+			StartQTEVisuals();
+		}
+	}
 	if (state == "AdlibTrick" && !trick) {
-		currentQTEPrompt.buttonPrompt = { Sonic::eKeyState_LeftBumper, Sonic::eKeyState_X, Sonic::eKeyState_RightBumper, Sonic::eKeyState_Y, Sonic::eKeyState_A };
-		currentQTEPrompt.size = QTEPromptSize::Size3;
-		currentQTEPrompt.buttonPrompt.resize(static_cast<int>(currentQTEPrompt.size));
+		qtePromptList = {
+			RandomQTEPrompt(QTEPromptSize::Size3, 1.0f),
+			RandomQTEPrompt(QTEPromptSize::Size4, 1.5f),
+			RandomQTEPrompt(QTEPromptSize::Size5, 3.0f)
+		};
+
+		currentQTEPrompt = qtePromptList[0];
+
 		buttonPromptIndex = 0;
+		qtePromptIndex = 0;
+
+		qteLength = currentQTEPrompt.duration;
+
 		trick = true;
+		trickIntro = true;
+		trickIntroTimer = 0.3f;
+
+		setView = true;
 		qte_txtTimerActive = false;
 		qte_txtFinish = false;
+
+		qte_txt_1->SetHideFlag(true);
+		qte_txt_2->SetHideFlag(true);
+		qte_txt_3->SetHideFlag(true);
+		qte_txt_4->SetHideFlag(true);
+
 		qteTimeSpent = 0.0f;
-		trickTimer = (100.0f / 60.0f) * qteLength;
+		trickTimer = (100.0f / 60.0f) * qteLength + 0.12f;
+
 		trickStartVel = sonic->m_Velocity;
 
 		sonic->ChangeState("Fall");
@@ -556,24 +759,12 @@ HOOK(void, __fastcall, SonicQTEUpdate, 0xE6BF20, Sonic::Player::CPlayerSpeed* Th
 		sonic->StateFlag(eStateFlag_OutOfControl) = true;
 		sonic->m_HorizontalVelocity = sonic->m_spMatrixNode->m_Transform.m_Rotation * Eigen::Vector3f::UnitZ() * 20.0f;
 
-		m_bg->SetHideFlag(false);
-		m_timer->SetHideFlag(false);
-
-		CSDCommon::PlayAnimation(*m_bg, GetQTESizeAnim(), Chao::CSD::eMotionRepeatType_PlayOnce, 1, 1);
-		CSDCommon::PlayAnimation(*m_timer, GetQTESizeAnim(), Chao::CSD::eMotionRepeatType_PlayOnce, 1, 1);
-
-		qte_txt_1->SetHideFlag(true);
-		qte_txt_2->SetHideFlag(true);
-		qte_txt_3->SetHideFlag(true);
-		qte_txt_4->SetHideFlag(true);
-
-		SetupButtons();
-
+		// 06 experience code to slow down time
 		*(bool*)Common::GetMultiLevelAddress(0x1E0BE5C, { 0x8, 0x19D }) = true;
-		*(float*)Common::GetMultiLevelAddress(0x1E0BE5C, { 0x8, 0x1A4 }) = 0.015f;
+		*(float*)Common::GetMultiLevelAddress(0x1E0BE5C, { 0x8, 0x1A4 }) = 0.1f;
 	}
 
-	if (!trick && state != "Fall" && outOfControlTrick) {
+	if (!trick && sonic->m_Grounded && outOfControlTrick) {
 		outOfControlTrick = false;
 		sonic->StateFlag(eStateFlag_OutOfControl) = false;
 	}
@@ -582,7 +773,11 @@ HOOK(void, __fastcall, SonicQTEUpdate, 0xE6BF20, Sonic::Player::CPlayerSpeed* Th
 	info.DeltaTime *= timeMult;
 	originalSonicQTEUpdate(This, _, info);
 }
+
 void QTE::Install() {
+	INSTALL_HOOK(QTE_MsgStartPause);
+	INSTALL_HOOK(QTE_MsgFinishPause);
+	INSTALL_HOOK(CameraUpdateQTE);
 	INSTALL_HOOK(SonicQTEUpdate);
 	INSTALL_HOOK(CHudSonicStageDelayProcessImpQTE);
 	INSTALL_HOOK(ProcMsgRestartStageQTE);

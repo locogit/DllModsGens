@@ -29,7 +29,7 @@ HOOK(void, __fastcall, SonicUpReelUpdate, 0xE6BF20, Sonic::Player::CPlayerSpeed*
 			Eigen::Quaternionf playerRotation;
 			if (Common::GetPlayerTransform(playerPosition, playerRotation))
 			{
-				Hedgehog::Math::CVector ForwardVel = playerRotation * Eigen::Vector3f::UnitZ() * 5.5f;
+				Hedgehog::Math::CVector ForwardVel = sonic->m_HorizontalRotation * Hedgehog::Math::CVector::UnitZ() * 5.5f;
 				sonic->m_Velocity.x() = ForwardVel.x();
 				sonic->m_Velocity.z() = ForwardVel.z();
 			}

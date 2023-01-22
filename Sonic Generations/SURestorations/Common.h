@@ -2179,6 +2179,16 @@ namespace Common
 	{
 		return firstFloat + (secondFloat - firstFloat) * by;
 	}
+
+	inline float EaseOutQuint(float x)
+	{
+		return 1 - pow(1 - x, 5);
+	}
+
+	inline float EaseOutExpo(float x) {
+		return x == 1 ? 1 : 1 - pow(2, -10 * x);
+	}
+
 	inline float Clamp01(float num) {
 		return std::clamp(num, 0.0f, 1.0f);
 	}
