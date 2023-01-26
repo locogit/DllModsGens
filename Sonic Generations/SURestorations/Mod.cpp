@@ -61,6 +61,7 @@ extern "C" _declspec(dllexport) void Init()
 	ArchiveTreePatcher::m_archiveDependencies.push_back(ArchiveDependency("SonicFirework", { "Sonic" }));
 	ArchiveTreePatcher::m_archiveDependencies.push_back(ArchiveDependency("SonicParaloop", { "SonicActionCommon" }));
 	ArchiveTreePatcher::m_archiveDependencies.push_back(ArchiveDependency("SonicLife", { "Sonic" }));
+	ArchiveTreePatcher::m_archiveDependencies.push_back(ArchiveDependency("SWAShop", { "pam000" }));
 
 	WRITE_STRING(0x15E90DC, "oneUpChanged");
 
@@ -71,7 +72,9 @@ extern "C" _declspec(dllexport) void Init()
 
 	Misc::Install();
 
-	QTE::Install();
+	//QTE::Install();
+
+	if (Common::SUTitle || Common::UPC) Shop::Install();
 
 	if(Common::SUHud && Common::UPC) HubUI::Install();
 

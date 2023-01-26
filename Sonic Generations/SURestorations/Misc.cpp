@@ -153,7 +153,7 @@ HOOK(void, __fastcall, SonicMiscUpdate, 0xE6BF20, Sonic::Player::CPlayerSpeed* T
 HOOK(void, __fastcall, CSonicStatePluginOnWaterUpdate, 0x119BED0, Hedgehog::Universe::TStateMachine<Sonic::Player::CPlayerSpeedContext>::TState* This)
 {
 	originalCSonicStatePluginOnWaterUpdate(This);
-
+	if (!BlueBlurCommon::IsModern()) { return; }
 	if (!WaterDrift) { return; }
 
 	Sonic::Player::CPlayerSpeedContext* sonic = This->GetContext();

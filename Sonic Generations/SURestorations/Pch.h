@@ -43,3 +43,4 @@
 #include "UPC.h"
 #include "LetterboxHelper.h"
 #include "QTE.h"
+#include "Shop.h"

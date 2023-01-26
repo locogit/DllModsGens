@@ -212,6 +212,12 @@ void Paraloop(Sonic::Player::CPlayerSpeedContext* sonic) {
 
 float rotationFloatBobsleigh;
 
+int XPressed = 0;
+bool XResetTimerEnable = false;
+float XResetTimer;
+bool bobsleighTrick = false;
+float bobsleighTrickTimer = 0.0f;
+bool bobsleighRamp = false;
 HOOK(int, __fastcall, ProcMsgRestartStageUPC, 0xE76810, uint32_t* This, void* Edx, void* message)
 {
 	ToggleBoost(true);
@@ -272,7 +278,36 @@ HOOK(void, __fastcall, SonicAddonUpdate, 0xE6BF20, Sonic::Player::CPlayerSpeed* 
 				regularAirBoostEnableChaosEnergy = sonic->m_spParameter->Get<float>(Sonic::Player::ePlayerSpeedParameter_AirBoostEnableChaosEnergy);
 				regularBoostEnableChaosEnergy = sonic->m_spParameter->Get<float>(Sonic::Player::ePlayerSpeedParameter_BoostEnableChaosEnergy);
 			}
+			if (input.IsTapped(Sonic::eKeyState_X)) {
+				if (!XResetTimerEnable) {
+					XResetTimer = 0.2f;
+					XResetTimerEnable = true;
+				}
+				XPressed++;
+				if (XPressed == 2 && bobsleighTrick) {
+					XPressed = 0;
+					if (XResetTimer > 0) {
+						sonic->ChangeAnimation("BoardSpecialJump");
+						bobsleighTrick = false;
+					}
+				}
+			}
+			if (XResetTimerEnable) {
+				if (XResetTimer > 0) XResetTimer -= updateInfo.DeltaTime;
+				if (XResetTimer <= 0) {
+					XPressed = 0;
+					XResetTimerEnable = false;
+				}
+			}
+			if (bobsleighTrick) {
+				bobsleighTrickTimer -= updateInfo.DeltaTime;
+				if (bobsleighTrickTimer <= 0) {
+					bobsleighTrickTimer = 0;
+					bobsleighTrick = false;
+				}
+			}
 			if (strstr(state.c_str(), "Board")) {
+				bobsleighRamp = false;
 				if (!bobsleighBoostCancel) { bobsleighBoostCancel = true; }
 				Common::SonicContextSetCollision(TypeSonicBoost, true);
 				sonic->StateFlag(eStateFlag_EndBoost) = true;
@@ -302,8 +337,27 @@ HOOK(void, __fastcall, SonicAddonUpdate, 0xE6BF20, Sonic::Player::CPlayerSpeed* 
 		}
 	}
 }
-
+HOOK(void, __fastcall, RampUPC, 0x11DE240, int This) {
+	if (BlueBlurCommon::IsModern() && Common::CheckCurrentStage("cte200")) {
+		Sonic::Player::CPlayerSpeedContext* sonic = Sonic::Player::CPlayerSpeedContext::GetInstance();
+		if (sonic->eStateFlag_InvokeSkateBoard) {
+			if (!bobsleighRamp) {
+				sonic->ChangeAnimation("BoardJumpSpring");
+				bobsleighRamp = true;
+				bobsleighTrick = true;
+				bobsleighTrickTimer = 0.5f;
+				if (XPressed == 0) {
+					XResetTimer = 0.0f;
+					XResetTimerEnable = false;
+				}
+			}
+		}
+		originalRampUPC(This);
+	}
+}
 void UPC::Install() {
+	INSTALL_HOOK(RampUPC);
+
 	// Credit to Skyth
 	WRITE_MEMORY(0xDFF622, ::byte, 0xEB); // Disables Drifting when using bobsleigh
 

@@ -1021,6 +1021,12 @@ namespace Common
 		if (number > max) number = max;
 	}
 
+	inline void ClampInt(int& number, int min, int max)
+	{
+		if (number < min) number = min;
+		if (number > max) number = max;
+	}
+
 	inline bool IsStringEndsWith(std::string const& value, std::string const& ending)
 	{
 		if (ending.size() > value.size()) return false;
@@ -2256,7 +2262,8 @@ namespace Common
 
 	static INIReader reader("mod.ini");
 	static bool SUHud = Common::IsModEnabledID("ptkickass.sonicgenerations.unleashedhud");
+	static bool SUTitle = Common::IsModEnabledID("nextinhkry.sonicgenerations.unleashedtitle");
 	static bool UP = Common::IsModEnabled("Unleashed Project");
-	static bool UPC = Common::IsModEnabledID("the.k1.addon");
+	static bool UPC = Common::IsModEnabledID("the.k1.addon") && UP;
 	static CSonicContext** const PLAYER_CONTEXT_GET = (CSonicContext**)0x1E5E2F0;
 } // namespace Common
