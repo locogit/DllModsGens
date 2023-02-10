@@ -19,6 +19,8 @@ bool sweepLightSpawned = false;
 
 float sweepLightDelay = 0.0f;
 
+bool sweepKickActive = false;
+
 Hedgehog::Math::CVector GetSweepOffset() {
 	Sonic::Player::CPlayerSpeedContext* sonic = Sonic::Player::CPlayerSpeedContext::GetInstance();
 
@@ -79,9 +81,6 @@ HOOK(void, __fastcall, CSonicStateSquatKickAdvance, 0x1252810, hh::fnd::CStateMa
 HOOK(void, __fastcall, CSonicStateSquatKickEnd, 0x12527B0, void* This)
 {
 	Sonic::Player::CPlayerSpeedContext* sonic = Sonic::Player::CPlayerSpeedContext::GetInstance();
-
-	Common::fCGlitterEnd(BlueBlurCommon::GetContext(), squatKickParticleHandle, false);
-
 	desiredSweepLightAlpha = 0.0f;
 	sweepLightAlpha = 0.0f;
 
@@ -227,10 +226,11 @@ HOOK(void, __fastcall, SonicUpdateSweep, 0xE6BF20, Sonic::Player::CPlayerSpeed* 
 			if (BPressed == 2) {
 				BPressed = 0;
 				if (BResetTimer > 0) {
-					bool canSquatKick = (state == "Squat" || state == "Sliding") && !Common::IsPlayerControlLocked() && !BlueBlurCommon::IsSuper();
+					bool canSquatKick = (state == "Squat" || state == "Sliding" || state == "Walk" || state == "SlidingEnd" || state == "StompingLand" || state == "SquatCharge") && !Common::IsPlayerControlLocked() && !BlueBlurCommon::IsSuper();
 					if (canSquatKick) {
 						squatKickRotation = sonic->m_spMatrixNode->m_Transform.m_Rotation;
 						sonic->ChangeState("SquatKick");
+						sweepKickActive = true;
 					}
 				}
 			}
@@ -266,10 +266,10 @@ HOOK(void, __fastcall, SonicUpdateSweep, 0xE6BF20, Sonic::Player::CPlayerSpeed* 
 
 			if (sonic->m_Velocity.norm() == 0.0f) { sonic->m_spMatrixNode->m_Transform.SetRotation(squatKickRotation); }
 		}
-		else {
-			if (state != "Walk" && state != "Stand" && state != "Sliding" && state != "Squat") {
-				Common::fCGlitterEnd(BlueBlurCommon::GetContext(), squatKickParticleHandle, true);
-			}
+
+		if (sweepKickActive && (state != "Squat" && state != "Sliding" && state != "Walk" && state != "SlidingEnd" && state != "StompingLand" && state != "SquatCharge" && state != "SquatKick")) {
+			Common::fCGlitterEnd(BlueBlurCommon::GetContext(), squatKickParticleHandle, true);
+			sweepKickActive = false;
 		}
 
 		if (BResetTimerEnable) {

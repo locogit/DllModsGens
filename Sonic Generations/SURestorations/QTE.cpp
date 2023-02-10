@@ -537,7 +537,6 @@ void FinishTrick(Sonic::Player::CPlayerSpeedContext* sonic, bool failed) {
 			sonic->ChangeAnimation("Trick_r2");
 			break;
 		}
-
 		trickToFallTimer = 0.65f;
 		static SharedPtrTypeless voiceHandle;
 		Common::SonicContextPlaySound(voiceHandle, 3002013, 0);

@@ -13,7 +13,7 @@ const char* lastAnimDashRing = "";
 
 bool WaterIdle = Common::reader.GetBoolean("Restorations", "WaterIdle", true);
 
-bool HomingX = Common::reader.GetBoolean("Restorations", "XHoming", true);
+bool HomingX = Common::reader.GetBoolean("Restorations", "XHoming", false);
 
 bool BDrift = Common::reader.GetBoolean("Restorations", "BDrift", true);
 
@@ -262,7 +262,7 @@ void Misc::Install()
 	}
 
 	// https://github.com/brianuuu/DllMods/blob/master/Source/Sonic06DefinitiveExperience/NextGenSonic.cpp
-	if(Common::reader.GetBoolean("Restorations", "DPadDisable", true))
+	if(Common::reader.GetBoolean("Restorations", "DPadDisable", false))
 		WRITE_JUMP(0xD97B56, (void*)0xD97B9E); // Disable D-Pad Input
 
 	INSTALL_HOOK(SonicMiscUpdate);

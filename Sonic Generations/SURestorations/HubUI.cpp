@@ -65,7 +65,10 @@ HOOK(void, __fastcall, HudResult_MsgStartGoalResultHUB, 0x10B58A0, uint32_t* Thi
 	originalHudResult_MsgStartGoalResultHUB(This, Edx, message);
 }
 
+Sonic::CGameObject *ThisObjReference;
+
 HOOK(void, __fastcall, CHudPlayableMenuStart, 0x108DEB0, Sonic::CGameObject *This, int a2, int a3, void **a4, void* Edx) {
+	ThisObjReference = This;
 	originalCHudPlayableMenuStart(This, a2, a3, a4, Edx);
 	RemoveHubCallbackTownScreen(This, nullptr, nullptr);
 
@@ -103,7 +106,12 @@ HOOK(void, __fastcall, CHudPlayableMenuStart, 0x108DEB0, Sonic::CGameObject *Thi
 
 	CreateScreenTownScreen(This);
 }
-
+void HubUI::SetHide(bool hide) {
+	if (spTownScreen) {
+		info->SetHideFlag(hide);
+		cam->SetHideFlag(hide);
+	}
+}
 void HubUI::Install() {
 	ringCount = std::clamp(stoi(readHubFile(1)), 0, 999999);
 	INSTALL_HOOK(HudResult_MsgStartGoalResultHUB);

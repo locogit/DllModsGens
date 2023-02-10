@@ -1,8 +1,7 @@
 
 Chao::CSD::RCPtr<Chao::CSD::CProject> rcShop;
-Chao::CSD::RCPtr<Chao::CSD::CScene> bg_1, bg_2, bg_3, bg_4, bg_3_num, bg_5, bg5_select, select_1, shop_nametag;
+Chao::CSD::RCPtr<Chao::CSD::CScene> bg_1, bg_2, bg_3, bg_4, bg_3_num, bg_5, bg5_select, select_1, shop_nametag, shop_footer, ring;
 boost::shared_ptr<Sonic::CGameObjectCSD> spShop;
-
 
 void __fastcall CHudShopRemoveCallback(Sonic::CGameObject* This, void*, Sonic::CGameDocument* pGameDocument)
 {
@@ -16,6 +15,8 @@ void __fastcall CHudShopRemoveCallback(Sonic::CGameObject* This, void*, Sonic::C
 	Chao::CSD::CProject::DestroyScene(rcShop.Get(), bg_3_num);
 	Chao::CSD::CProject::DestroyScene(rcShop.Get(), shop_nametag);
 	Chao::CSD::CProject::DestroyScene(rcShop.Get(), select_1);
+	Chao::CSD::CProject::DestroyScene(rcShop.Get(), ring);
+	Chao::CSD::CProject::DestroyScene(rcShop.Get(), shop_footer);
 	rcShop = nullptr;
 }
 void Shop::CreateScreen(Sonic::CGameObject* pParentGameObject)
@@ -65,6 +66,9 @@ HOOK(void, __fastcall, ShopInit, 0x441E10, Sonic::CGameObject* This, int a2, int
 	bg_3_num = rcShop->CreateScene("bg_3_num");
 	bg_3_num->GetNode("num")->SetText("1");
 	shop_nametag = rcShop->CreateScene("shop_nametag");
+	shop_footer = rcShop->CreateScene("shop_footer");
+	ring = rcShop->CreateScene("ring");
+
 	CSDCommon::PlayAnimation(*bg_1, "Intro_Anim", Chao::CSD::eMotionRepeatType_PlayOnce, 1, 0);
 	CSDCommon::PlayAnimation(*bg_2, "Intro_Anim", Chao::CSD::eMotionRepeatType_PlayOnce, 1, 0);
 	CSDCommon::PlayAnimation(*bg_4, "Intro_Anim", Chao::CSD::eMotionRepeatType_PlayOnce, 1, 0);
@@ -79,7 +83,8 @@ HOOK(void, __fastcall, ShopInit, 0x441E10, Sonic::CGameObject* This, int a2, int
 	bg_3_num->SetHideFlag(true);
 	bg_5->SetHideFlag(true);
 	bg5_select->SetHideFlag(true);
-
+	ring->SetHideFlag(true);
+	shop_footer->SetHideFlag(true);
 	bg_1->SetHideFlag(true);
 	bg_2->SetHideFlag(true);
 	bg_3->SetHideFlag(true);
@@ -113,6 +118,15 @@ HOOK(void, __fastcall, ShopInit, 0x441E10, Sonic::CGameObject* This, int a2, int
 //sub_43FE50()
 
 bool ranOnce;
+
+bool intro = false;
+bool opened = false;
+bool hide = false;
+
+//index is Shop-This[189]
+int indexSecondary = 0;
+int indexCache = 0;
+
 void ShowBGBuy()
 {
 
@@ -130,6 +144,8 @@ void HideBGBuy()
 	CSDCommon::PlayAnimation(*bg_3, "Intro_Anim", Chao::CSD::eMotionRepeatType_PlayOnce, 1, 0, 0, true, true);
 	bg_3_num->SetHideFlag(true);
 	bg5_select->SetHideFlag(true);
+	opened = false;
+	intro = false;
 }
 bool playingScroll;
 HOOK(int, __fastcall, sub_43F030, 0x43F030, int* This, int a2, void* Edx)
@@ -147,9 +163,7 @@ HOOK(int, __fastcall, sub_43F030, 0x43F030, int* This, int a2, void* Edx)
 		HideBGBuy();
 	return originalsub_43F030(This, a2, Edx);
 }
-//index is Shop-This[189]
-int indexSecondary = 0;
-int indexCache = 0;
+
 HOOK(void, __stdcall, SetShopSkillIndex, 0x440FF0, int a1, int index)
 {
 	originalSetShopSkillIndex(a1, index);
@@ -178,8 +192,6 @@ HOOK(void, __stdcall, SetShopSkillIndex, 0x440FF0, int a1, int index)
 		CSDCommon::PlayAnimation(*select_1, "Scroll_Anim", Chao::CSD::eMotionRepeatType_PlayOnce, 1, (indexSecondary - 1) * 10, indexSecondary * 10);
 	else
 		CSDCommon::PlayAnimation(*select_1, "Scroll_Anim", Chao::CSD::eMotionRepeatType_PlayOnce, 1, 40 + ((3 - indexSecondary) * 10), 40 + ((4 - indexSecondary) * 10));
-
-
 
 	indexCache = index;
 
@@ -214,12 +226,11 @@ void __declspec(naked) HideBGBuyOnCancel()
 		jmp[pAddr]
 	}
 }
-bool intro = false;
+
 HOOK(void, __fastcall, sub_442960, 0x442960, int* This) {
 	originalsub_442960(This);
+	opened = false;
 	intro = false;
-	bg_1->SetHideFlag(true);
-	bg_2->SetHideFlag(true);
 	bg_3->SetHideFlag(true);
 	bg_3_num->SetHideFlag(true);
 	bg_4->SetHideFlag(true);
@@ -227,11 +238,15 @@ HOOK(void, __fastcall, sub_442960, 0x442960, int* This) {
 	bg5_select->SetHideFlag(true);
 	select_1->SetHideFlag(true);
 	shop_nametag->SetHideFlag(true);
+	ring->SetHideFlag(true);
+	shop_footer->SetHideFlag(true);
+	bg_1->SetHideFlag(true);
+	bg_2->SetHideFlag(true);
 }
-HOOK(void, __fastcall, sub_442810, 0x442810, int* This) {
+
+HOOK(int, __fastcall, sub_442BB0, 0x442BB0, void* This) {
+	opened = false;
 	intro = false;
-	bg_1->SetHideFlag(true);
-	bg_2->SetHideFlag(true);
 	bg_3->SetHideFlag(true);
 	bg_3_num->SetHideFlag(true);
 	bg_4->SetHideFlag(true);
@@ -239,12 +254,54 @@ HOOK(void, __fastcall, sub_442810, 0x442810, int* This) {
 	bg5_select->SetHideFlag(true);
 	select_1->SetHideFlag(true);
 	shop_nametag->SetHideFlag(true);
-	originalsub_442810(This);
+	ring->SetHideFlag(true);
+	shop_footer->SetHideFlag(true);
+	bg_1->SetHideFlag(true);
+	bg_2->SetHideFlag(true);
+	HubUI::SetHide(false);
+	return originalsub_442BB0(This);
+}
+
+HOOK(volatile signed __int32, __fastcall, sub_442830, 0x442830, DWORD* This) {
+
+	bg_3->SetHideFlag(true);
+	bg_3_num->SetHideFlag(true);
+
+	bg_5->SetHideFlag(false);
+	bg5_select->SetHideFlag(false);
+	select_1->SetHideFlag(true);
+
+	ring->SetHideFlag(false);
+	shop_footer->SetHideFlag(false);
+
+	shop_nametag->SetHideFlag(false);
+
+	bg_4->SetHideFlag(false);
+
+	if (!hide) {
+		hide = true;
+		if (intro) {
+			intro = false;
+			CSDCommon::PlayAnimation(*bg_1, "Intro_Anim", Chao::CSD::eMotionRepeatType_PlayOnce, 1, 0, 0, true, true);
+			CSDCommon::PlayAnimation(*bg_2, "Intro_Anim", Chao::CSD::eMotionRepeatType_PlayOnce, 1, 0, 0, true, true);
+		}
+	}
+	HubUI::SetHide(true);
+	CSDCommon::PlayAnimation(*bg_5, "Size_Anim", Chao::CSD::eMotionRepeatType_PlayOnce, 0, 12, 12);
+	CSDCommon::PlayAnimation(*bg5_select, "Size_Anim", Chao::CSD::eMotionRepeatType_PlayOnce, 0, 12, 12);
+
+	if (opened) return originalsub_442830(This);
+	opened = true;
+
+	CSDCommon::PlayAnimation(*bg_4, "Intro_Anim", Chao::CSD::eMotionRepeatType_PlayOnce, 1, 0);
+
+	return originalsub_442830(This);
 }
 HOOK(void, __fastcall, sub_442E20, 0x442E20, int This) {
 	originalsub_442E20(This);
 	if (intro) return;
 	intro = true;
+	hide = false;
 	bg_1->SetHideFlag(false);
 	bg_2->SetHideFlag(false);
 	bg_4->SetHideFlag(false);
@@ -258,7 +315,6 @@ HOOK(void, __fastcall, sub_442E20, 0x442E20, int This) {
 
 	CSDCommon::PlayAnimation(*bg_1, "Intro_Anim", Chao::CSD::eMotionRepeatType_PlayOnce, 1, 0);
 	CSDCommon::PlayAnimation(*bg_2, "Intro_Anim", Chao::CSD::eMotionRepeatType_PlayOnce, 1, 0);
-	CSDCommon::PlayAnimation(*bg_4, "Intro_Anim", Chao::CSD::eMotionRepeatType_PlayOnce, 1, 0);
 	CSDCommon::PlayAnimation(*bg_5, "Size_Anim", Chao::CSD::eMotionRepeatType_PlayOnce, 0, 12, 12);
 	CSDCommon::PlayAnimation(*bg5_select, "Size_Anim", Chao::CSD::eMotionRepeatType_PlayOnce, 0, 12, 12);
 	CSDCommon::PlayAnimation(*shop_nametag, "Size_Anim", Chao::CSD::eMotionRepeatType_PlayOnce, 1, 5000);
@@ -266,6 +322,7 @@ HOOK(void, __fastcall, sub_442E20, 0x442E20, int This) {
 	CSDCommon::FreezeMotion(*bg5_select, 12);
 	CSDCommon::FreezeMotion(*select_1, 0);
 }
+
 void Shop::Install()
 {
 	WRITE_STRING(0x016A8534, "ui_shop_swa");
@@ -294,7 +351,8 @@ void Shop::Install()
 	INSTALL_HOOK(sub_43F9E0);
 	INSTALL_HOOK(sub_442960);
 	INSTALL_HOOK(sub_442E20);
-	INSTALL_HOOK(sub_442810);
+	INSTALL_HOOK(sub_442830);
+	INSTALL_HOOK(sub_442BB0);
 	//INSTALL_HOOK(sub_43FE50);
 	INSTALL_HOOK(Shop_UpdateApplication);
 

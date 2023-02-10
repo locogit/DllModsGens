@@ -1015,13 +1015,13 @@ namespace Common
 		return number;
 	}
 
-	inline void ClampFloat(float& number, float min, float max)
+	inline void ClampFloat(float number, float min, float max)
 	{
 		if (number < min) number = min;
 		if (number > max) number = max;
 	}
 
-	inline void ClampInt(int& number, int min, int max)
+	inline void ClampInt(int number, int min, int max)
 	{
 		if (number < min) number = min;
 		if (number > max) number = max;
@@ -2177,6 +2177,7 @@ namespace Common
 		}
 		return false;
 	}
+
 	inline float rand_FloatRange(float a, float b)
 	{
 		return ((b - a) * ((float)rand() / RAND_MAX)) + a;
@@ -2198,6 +2199,7 @@ namespace Common
 	inline float Clamp01(float num) {
 		return std::clamp(num, 0.0f, 1.0f);
 	}
+
 	// Score Generations Code
 	inline bool FileExists(const std::string& path)
 	{

@@ -340,7 +340,7 @@ HOOK(void, __fastcall, SonicAddonUpdate, 0xE6BF20, Sonic::Player::CPlayerSpeed* 
 HOOK(void, __fastcall, RampUPC, 0x11DE240, int This) {
 	if (BlueBlurCommon::IsModern() && Common::CheckCurrentStage("cte200")) {
 		Sonic::Player::CPlayerSpeedContext* sonic = Sonic::Player::CPlayerSpeedContext::GetInstance();
-		if (sonic->eStateFlag_InvokeSkateBoard) {
+		if (Common::IsPlayerOnBoard()) {
 			if (!bobsleighRamp) {
 				sonic->ChangeAnimation("BoardJumpSpring");
 				bobsleighRamp = true;
@@ -352,8 +352,8 @@ HOOK(void, __fastcall, RampUPC, 0x11DE240, int This) {
 				}
 			}
 		}
-		originalRampUPC(This);
 	}
+	originalRampUPC(This);
 }
 void UPC::Install() {
 	INSTALL_HOOK(RampUPC);

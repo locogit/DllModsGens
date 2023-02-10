@@ -74,7 +74,7 @@ extern "C" _declspec(dllexport) void Init()
 
 	//QTE::Install();
 
-	if (Common::SUTitle || Common::UPC) Shop::Install();
+	//if (Common::SUTitle || Common::UPC) Shop::Install();
 
 	if(Common::SUHud && Common::UPC) HubUI::Install();
 
