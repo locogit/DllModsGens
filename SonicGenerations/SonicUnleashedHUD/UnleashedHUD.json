@@ -1,0 +1,143 @@
+{
+  "Groups": [
+    {
+      "Name": "Appearance",
+      "DisplayName": "Appearance",
+      "Elements": [
+        {
+          "Name": "windowTitle",
+          "Description": [
+            "Enable this to display the Sonic Unleashed icon and name on the title bar."
+          ],
+          "DisplayName": "Use Unleashed Window Title",
+          "Type": "bool",
+          "MinValue": null,
+          "MaxValue": null,
+          "DefaultValue": true
+        },
+        {
+          "Name": "windowTitleIcon",
+          "Description": [
+            "Select the icon to use for the title bar."
+          ],
+          "DisplayName": "Window Title Icon",
+          "Type": "IconEnum",
+          "MinValue": null,
+          "MaxValue": null,
+          "DefaultValue": 0
+        },
+        {
+          "Name": "windowTitleRegion",
+          "Description": [
+            "Select the region to use for the game title."
+          ],
+          "DisplayName": "Window Title Region",
+          "Type": "RegionEnum",
+          "MinValue": null,
+          "MaxValue": null,
+          "DefaultValue": 0
+        },
+        {
+          "Name": "buttonType",
+          "Description": [
+            "Select the type of button prompts to show in the game."
+          ],
+          "DisplayName": "Button Prompts",
+          "Type": "ButtonEnum",
+          "MinValue": null,
+          "MaxValue": null,
+          "DefaultValue": 0
+        }
+      ]
+    },
+	{
+      "Name": "Music",
+      "DisplayName": "Music",
+      "Elements": [
+        {
+          "Name": "resultMusic",
+          "Description": [
+            "Enable this to play Sonic Unleashed's reulst music, including Boss varient!"
+          ],
+          "DisplayName": "Unleashed Result Music",
+          "Type": "bool",
+          "MinValue": null,
+          "MaxValue": null,
+          "DefaultValue": true
+        }
+      ]
+    }
+  ],
+  "Enums": {
+    "IconEnum": [
+      {
+        "DisplayName": "Xbox 360",
+        "Value": 0,
+        "Description": [
+          "Uses the Xbox 360 icon."
+        ]
+      },
+      {
+        "DisplayName": "Xbox 360 (Preview)",
+        "Value": 1,
+        "Description": [
+          "Uses the Xbox 360 icon from the preview build."
+        ]
+      },
+      {
+        "DisplayName": "PlayStation 3",
+        "Value": 2,
+        "Description": [
+          "Uses the PlayStation 3 icon."
+        ]
+      }
+    ],
+    "RegionEnum": [
+      {
+        "DisplayName": "English",
+        "Value": 0,
+        "Description": [
+          "Displays 'SONIC UNLEASHED' in the window title."
+        ]
+      },
+      {
+        "DisplayName": "Japanese",
+        "Value": 1,
+        "Description": [
+          "Displays 'Sonic World Adventure' in the window title."
+        ]
+      }
+    ],
+    "ButtonEnum": [
+      {
+        "DisplayName": "Xbox 360",
+        "Value": 0,
+        "Description": [
+          "Use Xbox 360 button prompts."
+        ]
+      },
+      {
+        "DisplayName": "Xbox Series X|S",
+        "Value": 1,
+        "Description": [
+          "Use Xbox Series X|S button prompts."
+        ]
+      },
+      {
+        "DisplayName": "PlayStation",
+        "Value": 2,
+        "Description": [
+          "Use DualShock 3 button prompts."
+        ]
+      },
+      {
+        "DisplayName": "Switch",
+        "Value": 3,
+        "Description": [
+          "Use Switch button prompts."
+        ]
+      }
+    ]
+  },
+  "IniFile": "UnleashedHUD.ini"
+}

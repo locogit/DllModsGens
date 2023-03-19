@@ -1,3 +1,2 @@
-# Dll Mods Gens
-A repository containing DLL mods for Sonic Generations.
-credit to uh probably nextin, hyper, briannu, and ladylunanova for code ig i don't really remember
+# Mod Updates and Source
+Used to store updates for game mods, and the source code for said games' DLL mods
