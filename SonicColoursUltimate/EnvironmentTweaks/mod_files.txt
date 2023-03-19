@@ -1,2 +1,0 @@
-add mod.ini
-add env.zip

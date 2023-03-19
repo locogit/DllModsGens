@@ -1,3 +1,0 @@
-add mod.ini
-add mod.json
-add debug.zip
