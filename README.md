@@ -1,2 +1,2 @@
-# Mod Updates and Source
-Used to store updates for game mods, and the source code for said games' DLL mods
+# Dll Mods Gens
+A repository containing DLL mods for Sonic Generations.
