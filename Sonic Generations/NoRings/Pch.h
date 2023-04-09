@@ -13,6 +13,7 @@
 // Standard library
 #include <cstdint>
 #include <cstdio>
+#include <conio.h>
 
 #include <filesystem>
 

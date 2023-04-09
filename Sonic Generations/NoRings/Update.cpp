@@ -280,48 +280,68 @@ HOOK(void, __fastcall, CObjSuperRingProcMsgHitEventCollision, 0x11F2F10, Sonic::
 	OnRing(in_rMsg);
 }
 
-HOOK(void, __fastcall, SonicUpdateRing, 0xE6BF20, Sonic::Player::CPlayerSpeed* This, void* _, const hh::fnd::SUpdateInfo& updateInfo) {
-	originalSonicUpdateRing(This, _, updateInfo);
-	Sonic::Player::CPlayerSpeedContext* sonic = Sonic::Player::CPlayerSpeedContext::GetInstance();
-	Sonic::SPadState input = Sonic::CInputState::GetInstance()->GetPadState();
+void Move(bool fwd) {
+	static SharedPtrTypeless sound;
+	Common::PlaySoundStatic(sound, 1000004);
 
-	if (input.IsTapped(Sonic::eKeyState_RightStick)) {
+	if (fwd) {
 		if (currentRingTypeIndex == RingTypeLength) {
 			currentRingTypeIndex = 0;
 		}
 		else {
 			currentRingTypeIndex++;
 		}
-
-		static SharedPtrTypeless sound;
-		Common::PlaySoundStatic(sound, 1000004);
-
-		currentRingType = (RingType)currentRingTypeIndex;
-
-		CSDCommon::PlayAnimation(*deco_text, "Select_Anim", Chao::CSD::eMotionRepeatType_PlayOnce, 1.0f, 0.0f);
-
-		WriteSaveIni();
 	}
-
-	if (input.IsTapped(Sonic::eKeyState_LeftStick)) {
+	else {
 		if (currentRingTypeIndex == 0) {
 			currentRingTypeIndex = RingTypeLength;
 		}
 		else {
 			currentRingTypeIndex--;
 		}
-
-		static SharedPtrTypeless sound;
-		Common::PlaySoundStatic(sound, 1000004);
-
-		currentRingType = (RingType)currentRingTypeIndex;
-
-		CSDCommon::PlayAnimation(*deco_text, "Select_Anim", Chao::CSD::eMotionRepeatType_PlayOnce, 1.0f, 0.0f);
-
-		WriteSaveIni();
 	}
 
-	DebugDrawText::log(format("Current Ring Type : %s", RingTypeToString(currentRingType).c_str()));
+	currentRingType = (RingType)currentRingTypeIndex;
+
+	CSDCommon::PlayAnimation(*deco_text, "Select_Anim", Chao::CSD::eMotionRepeatType_PlayOnce, 1.0f, 0.0f);
+
+	WriteSaveIni();
+}
+
+bool fwdKB = false;
+bool backKB = false;
+
+HOOK(void, __fastcall, SonicUpdateRing, 0xE6BF20, Sonic::Player::CPlayerSpeed* This, void* _, const hh::fnd::SUpdateInfo& updateInfo) {
+	originalSonicUpdateRing(This, _, updateInfo);
+	Sonic::Player::CPlayerSpeedContext* sonic = Sonic::Player::CPlayerSpeedContext::GetInstance();
+	Sonic::SPadState input = Sonic::CInputState::GetInstance()->GetPadState();
+
+	if (input.IsTapped(Sonic::eKeyState_RightStick)) {
+
+		Move(true);
+	}
+
+	if (input.IsTapped(Sonic::eKeyState_LeftStick)) {
+		Move(false);
+	}
+
+	if ((GetAsyncKeyState(VK_F1) & 0x8000) && !backKB) {
+		Move(false);
+		backKB = true;
+	}
+	else if(GetAsyncKeyState(VK_F1) == 0) {
+		backKB = false;
+	}
+
+	if ((GetAsyncKeyState(VK_F2) & 0x8000) && !fwdKB) {
+		Move(true);
+		fwdKB = true;
+	}
+	else if (GetAsyncKeyState(VK_F2) == 0) {
+		fwdKB = false;
+	}
+
+	//DebugDrawText::log(format("Current Ring Type : %s", RingTypeToString(currentRingType).c_str()));
 
 	if (!BlueBlurCommon::IsBossSuper()) { sonic->m_RingCount = 0; }
 }
@@ -353,7 +373,7 @@ void Update::Install()
 	currentRingType = (RingType)currentRingTypeIndex;
 
 	if (saveReader.GetBoolean("ModInfo", "FirstTime", true)) {
-		MessageBoxA(nullptr, "Thank you for downloading 'Ring Allergy : Reimagined'!\nPlease note that to change the ring type you need to click on the joysticks.", "Ring Allergy : Reimagined", MB_OK);
+		MessageBoxA(nullptr, "Thank you for downloading 'Ring Allergy : Reimagined'!\nPlease note that to change the ring type you need to click on the joysticks (F1 & F2 for keyboard).", "Ring Allergy : Reimagined", MB_OK);
 		firstTime = false;
 		WriteSaveIni();
 	}
@@ -366,4 +386,8 @@ void Update::Install()
 	INSTALL_HOOK(CHudSonicStageDelayProcessImpDeco);
 	INSTALL_HOOK(CHudSonicStageUpdateParallelDeco);
 	WRITE_MEMORY(0x16A467C, void*, CHudSonicStageRemoveCallbackDeco);
+
+	// Remove message delay for MsgFinishPause, this can cause HUD to not show up
+	// anymore if we pause before HUD show up when time is slowed down (thanks brianuuu)
+	WRITE_MEMORY(0x10A1500, uint8_t, 0xD9, 0xEE, 0x90, 0x90, 0x90, 0x90);
 }
