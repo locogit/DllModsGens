@@ -13,8 +13,9 @@
   <PropertyGroup Label="Globals">
     <VCProjectVersion>16.0</VCProjectVersion>
     <ProjectGuid>{5bd6599f-193f-4019-9940-60cd2f88b924}</ProjectGuid>
-    <RootNamespace>NoRings</RootNamespace>
+    <RootNamespace>RingsReimagined</RootNamespace>
     <WindowsTargetPlatformVersion>10.0</WindowsTargetPlatformVersion>
+    <ProjectName>RingsReimagined</ProjectName>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="Configuration">
@@ -35,7 +36,7 @@
     <IntDir>$(ProjectDir)obj\$(Platform)\$(Configuration)\</IntDir>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
-    <OutDir>C:\Program Files (x86)\Steam\steamapps\common\Sonic Generations\mods\If you touch a ring you die\</OutDir>
+    <OutDir>C:\Program Files (x86)\Steam\steamapps\common\Sonic Generations\Mods\RingAllergyReimagined\</OutDir>
     <IntDir>$(ProjectDir)obj\$(Platform)\$(Configuration)\</IntDir>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props" />
@@ -103,11 +104,17 @@
     </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClInclude Include="ArchiveTreePatcher.h" />
+    <ClInclude Include="CSDCommon.h" />
+    <ClInclude Include="LetterboxHelper.h" />
     <ClInclude Include="Update.h" />
     <ClInclude Include="Pch.h" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="ArchiveTreePatcher.cpp" />
+    <ClCompile Include="CSDCommon.cpp" />
     <ClCompile Include="DllMain.cpp" />
+    <ClCompile Include="LetterboxHelper.cpp" />
     <ClCompile Include="Update.cpp" />
     <ClCompile Include="Mod.cpp" />
     <ClCompile Include="Pch.cpp">

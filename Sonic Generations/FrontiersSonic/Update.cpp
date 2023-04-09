@@ -190,27 +190,6 @@ void DoubleJumpUpdate()
 	}
 }
 
-HOOK(void*, __fastcall, UpdateApplication, 0xE7BED0, void* This, void* Edx, float elapsedTime, uint8_t a3)
-{
-	Sonic::Player::CPlayerSpeedContext* sonic = Sonic::Player::CPlayerSpeedContext::GetInstance();
-	if (!sonic) {
-		return originalUpdateApplication(This, Edx, elapsedTime, a3);
-	}
-
-	Hedgehog::Base::CSharedString state = sonic->m_pPlayer->m_StateMachine.GetCurrentState()->GetStateName();
-
-	Hedgehog::Base::CSharedString anim = sonic->GetCurrentAnimationName();
-
-	// Original code by Skyth: https://github.com/blueskythlikesclouds
-	const auto GetAnimInfo = boost::make_shared<Sonic::Message::MsgGetAnimationInfo>();
-	sonic->m_pPlayer->SendMessageImm(sonic->m_pPlayer->m_ActorID, GetAnimInfo);
-
-	DebugDrawText::log(format("State : %s\nAnimation : %s", state, anim));
-	DebugDrawText::log(format("Animation Name : %s\nAnimation Frame : %1.0f", GetAnimInfo->m_Name, GetAnimInfo->m_Frame));
-
-	return originalUpdateApplication(This, Edx, elapsedTime, a3);
-}
-
 bool magnetDash = false;
 float magnetDashTimer = 0.0f;
 
@@ -305,10 +284,6 @@ Sonic::CCamera::CMyCamera camera;
 bool isBoostToFall = false;
 bool isAirBoostToFall = false;
 
-float timescaleHoming = 1.0f;
-float timescaleHitStop = 0.05f;
-bool homingAfter = false;
-
 HOOK(void, __fastcall, SonicUpdate, 0xE6BF20, Sonic::Player::CPlayerSpeed* This, void* _, const hh::fnd::SUpdateInfo& updateInfo) {
 	originalSonicUpdate(This, _, updateInfo);
 
@@ -324,20 +299,11 @@ HOOK(void, __fastcall, SonicUpdate, 0xE6BF20, Sonic::Player::CPlayerSpeed* This,
 		sonic->m_ChaosEnergy = std::clamp(sonic->m_ChaosEnergy + updateInfo.DeltaTime * 2.0f, 0.0f, sonic->GetMaxChaosEnergy());
 	}
 
-	if (state == "HomingAttackAfter" && strstr(anim.c_str(),"HomingAttackAfter")) {
-		if (!homingAfter) {
-			homingAfter = true;
-			timescaleHoming = timescaleHitStop;
-			*(bool*)Common::GetMultiLevelAddress(0x1E0BE5C, { 0x8, 0x19C }) = true;
-		}
-		if (timescaleHoming == timescaleHitStop || timescaleHoming >= 0.99f) {
-			*(float*)Common::GetMultiLevelAddress(0x1E0BE5C, { 0x8, 0x1A0 }) = timescaleHoming;
-		}
-		timescaleHoming = std::clamp(Common::Lerp(timescaleHoming, 1.0f, updateInfo.DeltaTime * (2.96f / timescaleHitStop)), timescaleHitStop, 1.0f);
+	if (state == "Stomping" || state == "Jump" || state == "Sliding" || state == "HomingAttack") {
+		Common::SonicContextSetCollision(SonicCollision::TypeSonicStomping, true);
 	}
 	else {
-		timescaleHoming = 1.0f;
-		homingAfter = false;
+		Common::SonicContextSetCollision(SonicCollision::TypeSonicStomping, false);
 	}
 
 	MapBoost(!(state == "Stand" || state == "MoveStop"));
@@ -577,8 +543,6 @@ HOOK(char, __fastcall, CSonicContextHomingUpdate, 0xDFFE30, int* _this, void* _,
 }
 
 void Update::Install() {
-
-	//INSTALL_HOOK(UpdateApplication);
 	INSTALL_HOOK(SonicUpdate);
 	INSTALL_HOOK(CustomCamera_CCameraUpdateParallel);
 
@@ -635,4 +599,5 @@ void Update::Install() {
 	WRITE_JUMP(0x123332B, AirBoostToFallFlag);
 
 	INSTALL_HOOK(CSonicContextHomingUpdate);
+
 }

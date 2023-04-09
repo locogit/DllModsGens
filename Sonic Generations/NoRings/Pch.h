@@ -1,6 +1,7 @@
 ﻿#pragma once
 
 #define WIN32_LEAN_AND_MEAN
+
 // Detours
 #include <Windows.h>
 #include <detours.h>
@@ -13,8 +14,19 @@
 #include <cstdint>
 #include <cstdio>
 
+#include <filesystem>
+
+#include <iostream>
+#include <fstream>
+
 // Dependencies
-#include "Update.h"
-#include <Helpers.h>
 #include <INIReader.h>
+#include "Common.h"
+#include "Helpers.h"
 #include <StringHelper.h>
+
+#include "Update.h"
+#include "DebugDrawText.h"
+#include "ArchiveTreePatcher.h"
+#include "CSDCommon.h"
+#include "LetterboxHelper.h"

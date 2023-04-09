@@ -1,5 +1,5 @@
 #pragma once
-
+#include <INIReader.h>
 #define PI 3.141592
 #define PI_F 3.141592f
 #define DEG_TO_RAD PI_F / 180.0f
@@ -21,25 +21,25 @@ uint32_t const CStringDestructor = 0x661550;
 
 enum SonicCollision : uint32_t
 {
-	TypeNoAttack			= 0x1E61B5C,
-	TypeRagdoll				= 0x1E61B60,
-	TypeSonicSpinCharge		= 0x1E61B64,
-	TypeSonicSpin			= 0x1E61B68,
-	TypeSonicUnbeaten		= 0x1E61B6C,
-	TypeSuperSonic			= 0x1E61B70,
-	TypeSonicSliding		= 0x1E61B74,
-	TypeSonicHoming			= 0x1E61B78,
-	TypeSonicSelectJump		= 0x1E61B7C,
-	TypeSonicDrift			= 0x1E61B80,
-	TypeSonicBoost			= 0x1E61B84,
-	TypeSonicStomping		= 0x1E61B88,
-	TypeSonicTrickAttack	= 0x1E61B8C,
-	TypeSonicSquatKick		= 0x1E61B90,
-	TypeSonicClassicSpin	= 0x1E61B94,
-	TypeExplosion			= 0x1E61B98,
-	TypeBossAttack			= 0x1E61B9C,
-	TypeGunTruckAttack		= 0x1E61BA0,
-	TypeRagdollEnemyAttack	= 0x1E61BA4,
+	TypeNoAttack = 0x1E61B5C,
+	TypeRagdoll = 0x1E61B60,
+	TypeSonicSpinCharge = 0x1E61B64,
+	TypeSonicSpin = 0x1E61B68,
+	TypeSonicUnbeaten = 0x1E61B6C,
+	TypeSuperSonic = 0x1E61B70,
+	TypeSonicSliding = 0x1E61B74,
+	TypeSonicHoming = 0x1E61B78,
+	TypeSonicSelectJump = 0x1E61B7C,
+	TypeSonicDrift = 0x1E61B80,
+	TypeSonicBoost = 0x1E61B84,
+	TypeSonicStomping = 0x1E61B88,
+	TypeSonicTrickAttack = 0x1E61B8C,
+	TypeSonicSquatKick = 0x1E61B90,
+	TypeSonicClassicSpin = 0x1E61B94,
+	TypeExplosion = 0x1E61B98,
+	TypeBossAttack = 0x1E61B9C,
+	TypeGunTruckAttack = 0x1E61BA0,
+	TypeRagdollEnemyAttack = 0x1E61BA4,
 };
 
 struct MatrixNodeSingleElementNode
@@ -52,24 +52,24 @@ struct MatrixNodeSingleElementNode
 
 struct MsgGetHudPosition
 {
-    INSERT_PADDING(0x10);
-    Eigen::Vector3f m_position;
-    INSERT_PADDING(0x4);
-    float m_speed; // just a guess?
-    uint32_t m_type;
+	INSERT_PADDING(0x10);
+	Eigen::Vector3f m_position;
+	INSERT_PADDING(0x4);
+	float m_speed; // just a guess?
+	uint32_t m_type;
 };
 
 struct MsgSetPosition
 {
-    INSERT_PADDING(0x10);
-    Eigen::Vector3f m_position;
-    INSERT_PADDING(0x4);
+	INSERT_PADDING(0x10);
+	Eigen::Vector3f m_position;
+	INSERT_PADDING(0x4);
 };
 
 struct MsgSetRotation
 {
-    INSERT_PADDING(0x10);
-    Eigen::Quaternionf m_rotation;
+	INSERT_PADDING(0x10);
+	Eigen::Quaternionf m_rotation;
 };
 
 struct MsgSetPinballHud
@@ -941,14 +941,14 @@ enum StageMissionType : uint32_t
 	SMT_pla100 = 0x10,
 	SMT_pla200 = 0x11,
 	SMT_cnz100 = 0x12,
-	SMT_emu	= 0x13,
-	SMT_bms	= 0x14,
-	SMT_bsd	= 0x15,
-	SMT_bsl	= 0x16,
-	SMT_bde	= 0x17,
-	SMT_bpc	= 0x18,
-	SMT_bne	= 0x19,
-	SMT_blb	= 0x1A,
+	SMT_emu = 0x13,
+	SMT_bms = 0x14,
+	SMT_bsd = 0x15,
+	SMT_bsl = 0x16,
+	SMT_bde = 0x17,
+	SMT_bpc = 0x18,
+	SMT_bne = 0x19,
+	SMT_blb = 0x1A,
 	SMT_pam000 = 0x1B,
 	SMT_fig000 = 0x1C,
 	SMT_evt041 = 0x1D,
@@ -983,1093 +983,1289 @@ typedef void* __fastcall CSonicSpeedContextPlaySound(void*, void*, SharedPtrType
 
 namespace Common
 {
+	inline bool IsInputDown(Sonic::EKeyState key) {
+		Sonic::SPadState input = Sonic::CInputState::GetInstance()->GetPadState();
+		return input.IsDown(key);
+	}
 
-inline float WrapFloat(float number, float bounds)
-{
-    if (number > bounds) number -= bounds;
-    if (number < 0) number += bounds;
-    return number;
-}
+	inline bool IsInputTapped(Sonic::EKeyState key) {
+		Sonic::SPadState input = Sonic::CInputState::GetInstance()->GetPadState();
+		return input.IsTapped(key);
+	}
 
-inline void ClampFloat(float& number, float min, float max)
-{
-    if (number < min) number = min;
-    if (number > max) number = max;
-}
+	inline bool IsInputUp(Sonic::EKeyState key) {
+		Sonic::SPadState input = Sonic::CInputState::GetInstance()->GetPadState();
+		return input.IsUp(key);
+	}
 
-inline bool IsStringEndsWith(std::string const& value, std::string const& ending)
-{
-    if (ending.size() > value.size()) return false;
-    return std::equal(ending.rbegin(), ending.rend(), value.rbegin());
-}
+	inline bool IsInputReleased(Sonic::EKeyState key) {
+		Sonic::SPadState input = Sonic::CInputState::GetInstance()->GetPadState();
+		return input.IsReleased(key);
+	}
 
-inline uint32_t GetMultiLevelAddress(uint32_t initAddress, std::vector<uint32_t> offsets)
-{
-	uint32_t address = *(uint32_t*)initAddress;
-	for (uint32_t i = 0; i < offsets.size(); i++)
+	inline Eigen::Vector2f getLeftStick() {
+		Sonic::SPadState input = Sonic::CInputState::GetInstance()->GetPadState();
+		return Eigen::Vector2f(input.LeftStickHorizontal, input.LeftStickVertical);
+	}
+
+	inline float WrapFloat(float number, float bounds)
 	{
-		uint32_t const& offset = offsets[i];
-		address += offset;
+		if (number > bounds) number -= bounds;
+		if (number < 0) number += bounds;
+		return number;
+	}
 
-		if (i < offsets.size() - 1)
+	inline void ClampFloat(float number, float min, float max)
+	{
+		if (number < min) number = min;
+		if (number > max) number = max;
+	}
+
+	inline void ClampInt(int number, int min, int max)
+	{
+		if (number < min) number = min;
+		if (number > max) number = max;
+	}
+
+	inline bool IsStringEndsWith(std::string const& value, std::string const& ending)
+	{
+		if (ending.size() > value.size()) return false;
+		return std::equal(ending.rbegin(), ending.rend(), value.rbegin());
+	}
+
+	inline uint32_t GetMultiLevelAddress(uint32_t initAddress, std::vector<uint32_t> offsets)
+	{
+		uint32_t address = *(uint32_t*)initAddress;
+		for (uint32_t i = 0; i < offsets.size(); i++)
 		{
-			address = *(uint32_t*)address;
+			uint32_t const& offset = offsets[i];
+			address += offset;
+
+			if (i < offsets.size() - 1)
+			{
+				address = *(uint32_t*)address;
+			}
 		}
-	}
-	return address;
-}
-
-static void* fCGlitterCreate
-(
-	void* pContext,
-	SharedPtrTypeless& handle,
-	void* pMatrixTransformNode,
-	Hedgehog::Base::CSharedString const& name,
-	uint32_t flag
-)
-{
-	static void* const pCGlitterCreate = (void*)0xE73890;
-	__asm
-	{
-		push    flag
-		push    name
-		push    pMatrixTransformNode
-		mov     eax, pContext
-		mov     esi, handle
-		call	[pCGlitterCreate]
-	}
-}
-
-static void fCGlitterEnd
-(
-	void* pContext,
-	SharedPtrTypeless& handle,
-	bool instantStop
-)
-{
-	static void* const pCGlitterEnd = (void*)0xE72650;
-	static void* const pCGlitterKill = (void*)0xE72570;
-	__asm
-	{
-		mov     eax, [handle]
-		mov     ebx, [eax + 4]
-		push    ebx
-		test	ebx, ebx
-		jz		noIncrement
-		mov		edx, 1
-		add		ebx, 4
-		lock xadd [ebx], edx
-
-		noIncrement:
-		mov     ebx, [eax]
-		push    ebx
-		mov     eax, pContext
-		cmp     instantStop, 0
-		jnz     jump
-		call	[pCGlitterEnd]
-		jmp     end
-
-		jump:
-		call	[pCGlitterKill]
-
-		end:
-	}
-}
-
-static float fGetPlayerParameter
-(
-	EPlayerParameter enumID
-)
-{
-	static void* const pGetParameter = (void*)0x53A9F0;
-	__asm
-	{
-		mov		eax, PLAYER_CONTEXT
-		mov		eax, [eax]
-		mov		eax, [eax + 0x27C]
-		push	enumID
-		call	[pGetParameter]
-	}
-}
-
-static bool fGetPlayerParameterPtr
-(
-	EPlayerParameter enumID,
-	void* pTable,
-	float*& pValue
-)
-{
-	uint32_t* ppValue = nullptr;
-	float unknownScale = 0.0f;
-	static void* const pGetParameterPtr = (void*)0xD975B0;
-	__asm
-	{
-		push	pTable
-		mov		eax, enumID
-		lea		edx, [ppValue]
-		lea		edi, [unknownScale]
-		call	[pGetParameterPtr]
-	}
-	
-	if (ppValue)
-	{
-		pValue = (float*)(*ppValue + 4);
-		return true;
+		return address;
 	}
 
-	return false;
-}
-
-static bool fRaycast
-(
-	Eigen::Vector4f const& rayStartPos,
-	Eigen::Vector4f const& rayEndPos,
-	Eigen::Vector4f& outPos,
-	Eigen::Vector4f& outNormal,
-	uint32_t flag
-)
-{
-	// sub_10BE3B0(&rayStartPos, flag, **(_DWORD ***)(*PLAYER_CONTEXT+ 1516), &outPos, &outNormal, &rayEndPos)
-	static void* const pfRaycast = (void*)0x10BE3B0;
-	__asm
+	static void* fCGlitterCreate
+	(
+		void* pContext,
+		SharedPtrTypeless& handle,
+		void* pMatrixTransformNode,
+		Hedgehog::Base::CSharedString const& name,
+		uint32_t flag
+	)
 	{
-		mov		ecx, rayEndPos
-		push	ecx
-		mov		edx, outNormal
-		push	edx
-		mov		eax, outPos
-		push	eax
-		mov		ebx, PLAYER_CONTEXT
-		mov		ebx, [ebx]
-		mov     eax, [ebx + 5ECh]
-		mov     edi, [eax]
-		mov		edx, flag
-		mov		eax, rayStartPos
-		call	[pfRaycast]
-	}
-}
-
-static void* fGetScreenPosition
-(
-	Eigen::Vector4f const& pos3D,
-	Eigen::Vector4f& pos2D
-)
-{
-	static void* const pfGetScreenPosition = (void*)0xD61C40;
-	__asm
-	{
-		mov		ecx, 0x1E0BE5C
-		mov		ecx, [ecx]
-		mov		eax, pos3D
-		mov		ebx, pos2D
-		push	ebx
-		call	[pfGetScreenPosition]
-	}
-}
-
-inline void fEventTrigger(void* This, int Event)
-{
-	FUNCTION_PTR(void*, __stdcall, fpEventTrigger, 0xD5ED00, void* This, int Event);
-	fpEventTrigger(This, Event);
-}
-
-static void fDestroyGameObject
-(
-	void* pGameObject
-)
-{
-	static void* const pfDestroyGameObject = (void*)0xD5FD10;
-	__asm
-	{
-		mov		edi, pGameObject
-		call	[pfDestroyGameObject]
-	}
-}
-
-inline void ObjectCGlitterPlayerOneShot(void* pObject, Hedgehog::Base::CSharedString const& name)
-{
-	uint32_t* CGlitterPlayer = *(uint32_t**)((uint32_t)pObject + 0xF8);
-	void* matrixNode = (void*)((uint32_t)pObject + 0xB8);
-	if (CGlitterPlayer && *CGlitterPlayer == 0x16D0514)
-	{
-		FUNCTION_PTR(void, __thiscall, CGlitterPlayerOneShot, 0xE85F00, void* This, void* pMatrixTransformNode, Hedgehog::Base::CSharedString const& name, float a4, int a5);
-		CGlitterPlayerOneShot(CGlitterPlayer, matrixNode, name, 1.0, 1);
-	}
-	else
-	{
-		MessageBox(NULL, L"Object does not contain CGlitterPlayer!", NULL, MB_ICONERROR);
-	}
-}
-
-inline CSonicStateFlags* GetSonicStateFlags()
-{
-	auto* const context = reinterpret_cast<int*>(*PLAYER_CONTEXT);
-	return reinterpret_cast<CSonicStateFlags*>(*reinterpret_cast<int*>(context[0x14D] + 4));
-}
-
-inline bool IsPlayerControlLocked()
-{
-	if (!*PLAYER_CONTEXT) return false;
-
-	bool* unknownFlags = *(bool**)((uint32_t)*PLAYER_CONTEXT + 0x11C);
-	return unknownFlags[0x98] || unknownFlags[0x99];
-}
-
-inline bool IsPlayerSuper()
-{
-	if (!*PLAYER_CONTEXT) return false;
-    return GetSonicStateFlags()->InvokeSuperSonic;
-}
-
-inline bool IsPlayerDead()
-{
-	if (!*PLAYER_CONTEXT) return false;
-	return GetSonicStateFlags()->Dead;
-}
-
-inline bool IsPlayerOnBoard()
-{
-	if (!*PLAYER_CONTEXT) return false;
-	return GetSonicStateFlags()->InvokeSkateBoard;
-}
-
-inline bool IsPlayerIn2D()
-{
-	// sub_E145A0 MsgIs2DMode
-	if (!*PLAYER_CONTEXT) return false;
-	return *(bool*)((uint32_t)*PLAYER_CONTEXT + 0x172);
-}
-
-inline bool IsPlayerInForwardPath()
-{
-	// sub_E145C0 MsgGetForwardPathInfo
-	if (!*PLAYER_CONTEXT) return false;
-	return *(uint32_t*)((uint32_t)*PLAYER_CONTEXT + 0x1278);
-}
-
-inline bool IsPlayerInDashPath()
-{
-	// sub_E14D30 MsgGetDashModeInfo
-	// Note: Dash path also applies to forward path
-	if (!*PLAYER_CONTEXT) return false;
-	return *(uint32_t*)((uint32_t)*PLAYER_CONTEXT + 0x128C) && !IsPlayerInForwardPath();
-}
-
-inline bool IsPlayerGrinding()
-{
-	// sub_E144E0 MsgIsGrind
-	if (!*PLAYER_CONTEXT) return false;
-	return *(uint32_t*)((uint32_t)*PLAYER_CONTEXT + 0x11F0) != 0;
-}
-
-inline bool IsPlayerGrounded()
-{
-	// sub_E6ACA0 MsgGetGroundInfo
-	if (!*PLAYER_CONTEXT) return false;
-	return *(bool*)((uint32_t)*PLAYER_CONTEXT + 0x440);
-}
-
-inline bool IsPlayerExtendedBoost()
-{
-	if (!*PLAYER_CONTEXT) return false;
-	return *(uint32_t*)((uint32_t)*PLAYER_CONTEXT + 0x680) == 2;
-}
-
-inline bool IsPlayerHangOn()
-{
-	if (!*PLAYER_CONTEXT) return false;
-	return *(uint32_t*)((uint32_t)*PLAYER_CONTEXT + 0x7D8) != 0;
-}
-
-inline bool IsAtLoadingScreen()
-{
-	uint32_t** hudCount = (uint32_t**)0x1E66B40;
-	if (!*hudCount) return false;
-	return (*hudCount)[2] > 0;
-}
-
-inline bool CheckPlayerNodeExist(const Hedgehog::Base::CSharedString& name)
-{
-	void* context = *PLAYER_CONTEXT;
-	if (context)
-	{
-		void* player = *(void**)((char*)context + 0x110);
-		if (player)
+		static void* const pCGlitterCreate = (void*)0xE73890;
+		__asm
 		{
-			boost::shared_ptr<MatrixNodeSingleElementNode> node;
-			FUNCTION_PTR(void, __thiscall, GetNode, 0x700B70, void* This, boost::shared_ptr<MatrixNodeSingleElementNode> & node, const Hedgehog::Base::CSharedString & name);
-			GetNode(*(void**)((char*)player + 0x234), node, name);
-			return (node ? true : false);
+			push    flag
+			push    name
+			push    pMatrixTransformNode
+			mov     eax, pContext
+			mov     esi, handle
+			call[pCGlitterCreate]
 		}
 	}
 
-	return false;
-}
-
-inline bool CheckCurrentStage(char const* stageID)
-{
-    char const* currentStageID = (char*)0x01E774D4;
-    return strcmp(currentStageID, stageID) == 0;
-}
-
-inline uint32_t GetCurrentStageID()
-{
-	uint32_t stageIDAddress = GetMultiLevelAddress(0x1E66B34, { 0x4, 0x1B4, 0x80, 0x0 });
-	return *(uint32_t*)stageIDAddress;
-}
-
-inline char* GetCurrentTerrain()
-{
-	uint32_t terrainAddress = GetMultiLevelAddress(0x1E66B34, { 0x4, 0x1B4, 0x80, 0x20 });
-	return *(char**)terrainAddress;
-}
-
-inline bool IsStageMission(uint32_t stageID)
-{
-	return (stageID & 0xFF00) > 0 && (stageID & 0xFF) <= SMT_pla200;
-}
-
-inline bool IsCurrentStageMission()
-{
-	return IsStageMission(GetCurrentStageID());
-}
-
-inline bool IsStageBoss(uint32_t stageID)
-{
-	stageID &= 0xFF;
-	return stageID >= SMT_bms && stageID <= SMT_blb;
-}
-
-inline bool IsCurrentStageBoss()
-{
-	return IsStageBoss(GetCurrentStageID());
-}
-
-inline bool IsStagePlayed(uint32_t stageID)
-{
-	// Note: Only works for regular stages not mission
-	// fake it as CHudGateMenuMain object
-	uint32_t dummyAddress = (uint32_t)&stageID - 0x208;
-	FUNCTION_PTR(bool, __stdcall, CHudGateMenuMain_IsStagePlayed, 0x107AE80, uint32_t pCHudGateMenuMain);
-	return CHudGateMenuMain_IsStagePlayed(dummyAddress);
-}
-
-inline bool IsStageCompleted(uint32_t stageID)
-{
-	FUNCTION_PTR(bool, __stdcall, fpIsStageCompleted, 0x107ADC0, uint32_t stageID);
-	return fpIsStageCompleted(stageID);
-}
-
-inline bool GetStageData
-(
-	uint32_t stageID, 
-	uint32_t& bestScore,
-	float& bestTime, 
-	float& bestTime2, 
-	float& bestTime3, 
-	uint32_t& bestRank,
-	uint32_t& bestRing,
-	uint32_t& redRingCount
-)
-{
-	FUNCTION_PTR(int, __fastcall, fpGetSaveSlotID, 0x552130, uint32_t stageID);
-	int saveSlotID = fpGetSaveSlotID(stageID);
-
-	uint32_t CGameParameterAddress = *(uint32_t*)GetMultiLevelAddress(0x1E66B34, { 0x4, 0x1B4 });
-	uint32_t unknownOffset = *(uint32_t*)(CGameParameterAddress + 0x7C) + 0x1C;
-	uint32_t saveSlotAddress = 0x120 * saveSlotID + unknownOffset;
-	if (saveSlotID < 0x8E && saveSlotAddress != 0)
+	static void fCGlitterEnd
+	(
+		void* pContext,
+		SharedPtrTypeless& handle,
+		bool instantStop
+	)
 	{
-		bestScore = *(uint32_t*)(saveSlotAddress);
-		if (IsStageCompleted(stageID))
+		static void* const pCGlitterEnd = (void*)0xE72650;
+		static void* const pCGlitterKill = (void*)0xE72570;
+		__asm
 		{
-			bestTime = *(float*)(saveSlotAddress + 0x4);
-			bestTime2 = *(float*)(saveSlotAddress + 0x8);
-			bestTime3 = *(float*)(saveSlotAddress + 0xC);
-		}
-		else
-		{
-			bestTime = -1.0f;
-			bestTime2 = -1.0f;
-			bestTime3 = -1.0f;
-		}
-		bestRank = 4 - *(uint32_t*)(saveSlotAddress + 0x10);
-		bestRing = *(uint32_t*)(saveSlotAddress + 0x14);
+			mov     eax, [handle]
+			mov     ebx, [eax + 4]
+			push    ebx
+			test	ebx, ebx
+			jz		noIncrement
+			mov		edx, 1
+			add		ebx, 4
+			lock xadd[ebx], edx
 
-		if ((stageID & 0xFF00) > 0 && (stageID & 0xFF) <= 0x11)
-		{
-			redRingCount = 0;
+			noIncrement :
+			mov     ebx, [eax]
+				push    ebx
+				mov     eax, pContext
+				cmp     instantStop, 0
+				jnz     jump
+				call[pCGlitterEnd]
+				jmp     end
+
+				jump :
+			call[pCGlitterKill]
+
+				end :
 		}
-		else
-		{
-			FUNCTION_PTR(int, __fastcall, fpGetRedRingCount, 0xD591B0, uint32_t stageID, int dummy, uint32_t CGameParameter);
-			redRingCount = fpGetRedRingCount(stageID, 0, CGameParameterAddress);
-		}
-		
-		return true;
 	}
-	else
+
+	static float fGetPlayerParameter
+	(
+		EPlayerParameter enumID
+	)
 	{
+		static void* const pGetParameter = (void*)0x53A9F0;
+		__asm
+		{
+			mov		eax, PLAYER_CONTEXT
+			mov		eax, [eax]
+			mov		eax, [eax + 0x27C]
+			push	enumID
+			call[pGetParameter]
+		}
+	}
+
+	static bool fGetPlayerParameterPtr
+	(
+		EPlayerParameter enumID,
+		void* pTable,
+		float*& pValue
+	)
+	{
+		uint32_t* ppValue = nullptr;
+		float unknownScale = 0.0f;
+		static void* const pGetParameterPtr = (void*)0xD975B0;
+		__asm
+		{
+			push	pTable
+			mov		eax, enumID
+			lea		edx, [ppValue]
+			lea		edi, [unknownScale]
+			call[pGetParameterPtr]
+		}
+
+		if (ppValue)
+		{
+			pValue = (float*)(*ppValue + 4);
+			return true;
+		}
+
 		return false;
 	}
-}
 
-inline void PlayStageMusic(char const* cueName, float fadeInTime)
-{
-	FUNCTION_PTR(bool, __stdcall, PlayStageMusicFromCueName, 0xD63070, void* gameDocument, Hedgehog::Base::CSharedString & cueName, float fadeInTime);
-	Hedgehog::Base::CSharedString name = Hedgehog::Base::CSharedString(cueName);
-	PlayStageMusicFromCueName(*(void**)0x1E0BE5C, name, fadeInTime);
-}
-
-inline void PlayBGM(char const* cueName, float fadeInTime)
-{
-	FUNCTION_PTR(unsigned int, __stdcall, PlayAudioFromCueName, 0xD62440, void* gameDocument, Hedgehog::Base::CSharedString& cueName, float fadeInTime);
-	Hedgehog::Base::CSharedString name = Hedgehog::Base::CSharedString(cueName);
-	PlayAudioFromCueName(*(void**)0x1E0BE5C, name, fadeInTime);
-}
-
-inline void StopBGM(char const* cueName, float fadeOutTime)
-{
-	FUNCTION_PTR(int, __stdcall, StopAudioFromCueName, 0xD61E40, void* gameDocument, Hedgehog::Base::CSharedString & cueName, float fadeOutTime);
-	Hedgehog::Base::CSharedString name = Hedgehog::Base::CSharedString(cueName);
-	StopAudioFromCueName(*(void**)0x1E0BE5C, name, fadeOutTime);
-}
-
-inline void* GetPlayer()
-{
-	if (!*PLAYER_CONTEXT) return 0;
-	// Sonic::Player::CSonicContext -> Sonic::Player::CSonic
-	return *(void**)((uint32_t)*PLAYER_CONTEXT + 0x110);
-}
-
-inline uint32_t GetPlayerSkill()
-{
-	if (!*PLAYER_CONTEXT) return 0;
-	return *(uint32_t*)((uint32_t)*PLAYER_CONTEXT + 0x1A8);
-}
-
-inline uint32_t* GetPlayerRingCount()
-{
-	if (!*PLAYER_CONTEXT) return 0;
-	return (uint32_t*)((uint32_t)*PLAYER_CONTEXT + 0x5B8);
-}
-
-inline uint32_t* GetPlayerLives()
-{
-	if (!*PLAYER_CONTEXT) return 0;
-	uint32_t lifeAddress = GetMultiLevelAddress(0x1E66B34, { 0x4, 0x1B4, 0x7C, 0x9FDC });
-	return (uint32_t*)lifeAddress;
-}
-
-inline float* GetPlayerBoost()
-{
-	if (!*PLAYER_CONTEXT) return 0;
-	return (float*)((uint32_t)*PLAYER_CONTEXT + 0x5BC);
-}
-
-inline float GetPlayerMaxBoost()
-{
-	return IsPlayerExtendedBoost() ? 200.0f : 100.0f;
-}
-
-inline float* GetPlayerMaxSpeed()
-{
-	if (!*PLAYER_CONTEXT) return 0;
-	return (float*)((uint32_t)*PLAYER_CONTEXT + 0x53C);
-}
-
-inline void SetPlayerAutoBoost(bool enabled)
-{
-	if (!*PLAYER_CONTEXT) return;
-	GetSonicStateFlags()->AutoBoost = enabled;
-}
-
-inline bool GetPlayerTransform(Eigen::Vector3f& position, Eigen::Quaternionf& rotation)
-{
-    if (!*PLAYER_CONTEXT) return false;
-
-    const uint32_t result = *(uint32_t*)((uint32_t) * (void**)((uint32_t)*PLAYER_CONTEXT + 0x110) + 0xAC);
-    if (!result) return false;
-
-    float* pPos = (float*)(*(uint32_t*)(result + 0x10) + 0x70);
-    position.x() = pPos[0];
-    position.y() = pPos[1];
-    position.z() = pPos[2];
-
-    float* pRot = (float*)(*(uint32_t*)(result + 0x10) + 0x60);
-    rotation.x() = pRot[0];
-    rotation.y() = pRot[1];
-    rotation.z() = pRot[2];
-    rotation.w() = pRot[3];
-
-    return true;
-}
-
-inline void GetPlayerHUBTransform(Eigen::Vector3f& position, Eigen::Quaternionf& rotation)
-{
-	uint32_t posAddress = GetMultiLevelAddress(0x1E66B34, { 0x4, 0x1B4, 0x7C, 0x9FF0 });
-	uint32_t rotAddress = GetMultiLevelAddress(0x1E66B34, { 0x4, 0x1B4, 0x7C, 0xA2D0 });
-	position = *(Eigen::Vector3f*)posAddress;
-	rotation = *(Eigen::Quaternionf*)rotAddress;
-}
-
-inline void SetPlayerPosition(Eigen::Vector3f const& position)
-{
-	if (!*PLAYER_CONTEXT) return;
-
-	alignas(16) MsgSetPosition message;
-	message.m_position = position;
-
-	FUNCTION_PTR(void*, __thiscall, playerProcessMsgSetPosition, 0xE772D0, void* This, void* message);
-	playerProcessMsgSetPosition(Common::GetPlayer(), &message);
-}
-
-inline bool GetPlayerVelocity(Eigen::Vector3f& velocity)
-{
-    if (!*PLAYER_CONTEXT) return false;
-
-    const uint32_t result = *(uint32_t*)((uint32_t) * (void**)((uint32_t)*PLAYER_CONTEXT + 0x110) + 0xAC);
-    if (!result) return false;
-
-    float* pVel = (float*)(result + 0x290);
-    velocity.x() = pVel[0];
-    velocity.y() = pVel[1];
-    velocity.z() = pVel[2];
-
-    return true;
-}
-
-inline bool GetPlayerTargetVelocity(Eigen::Vector3f& velocity)
-{
-	if (!*PLAYER_CONTEXT) return false;
-
-	const uint32_t result = *(uint32_t*)((uint32_t) * (void**)((uint32_t)*PLAYER_CONTEXT + 0x110) + 0xAC);
-	if (!result) return false;
-
-	float* pVel = (float*)(result + 0x2A0);
-	velocity.x() = pVel[0];
-	velocity.y() = pVel[1];
-	velocity.z() = pVel[2];
-
-	return true;
-}
-
-inline bool SetPlayerVelocity(Eigen::Vector3f const& velocity)
-{
-    if (!*PLAYER_CONTEXT) return false;
-
-    const uint32_t result = *(uint32_t*)((uint32_t) * (void**)((uint32_t)*PLAYER_CONTEXT + 0x110) + 0xAC);
-    if (!result) return false;
-
-    float* pVel = (float*)(result + 0x290);
-    pVel[0] = velocity.x();
-    pVel[1] = velocity.y();
-    pVel[2] = velocity.z();
-
-	*(bool*)(result + 1512) = true; // velocity dirty
-	*(bool*)(result + 1513) = false; // horizontal dirty
-
-    return true;
-}
-
-inline bool GetWorldInputDirection(Eigen::Vector3f& direction)
-{
-	if (!*PLAYER_CONTEXT) return false;
-
-	float* worldDir = (float*)((uint32_t)*PLAYER_CONTEXT + 0x130);
-	direction.x() = worldDir[0];
-	direction.y() = worldDir[1];
-	direction.z() = worldDir[2];
-
-	return true;
-}
-
-inline bool GetPlayerWorldDirection(Eigen::Vector3f& direction, bool normalize)
-{
-    if (!*PLAYER_CONTEXT) return false;
-
-	if (!GetWorldInputDirection(direction)) return false;
-
-    if (direction.isZero())
-    {
-        Eigen::Vector3f position;
-        Eigen::Quaternionf rotation;
-        if (GetPlayerTransform(position, rotation))
-        {
-            direction = rotation * Eigen::Vector3f(0, 0, 1);
-            return true;
-        }
-
-        return false;
-    }
-    
-    if (normalize)
-    {
-        direction.normalize();
-    }
-
-    return true;
-}
-
-inline float GetPlayerModelScale()
-{
-	if (!*PLAYER_CONTEXT) return 1.0f;
-
-	Sonic::Player::CPlayer const* player = Sonic::Player::CPlayerSpeedContext::GetInstance()->m_pPlayer;
-	float* animationPose = *(float**)((uint32_t)player + 0x23C);
-	return animationPose[31];
-}
-
-inline void SetPlayerModelScale(float scale)
-{
-	if (!*PLAYER_CONTEXT) return;
-
-	Sonic::Player::CPlayer const* player = Sonic::Player::CPlayerSpeedContext::GetInstance()->m_pPlayer;
-	float* animationPose = *(float**)((uint32_t)player + 0x23C);
-	animationPose[31] = scale;
-}
-
-inline void SonicContextChangeAnimation(const Hedgehog::Base::CSharedString& name)
-{
-	void* pSonicContext = *PLAYER_CONTEXT;
-	if (!pSonicContext) return;
-
-	FUNCTION_PTR(void, __thiscall, CSonicContextChangeAnimation, 0xE74CC0, CSonicContext* context, const Hedgehog::Base::CSharedString& name);
-	CSonicContextChangeAnimation(pSonicContext, name);
-}
-
-inline void SonicContextPlaySound(SharedPtrTypeless& soundHandle, uint32_t cueID, uint32_t flag)
-{
-    // Note: This doesn't work at result screen, use PlaySoundStatic instead
-    void* pSonicContext = *PLAYER_CONTEXT;
-    if (!pSonicContext) return;
-
-    // Original code by Skyth: https://github.com/blueskythlikesclouds
-    CSonicSpeedContextPlaySound* playSoundFunc = *(CSonicSpeedContextPlaySound**)(*(uint32_t*)pSonicContext + 0x74);
-    playSoundFunc(pSonicContext, nullptr, soundHandle, cueID, flag);
-}
-
-inline void SonicContextPlayVoice(SharedPtrTypeless& soundHandle, uint32_t cueID, uint32_t priority)
-{
-	// Note: This doesn't work at result screen, use PlaySoundStatic instead
-	void* pSonicContext = *PLAYER_CONTEXT;
-	if (!pSonicContext) return;
-
-	// Original code by Skyth: https://github.com/blueskythlikesclouds
-	CSonicSpeedContextPlaySound* playSoundFunc = *(CSonicSpeedContextPlaySound**)(*(uint32_t*)pSonicContext + 0xA0);
-	playSoundFunc(pSonicContext, nullptr, soundHandle, cueID, priority);
-}
-
-inline void SonicContextGetAnimationInfo(MsgGetAnimationInfo& message)
-{
-	void* pSonicContext = *PLAYER_CONTEXT;
-	if (!pSonicContext) return;
-
-	// Original code by Skyth: https://github.com/blueskythlikesclouds
-	FUNCTION_PTR(void, __thiscall, CSonicSpeedProcMsgGetAnimationInfo, 0xE6A370, void* This, void* pMessage);
-	void* player = *(void**)((uint32_t)*PLAYER_CONTEXT + 0x110);
-	CSonicSpeedProcMsgGetAnimationInfo(player, &message);
-}
-
-inline void SonicContextGetItemType(uint32_t type)
-{
-	void* pSonicContext = *PLAYER_CONTEXT;
-	if (!pSonicContext) return;
-
-	alignas(16) MsgGetItemType message {};
-	message.m_type = type;
-
-	// Original code by Skyth: https://github.com/blueskythlikesclouds
-	FUNCTION_PTR(void, __thiscall, CSonicSpeedProcMsgGetItemType, 0xE6D7D0, void* This, void* pMessage);
-	void* player = *(void**)((uint32_t)*PLAYER_CONTEXT + 0x110);
-	CSonicSpeedProcMsgGetItemType(player, &message);
-}
-
-inline void SonicContextRequestLocusEffect()
-{
-	void* pSonicContext = *PLAYER_CONTEXT;
-	if (!pSonicContext) return;
-
-	// 1 seems to not stop? Force it to be 0
-	WRITE_MEMORY(0xE178E5, uint32_t, 0);
-
-	struct MsgRequestLocusEffect
+	static bool fRaycast
+	(
+		Eigen::Vector4f const& rayStartPos,
+		Eigen::Vector4f const& rayEndPos,
+		Eigen::Vector4f& outPos,
+		Eigen::Vector4f& outNormal,
+		uint32_t flag
+	)
 	{
-		INSERT_PADDING(0x10);
-		uint32_t flag;
-	};
-	MsgRequestLocusEffect message {};
-	message.flag = 0;
-
-	FUNCTION_PTR(int, __thiscall, processMsgRequestLocusEffect, 0xE178D0, void* This, void* pMessage);
-	void* player = *(void**)((uint32_t)*PLAYER_CONTEXT + 0x110);
-	processMsgRequestLocusEffect(player, &message);
-}
-
-inline void SonicContextAddPlugin(Hedgehog::Base::CSharedString const& plugin)
-{
-	FUNCTION_PTR(void, __thiscall, addPlayerPlugin, 0xE77D80, Hedgehog::Base::CSharedString const* plugin, void* player);
-	addPlayerPlugin(&plugin, Common::GetPlayer());
-}
-
-static void* SonicContextSetCollision(SonicCollision collisionType, bool enabled)
-{
-	static void* const pEnableFunc = (void*)0xE65610;
-	static void* const pDisableFunc = (void*)0xE655C0;
-	__asm
-	{
-		mov		edi, PLAYER_CONTEXT
-		mov		edi, [edi]
-
-		mov		ecx, collisionType
-		mov		ecx, [ecx]
-		push	ecx
-
-		cmp		enabled, 0
-		je		jump
-
-		call	[pEnableFunc]
-		jmp		end
-
-		jump:
-		call	[pDisableFunc]
-		
-		end:
-	}
-}
-
-static void SonicContextUpdateRotationToVelocity
-(
-	void* pContext,
-	Hedgehog::Math::CVector* pVelocity,
-	bool updateMatrix
-)
-{
-	static void* const pUpdateRotationToVelocity = (void*)0xE56860;
-	__asm
-	{
-		push	updateMatrix
-		push	pVelocity
-		mov		ebx, pContext
-		mov		esi, ebx
-		call	[pUpdateRotationToVelocity]
-	}
-}
-
-inline void PlaySoundStatic(SharedPtrTypeless& soundHandle, uint32_t cueID)
-{
-    uint32_t* syncObject = *(uint32_t**)0x1E79044;
-    if (syncObject)
-    {
-        FUNCTION_PTR(void*, __thiscall, sub_75FA60, 0x75FA60, void* This, SharedPtrTypeless&, uint32_t cueId);
-        sub_75FA60((void*)syncObject[8], soundHandle, cueID);
-    }
-}
-
-inline void SpawnBoostParticle(uint32_t** This, Eigen::Vector3f const& pos, int amount)
-{
-	if (amount <= 0) return;
-
-	struct BoostParticleData
-	{
-		Eigen::Vector3f m_pos;
-		float m_unknown0xC = 1.0f;
-		int m_amount = 0;
-		float m_unknown0x14 = 1.0f;
-		float m_unknown0x18 = 0.0f;
-	};
-
-	FUNCTION_PTR(void, __cdecl, fpSpawnBoostParticle, 0x1125210, uint32_t* pCGameService, uint32_t* pCWorld, BoostParticleData* pData);
-	alignas(16) BoostParticleData data = {};
-	data.m_pos = pos;
-	data.m_amount = amount;
-	uint32_t CWorld = (This[41][1] + 0x7C);
-	uint32_t* pCWorld = &CWorld;
-	uint32_t* pCGameService = (uint32_t*)This[41][0];
-	fpSpawnBoostParticle(pCGameService, pCWorld, &data);
-}
-
-inline void ApplyPlayerApplyImpulse(MsgApplyImpulse const& message)
-{
-	FUNCTION_PTR(void, __thiscall, processPlayerMsgAddImpulse, 0xE6CFA0, void* This, void* message);
-	alignas(16) MsgApplyImpulse msgApplyImpulse = message;
-	void* player = *(void**)((uint32_t)*PLAYER_CONTEXT + 0x110);
-	processPlayerMsgAddImpulse(player, &msgApplyImpulse);
-}
-
-inline void ApplyObjectPhysicsPosition(void* pObject, Eigen::Vector3f const& pos)
-{
-	FUNCTION_PTR(void*, __thiscall, processObjectMsgSetPosition, 0xEA2130, void* This, void* message);
-	alignas(16) MsgSetPosition msgSetPosition {};
-	msgSetPosition.m_position = pos;
-	processObjectMsgSetPosition(pObject, &msgSetPosition);
-}
-
-inline void ApplyObjectPhysicsRotation(void* pObject, Eigen::Quaternionf const& rot)
-{
-	FUNCTION_PTR(void*, __thiscall, processObjectMsgSetRotation, 0xEA20D0, void* This, void* message);
-	alignas(16) MsgSetRotation msgSetRotation {};
-	msgSetRotation.m_rotation = rot;
-	processObjectMsgSetRotation(pObject, &msgSetRotation);
-}
-
-inline void CreatePlayerSupportShockWave(hh::math::CVector const& pos, float height, float radius, float duration)
-{
-	struct ShockWaveParam
-	{
-		float m_height;
-		float m_radius;
-		float m_duration;
-		size_t m_actorID;
-	};
-	FUNCTION_PTR(void*, __cdecl, fCreatePlayerSupportShockWave, 0x123D090, boost::shared_ptr<Sonic::CGameObject>& spObject, hh::math::CVector const* pos, ShockWaveParam const& param);
-	boost::shared_ptr<Sonic::CGameObject> spObject;
-	fCreatePlayerSupportShockWave(spObject, &pos, { height, radius, duration, Sonic::Player::CPlayerSpeedContext::GetInstance()->m_pPlayer->m_ActorID });
-	Sonic::CGameDocument::GetInstance()->AddGameObject(spObject);
-}
-
-inline LanguageType GetVoiceLanguageType()
-{
-	return *(LanguageType*)Common::GetMultiLevelAddress(0x1E66B34, { 0x4, 0x1B4, 0x7C, 0x10 });
-}
-
-inline LanguageType GetUILanguageType()
-{
-	return *(LanguageType*)Common::GetMultiLevelAddress(0x1E66B34, { 0x8 });
-}
-
-inline bool SolveBallisticArc
-(
-	const Eigen::Vector3f& start, 
-	const Eigen::Vector3f& end,
-	const float speed, 
-	const float gravity,
-	const bool bUseHighArc, 
-	Eigen::Vector3f& outTrajectory,
-	float& outTime
-)
-{
-	Eigen::Vector3f diff = end - start;
-	Eigen::Vector3f diffXZ(diff.x(), 0.0f, diff.z());
-	float groundDist = diffXZ.norm();
-
-	float speed2 = speed * speed;
-	float speed4 = speed2 * speed2;
-	float y = diff.y();
-	float x = groundDist;
-	float gx = gravity * x;
-
-	float root = speed4 - gravity * (gravity * x * x + 2 * y * speed2);
-
-	// No solution
-	if (root < 0) return false;
-
-	root = std::sqrt(root);
-	float lowAng = std::atan2f(speed2 - root, gx);
-	float highAng = std::atan2f(speed2 + root, gx);
-
-	Eigen::Vector3f groundDir = diffXZ.normalized();
-	if (bUseHighArc)
-	{
-		outTrajectory = groundDir * std::cos(highAng) * speed + Eigen::Vector3f::UnitY() * std::sin(highAng) * speed;
-	}
-	else
-	{
-		outTrajectory = groundDir * std::cos(lowAng) * speed + Eigen::Vector3f::UnitY() * std::sin(lowAng) * speed;
-	}
-
-	float speedXZ = Eigen::Vector3f(outTrajectory.x(), 0.0f, outTrajectory.z()).norm();
-	outTime = groundDist / speedXZ;
-
-	return true;
-}
-
-inline bool IsFileExist(std::string const& file)
-{
-	struct stat buffer;
-	return stat(file.c_str(), &buffer) == 0;
-}
-
-inline void GetModIniList(std::vector<std::string>& modIniList)
-{
-	char buffer[MAX_PATH];
-	GetModuleFileNameA(NULL, buffer, MAX_PATH);
-	std::string exePath(buffer);
-	std::string cpkRedirConfig = exePath.substr(0, exePath.find_last_of("\\")) + "\\cpkredir.ini";
-
-	if (!Common::IsFileExist(cpkRedirConfig))
-	{
-		printf("%s not exist.\n", cpkRedirConfig.c_str());
-		return;
-	}
-
-	INIReader reader(cpkRedirConfig);
-	std::string modsDatabase = reader.Get("CPKREDIR", "ModsDbIni", "mods\\ModsDB.ini");
-
-	if (!Common::IsFileExist(modsDatabase))
-	{
-		printf("%s not exist.\n", modsDatabase.c_str());
-		return;
-	}
-
-	INIReader modsDatabaseReader(modsDatabase);
-	int count = modsDatabaseReader.GetInteger("Main", "ActiveModCount", 0);
-	for (int i = 0; i < count; i++)
-	{
-		std::string guid = modsDatabaseReader.Get("Main", "ActiveMod" + std::to_string(i), "");
-		std::string config = modsDatabaseReader.Get("Mods", guid, "");
-		if (!config.empty() && Common::IsFileExist(config))
+		// sub_10BE3B0(&rayStartPos, flag, **(_DWORD ***)(*PLAYER_CONTEXT+ 1516), &outPos, &outNormal, &rayEndPos)
+		static void* const pfRaycast = (void*)0x10BE3B0;
+		__asm
 		{
-			modIniList.push_back(config);
-		}
-	}
-}
-
-inline bool IsModEnabled(std::string const& testModName, std::string* o_iniPath = nullptr)
-{
-	std::vector<std::string> modIniList;
-	GetModIniList(modIniList);
-	for (size_t i = 0; i < modIniList.size(); i++)
-	{
-		std::string const& config = modIniList[i];
-		INIReader configReader(config);
-		std::string name = configReader.Get("Desc", "Title", "");
-		if (name == testModName)
-		{
-			if (o_iniPath)
-			{
-				*o_iniPath = config;
-			}
-
-			return true;
+			mov		ecx, rayEndPos
+			push	ecx
+			mov		edx, outNormal
+			push	edx
+			mov		eax, outPos
+			push	eax
+			mov		ebx, PLAYER_CONTEXT
+			mov		ebx, [ebx]
+			mov     eax, [ebx + 5ECh]
+			mov     edi, [eax]
+			mov		edx, flag
+			mov		eax, rayStartPos
+			call[pfRaycast]
 		}
 	}
 
-	return false;
-}
-
-inline bool IsModEnabled(std::string const& section, std::string const& name, std::string const& str, std::string* o_iniPath = nullptr)
-{
-	std::vector<std::string> modIniList;
-	GetModIniList(modIniList);
-	for (size_t i = 0; i < modIniList.size(); i++)
+	static void* fGetScreenPosition
+	(
+		Eigen::Vector4f const& pos3D,
+		Eigen::Vector4f& pos2D
+	)
 	{
-		std::string const& config = modIniList[i];
-		INIReader configReader(config);
-		std::string value = configReader.Get(section, name, "");
-		if (value == str)
+		static void* const pfGetScreenPosition = (void*)0xD61C40;
+		__asm
 		{
-			if (o_iniPath)
-			{
-				*o_iniPath = config;
-			}
-
-			return true;
+			mov		ecx, 0x1E0BE5C
+			mov		ecx, [ecx]
+			mov		eax, pos3D
+			mov		ebx, pos2D
+			push	ebx
+			call[pfGetScreenPosition]
 		}
 	}
 
-	return false;
-}
-
-inline bool TestModPriority(std::string const& currentModName, std::string const& testModName, bool higherPriority)
-{
-	printf("currentModName = %s, testModName = %s\n", currentModName.c_str(), testModName.c_str());
-
-	int currentModIndex = -1;
-	int testModIndex = -1;
-
-	std::vector<std::string> modIniList;
-	GetModIniList(modIniList);
-	for (size_t i = 0; i < modIniList.size(); i++)
+	inline void fEventTrigger(void* This, int Event)
 	{
-		std::string const& config = modIniList[i];
-		INIReader configReader(config);
-		std::string name = configReader.Get("Desc", "Title", "");
-		if (name == currentModName)
+		FUNCTION_PTR(void*, __stdcall, fpEventTrigger, 0xD5ED00, void* This, int Event);
+		fpEventTrigger(This, Event);
+	}
+
+	static void fDestroyGameObject
+	(
+		void* pGameObject
+	)
+	{
+		static void* const pfDestroyGameObject = (void*)0xD5FD10;
+		__asm
 		{
-			currentModIndex = i;
-		}
-		else if (name == testModName)
-		{
-			testModIndex = i;
+			mov		edi, pGameObject
+			call[pfDestroyGameObject]
 		}
 	}
 
-	if (currentModIndex != -1 && testModIndex != -1)
+	inline void ObjectCGlitterPlayerOneShot(void* pObject, Hedgehog::Base::CSharedString const& name)
 	{
-		bool success = true;
-		if (higherPriority)
+		uint32_t* CGlitterPlayer = *(uint32_t**)((uint32_t)pObject + 0xF8);
+		void* matrixNode = (void*)((uint32_t)pObject + 0xB8);
+		if (CGlitterPlayer && *CGlitterPlayer == 0x16D0514)
 		{
-			success = (testModIndex < currentModIndex);
+			FUNCTION_PTR(void, __thiscall, CGlitterPlayerOneShot, 0xE85F00, void* This, void* pMatrixTransformNode, Hedgehog::Base::CSharedString const& name, float a4, int a5);
+			CGlitterPlayerOneShot(CGlitterPlayer, matrixNode, name, 1.0, 1);
 		}
 		else
 		{
-			success = (testModIndex > currentModIndex);
+			MessageBox(NULL, "Object does not contain CGlitterPlayer!", NULL, MB_ICONERROR);
 		}
+	}
+	inline CSonicStateFlags* GetSonicStateFlags()
+	{
+		auto* const context = reinterpret_cast<int*>(*PLAYER_CONTEXT);
+		return reinterpret_cast<CSonicStateFlags*>(*reinterpret_cast<int*>(context[0x14D] + 4));
+	}
+	inline bool IsPlayerControlLocked()
+	{
+		if (!*PLAYER_CONTEXT) return false;
 
-		if (!success)
-		{
-			std::string errorMsg = testModName + " detected, please put it " + (higherPriority ? "higher" : "lower") + " priority than (" + (higherPriority ? "above" : "below") + ") this mod.";
-			std::wstring stemp = std::wstring(errorMsg.begin(), errorMsg.end());
-			std::wstring stemp2 = std::wstring(currentModName.begin(), currentModName.end());
-			MessageBox(nullptr, stemp.c_str(), stemp2.c_str(), MB_ICONERROR);
-			exit(-1);
-		}
-
-		return success;
+		bool* unknownFlags = *(bool**)((uint32_t)*PLAYER_CONTEXT + 0x11C);
+		return unknownFlags[0x98] || unknownFlags[0x99];
 	}
 
-	// Mod not found
-	return false;
-}
-
-inline std::string wideCharToMultiByte(LPCWSTR value)
-{
-	char multiByte[0x1000];
-	WideCharToMultiByte(CP_UTF8, 0, value, -1, multiByte, _countof(multiByte), 0, 0);
-	return std::string(multiByte);
-}
-
-inline std::wstring multiByteToWideChar(const char* value)
-{
-	WCHAR wideChar[0x1000];
-	MultiByteToWideChar(CP_UTF8, 0, value, -1, wideChar, _countof(wideChar));
-	return std::wstring(wideChar);
-}
-
-inline bool DoesArchiveExist(std::string const& archiveName, std::set<std::string> ignoreModList = {})
-{
-	std::vector<std::string> modIniList;
-	GetModIniList(modIniList);
-	for (std::string const& modIni : modIniList)
+	inline bool IsPlayerSuper()
 	{
-		bool ignore = false;
-		INIReader configReader(modIni);
-		std::string modName = configReader.Get("Desc", "Title", "");
-		for (std::string const& ignoreMod : ignoreModList)
+		if (!*PLAYER_CONTEXT) return false;
+		return GetSonicStateFlags()->InvokeSuperSonic;
+	}
+
+	inline bool IsPlayerDead()
+	{
+		if (!*PLAYER_CONTEXT) return false;
+		return GetSonicStateFlags()->Dead;
+	}
+
+	inline bool IsPlayerOnBoard()
+	{
+		if (!*PLAYER_CONTEXT) return false;
+		return GetSonicStateFlags()->InvokeSkateBoard;
+	}
+
+	inline bool IsPlayerIn2D()
+	{
+		// sub_E145A0 MsgIs2DMode
+		if (!*PLAYER_CONTEXT) return false;
+		return *(bool*)((uint32_t)*PLAYER_CONTEXT + 0x172);
+	}
+
+	inline bool IsPlayerInForwardPath()
+	{
+		// sub_E145C0 MsgGetForwardPathInfo
+		if (!*PLAYER_CONTEXT) return false;
+		return *(uint32_t*)((uint32_t)*PLAYER_CONTEXT + 0x1278);
+	}
+
+	inline bool IsPlayerInDashPath()
+	{
+		// sub_E14D30 MsgGetDashModeInfo
+		// Note: Dash path also applies to forward path
+		if (!*PLAYER_CONTEXT) return false;
+		return *(uint32_t*)((uint32_t)*PLAYER_CONTEXT + 0x128C) && !IsPlayerInForwardPath();
+	}
+
+	inline bool IsPlayerGrinding()
+	{
+		// sub_E144E0 MsgIsGrind
+		if (!*PLAYER_CONTEXT) return false;
+		return *(uint32_t*)((uint32_t)*PLAYER_CONTEXT + 0x11F0) != 0;
+	}
+
+	inline bool IsPlayerGrounded()
+	{
+		// sub_E6ACA0 MsgGetGroundInfo
+		if (!*PLAYER_CONTEXT) return false;
+		return *(bool*)((uint32_t)*PLAYER_CONTEXT + 0x440);
+	}
+
+	inline bool IsPlayerExtendedBoost()
+	{
+		if (!*PLAYER_CONTEXT) return false;
+		return *(uint32_t*)((uint32_t)*PLAYER_CONTEXT + 0x680) == 2;
+	}
+
+	inline bool IsPlayerHangOn()
+	{
+		if (!*PLAYER_CONTEXT) return false;
+		return *(uint32_t*)((uint32_t)*PLAYER_CONTEXT + 0x7D8) != 0;
+	}
+
+	inline bool IsAtLoadingScreen()
+	{
+		uint32_t** hudCount = (uint32_t**)0x1E66B40;
+		if (!*hudCount) return false;
+		return (*hudCount)[2] > 0;
+	}
+
+	inline bool CheckPlayerNodeExist(const Hedgehog::Base::CSharedString& name)
+	{
+		void* context = *PLAYER_CONTEXT;
+		if (context)
 		{
-			if (modName.find(ignoreMod) != std::string::npos)
+			void* player = *(void**)((char*)context + 0x110);
+			if (player)
 			{
-				ignore = true;
-				break;
+				boost::shared_ptr<MatrixNodeSingleElementNode> node;
+				FUNCTION_PTR(void, __thiscall, GetNode, 0x700B70, void* This, boost::shared_ptr<MatrixNodeSingleElementNode> &node, const Hedgehog::Base::CSharedString & name);
+				GetNode(*(void**)((char*)player + 0x234), node, name);
+				return (node ? true : false);
 			}
 		}
-		
-		if (ignore)
+
+		return false;
+	}
+
+	inline bool CheckCurrentStage(char const* stageID)
+	{
+		char const* currentStageID = (char*)0x01E774D4;
+		return strcmp(currentStageID, stageID) == 0;
+	}
+
+	inline uint32_t GetCurrentStageID()
+	{
+		uint32_t stageIDAddress = GetMultiLevelAddress(0x1E66B34, { 0x4, 0x1B4, 0x80, 0x0 });
+		return *(uint32_t*)stageIDAddress;
+	}
+
+	inline char* GetCurrentTerrain()
+	{
+		uint32_t terrainAddress = GetMultiLevelAddress(0x1E66B34, { 0x4, 0x1B4, 0x80, 0x20 });
+		return *(char**)terrainAddress;
+	}
+
+	inline bool IsStageMission(uint32_t stageID)
+	{
+		return (stageID & 0xFF00) > 0 && (stageID & 0xFF) <= SMT_pla200;
+	}
+
+	inline bool IsCurrentStageMission()
+	{
+		return IsStageMission(GetCurrentStageID());
+	}
+
+	inline bool IsStageBoss(uint32_t stageID)
+	{
+		stageID &= 0xFF;
+		return stageID >= SMT_bms && stageID <= SMT_blb;
+	}
+
+	inline bool IsCurrentStageBoss()
+	{
+		return IsStageBoss(GetCurrentStageID());
+	}
+
+	inline bool IsStagePlayed(uint32_t stageID)
+	{
+		// Note: Only works for regular stages not mission
+		// fake it as CHudGateMenuMain object
+		uint32_t dummyAddress = (uint32_t)&stageID - 0x208;
+		FUNCTION_PTR(bool, __stdcall, CHudGateMenuMain_IsStagePlayed, 0x107AE80, uint32_t pCHudGateMenuMain);
+		return CHudGateMenuMain_IsStagePlayed(dummyAddress);
+	}
+
+	inline bool IsStageCompleted(uint32_t stageID)
+	{
+		FUNCTION_PTR(bool, __stdcall, fpIsStageCompleted, 0x107ADC0, uint32_t stageID);
+		return fpIsStageCompleted(stageID);
+	}
+
+	inline bool GetStageData
+	(
+		uint32_t stageID,
+		uint32_t& bestScore,
+		float& bestTime,
+		float& bestTime2,
+		float& bestTime3,
+		uint32_t& bestRank,
+		uint32_t& bestRing,
+		uint32_t& redRingCount
+	)
+	{
+		FUNCTION_PTR(int, __fastcall, fpGetSaveSlotID, 0x552130, uint32_t stageID);
+		int saveSlotID = fpGetSaveSlotID(stageID);
+
+		uint32_t CGameParameterAddress = *(uint32_t*)GetMultiLevelAddress(0x1E66B34, { 0x4, 0x1B4 });
+		uint32_t unknownOffset = *(uint32_t*)(CGameParameterAddress + 0x7C) + 0x1C;
+		uint32_t saveSlotAddress = 0x120 * saveSlotID + unknownOffset;
+		if (saveSlotID < 0x8E && saveSlotAddress != 0)
 		{
-			continue;
+			bestScore = *(uint32_t*)(saveSlotAddress);
+			if (IsStageCompleted(stageID))
+			{
+				bestTime = *(float*)(saveSlotAddress + 0x4);
+				bestTime2 = *(float*)(saveSlotAddress + 0x8);
+				bestTime3 = *(float*)(saveSlotAddress + 0xC);
+			}
+			else
+			{
+				bestTime = -1.0f;
+				bestTime2 = -1.0f;
+				bestTime3 = -1.0f;
+			}
+			bestRank = 4 - *(uint32_t*)(saveSlotAddress + 0x10);
+			bestRing = *(uint32_t*)(saveSlotAddress + 0x14);
+
+			if ((stageID & 0xFF00) > 0 && (stageID & 0xFF) <= 0x11)
+			{
+				redRingCount = 0;
+			}
+			else
+			{
+				FUNCTION_PTR(int, __fastcall, fpGetRedRingCount, 0xD591B0, uint32_t stageID, int dummy, uint32_t CGameParameter);
+				redRingCount = fpGetRedRingCount(stageID, 0, CGameParameterAddress);
+			}
+
+			return true;
+		}
+		else
+		{
+			return false;
+		}
+	}
+
+	inline void PlayStageMusic(char const* cueName, float fadeInTime)
+	{
+		FUNCTION_PTR(bool, __stdcall, PlayStageMusicFromCueName, 0xD63070, void* gameDocument, Hedgehog::Base::CSharedString & cueName, float fadeInTime);
+		Hedgehog::Base::CSharedString name = Hedgehog::Base::CSharedString(cueName);
+		PlayStageMusicFromCueName(*(void**)0x1E0BE5C, name, fadeInTime);
+	}
+
+	inline void PlayBGM(char const* cueName, float fadeInTime)
+	{
+		FUNCTION_PTR(unsigned int, __stdcall, PlayAudioFromCueName, 0xD62440, void* gameDocument, Hedgehog::Base::CSharedString & cueName, float fadeInTime);
+		Hedgehog::Base::CSharedString name = Hedgehog::Base::CSharedString(cueName);
+		PlayAudioFromCueName(*(void**)0x1E0BE5C, name, fadeInTime);
+	}
+
+	inline void StopBGM(char const* cueName, float fadeOutTime)
+	{
+		FUNCTION_PTR(int, __stdcall, StopAudioFromCueName, 0xD61E40, void* gameDocument, Hedgehog::Base::CSharedString & cueName, float fadeOutTime);
+		Hedgehog::Base::CSharedString name = Hedgehog::Base::CSharedString(cueName);
+		StopAudioFromCueName(*(void**)0x1E0BE5C, name, fadeOutTime);
+	}
+
+	inline void* GetPlayer()
+	{
+		if (!*PLAYER_CONTEXT) return 0;
+		// Sonic::Player::CSonicContext -> Sonic::Player::CSonic
+		return *(void**)((uint32_t)*PLAYER_CONTEXT + 0x110);
+	}
+
+	inline uint32_t GetPlayerSkill()
+	{
+		if (!*PLAYER_CONTEXT) return 0;
+		return *(uint32_t*)((uint32_t)*PLAYER_CONTEXT + 0x1A8);
+	}
+
+	inline uint32_t* GetPlayerRingCount()
+	{
+		if (!*PLAYER_CONTEXT) return 0;
+		return (uint32_t*)((uint32_t)*PLAYER_CONTEXT + 0x5B8);
+	}
+
+	inline uint32_t* GetPlayerLives()
+	{
+		if (!*PLAYER_CONTEXT) return 0;
+		uint32_t lifeAddress = GetMultiLevelAddress(0x1E66B34, { 0x4, 0x1B4, 0x7C, 0x9FDC });
+		return (uint32_t*)lifeAddress;
+	}
+
+	inline float* GetPlayerBoost()
+	{
+		if (!*PLAYER_CONTEXT) return 0;
+		return (float*)((uint32_t)*PLAYER_CONTEXT + 0x5BC);
+	}
+
+	inline float GetPlayerMaxBoost()
+	{
+		return IsPlayerExtendedBoost() ? 200.0f : 100.0f;
+	}
+
+	inline float* GetPlayerMaxSpeed()
+	{
+		if (!*PLAYER_CONTEXT) return 0;
+		return (float*)((uint32_t)*PLAYER_CONTEXT + 0x53C);
+	}
+
+	inline void SetPlayerAutoBoost(bool enabled)
+	{
+		if (!*PLAYER_CONTEXT) return;
+		GetSonicStateFlags()->AutoBoost = enabled;
+	}
+
+	inline bool GetPlayerTransform(Eigen::Vector3f& position, Eigen::Quaternionf& rotation)
+	{
+		if (!*PLAYER_CONTEXT) return false;
+
+		const uint32_t result = *(uint32_t*)((uint32_t) * (void**)((uint32_t)*PLAYER_CONTEXT + 0x110) + 0xAC);
+		if (!result) return false;
+
+		float* pPos = (float*)(*(uint32_t*)(result + 0x10) + 0x70);
+		position.x() = pPos[0];
+		position.y() = pPos[1];
+		position.z() = pPos[2];
+
+		float* pRot = (float*)(*(uint32_t*)(result + 0x10) + 0x60);
+		rotation.x() = pRot[0];
+		rotation.y() = pRot[1];
+		rotation.z() = pRot[2];
+		rotation.w() = pRot[3];
+
+		return true;
+	}
+
+	inline void GetPlayerHUBTransform(Eigen::Vector3f& position, Eigen::Quaternionf& rotation)
+	{
+		uint32_t posAddress = GetMultiLevelAddress(0x1E66B34, { 0x4, 0x1B4, 0x7C, 0x9FF0 });
+		uint32_t rotAddress = GetMultiLevelAddress(0x1E66B34, { 0x4, 0x1B4, 0x7C, 0xA2D0 });
+		position = *(Eigen::Vector3f*)posAddress;
+		rotation = *(Eigen::Quaternionf*)rotAddress;
+	}
+
+	inline void SetPlayerPosition(Eigen::Vector3f const& position)
+	{
+		if (!*PLAYER_CONTEXT) return;
+
+		alignas(16) MsgSetPosition message;
+		message.m_position = position;
+
+		FUNCTION_PTR(void*, __thiscall, playerProcessMsgSetPosition, 0xE772D0, void* This, void* message);
+		playerProcessMsgSetPosition(Common::GetPlayer(), &message);
+	}
+
+	inline bool GetPlayerVelocity(Eigen::Vector3f& velocity)
+	{
+		if (!*PLAYER_CONTEXT) return false;
+
+		const uint32_t result = *(uint32_t*)((uint32_t) * (void**)((uint32_t)*PLAYER_CONTEXT + 0x110) + 0xAC);
+		if (!result) return false;
+
+		float* pVel = (float*)(result + 0x290);
+		velocity.x() = pVel[0];
+		velocity.y() = pVel[1];
+		velocity.z() = pVel[2];
+
+		return true;
+	}
+
+	inline bool GetPlayerTargetVelocity(Eigen::Vector3f& velocity)
+	{
+		if (!*PLAYER_CONTEXT) return false;
+
+		const uint32_t result = *(uint32_t*)((uint32_t) * (void**)((uint32_t)*PLAYER_CONTEXT + 0x110) + 0xAC);
+		if (!result) return false;
+
+		float* pVel = (float*)(result + 0x2A0);
+		velocity.x() = pVel[0];
+		velocity.y() = pVel[1];
+		velocity.z() = pVel[2];
+
+		return true;
+	}
+
+	inline bool SetPlayerVelocity(Eigen::Vector3f const& velocity)
+	{
+		if (!*PLAYER_CONTEXT) return false;
+
+		const uint32_t result = *(uint32_t*)((uint32_t) * (void**)((uint32_t)*PLAYER_CONTEXT + 0x110) + 0xAC);
+		if (!result) return false;
+
+		float* pVel = (float*)(result + 0x290);
+		pVel[0] = velocity.x();
+		pVel[1] = velocity.y();
+		pVel[2] = velocity.z();
+
+		*(bool*)(result + 1512) = true; // velocity dirty
+		*(bool*)(result + 1513) = false; // horizontal dirty
+
+		return true;
+	}
+
+	inline bool GetWorldInputDirection(Eigen::Vector3f& direction)
+	{
+		if (!*PLAYER_CONTEXT) return false;
+
+		float* worldDir = (float*)((uint32_t)*PLAYER_CONTEXT + 0x130);
+		direction.x() = worldDir[0];
+		direction.y() = worldDir[1];
+		direction.z() = worldDir[2];
+
+		return true;
+	}
+
+	inline bool GetPlayerWorldDirection(Eigen::Vector3f& direction, bool normalize)
+	{
+		if (!*PLAYER_CONTEXT) return false;
+
+		if (!GetWorldInputDirection(direction)) return false;
+
+		if (direction.isZero())
+		{
+			Eigen::Vector3f position;
+			Eigen::Quaternionf rotation;
+			if (GetPlayerTransform(position, rotation))
+			{
+				direction = rotation * Eigen::Vector3f(0, 0, 1);
+				return true;
+			}
+
+			return false;
 		}
 
-		std::string folder = modIni.substr(0, modIni.length() - 7);
-		for (const auto& dirEntry : std::filesystem::recursive_directory_iterator(folder))
+		if (normalize)
 		{
-			if (dirEntry.path().filename() == archiveName)
+			direction.normalize();
+		}
+
+		return true;
+	}
+
+	inline float GetPlayerModelScale()
+	{
+		if (!*PLAYER_CONTEXT) return 1.0f;
+
+		Sonic::Player::CPlayer const* player = Sonic::Player::CPlayerSpeedContext::GetInstance()->m_pPlayer;
+		float* animationPose = *(float**)((uint32_t)player + 0x23C);
+		return animationPose[31];
+	}
+
+	inline void SetPlayerModelScale(float scale)
+	{
+		if (!*PLAYER_CONTEXT) return;
+
+		Sonic::Player::CPlayer const* player = Sonic::Player::CPlayerSpeedContext::GetInstance()->m_pPlayer;
+		float* animationPose = *(float**)((uint32_t)player + 0x23C);
+		animationPose[31] = scale;
+	}
+
+	inline void SonicContextChangeAnimation(const Hedgehog::Base::CSharedString& name)
+	{
+		void* pSonicContext = *PLAYER_CONTEXT;
+		if (!pSonicContext) return;
+
+		FUNCTION_PTR(void, __thiscall, CSonicContextChangeAnimation, 0xE74CC0, CSonicContext * context, const Hedgehog::Base::CSharedString & name);
+		CSonicContextChangeAnimation(pSonicContext, name);
+	}
+
+	inline void SonicContextPlaySound(SharedPtrTypeless& soundHandle, uint32_t cueID, uint32_t flag)
+	{
+		// Note: This doesn't work at result screen, use PlaySoundStatic instead
+		void* pSonicContext = *PLAYER_CONTEXT;
+		if (!pSonicContext) return;
+
+		// Original code by Skyth: https://github.com/blueskythlikesclouds
+		CSonicSpeedContextPlaySound* playSoundFunc = *(CSonicSpeedContextPlaySound**)(*(uint32_t*)pSonicContext + 0x74);
+		playSoundFunc(pSonicContext, nullptr, soundHandle, cueID, flag);
+	}
+
+	inline void SonicContextPlayVoice(SharedPtrTypeless& soundHandle, uint32_t cueID, uint32_t priority)
+	{
+		// Note: This doesn't work at result screen, use PlaySoundStatic instead
+		void* pSonicContext = *PLAYER_CONTEXT;
+		if (!pSonicContext) return;
+
+		// Original code by Skyth: https://github.com/blueskythlikesclouds
+		CSonicSpeedContextPlaySound* playSoundFunc = *(CSonicSpeedContextPlaySound**)(*(uint32_t*)pSonicContext + 0xA0);
+		playSoundFunc(pSonicContext, nullptr, soundHandle, cueID, priority);
+	}
+
+	inline void SonicContextGetAnimationInfo(MsgGetAnimationInfo& message)
+	{
+		void* pSonicContext = *PLAYER_CONTEXT;
+		if (!pSonicContext) return;
+
+		// Original code by Skyth: https://github.com/blueskythlikesclouds
+		FUNCTION_PTR(void, __thiscall, CSonicSpeedProcMsgGetAnimationInfo, 0xE6A370, void* This, void* pMessage);
+		void* player = *(void**)((uint32_t)*PLAYER_CONTEXT + 0x110);
+		CSonicSpeedProcMsgGetAnimationInfo(player, &message);
+	}
+
+	inline void SonicContextGetItemType(uint32_t type)
+	{
+		void* pSonicContext = *PLAYER_CONTEXT;
+		if (!pSonicContext) return;
+
+		alignas(16) MsgGetItemType message {};
+		message.m_type = type;
+
+		// Original code by Skyth: https://github.com/blueskythlikesclouds
+		FUNCTION_PTR(void, __thiscall, CSonicSpeedProcMsgGetItemType, 0xE6D7D0, void* This, void* pMessage);
+		void* player = *(void**)((uint32_t)*PLAYER_CONTEXT + 0x110);
+		CSonicSpeedProcMsgGetItemType(player, &message);
+	}
+
+	inline void SonicContextRequestLocusEffect()
+	{
+		void* pSonicContext = *PLAYER_CONTEXT;
+		if (!pSonicContext) return;
+
+		// 1 seems to not stop? Force it to be 0
+		WRITE_MEMORY(0xE178E5, uint32_t, 0);
+
+		struct MsgRequestLocusEffect
+		{
+			INSERT_PADDING(0x10);
+			uint32_t flag;
+		};
+		MsgRequestLocusEffect message{};
+		message.flag = 0;
+
+		FUNCTION_PTR(int, __thiscall, processMsgRequestLocusEffect, 0xE178D0, void* This, void* pMessage);
+		void* player = *(void**)((uint32_t)*PLAYER_CONTEXT + 0x110);
+		processMsgRequestLocusEffect(player, &message);
+	}
+
+	inline void SonicContextAddPlugin(Hedgehog::Base::CSharedString const& plugin)
+	{
+		FUNCTION_PTR(void, __thiscall, addPlayerPlugin, 0xE77D80, Hedgehog::Base::CSharedString const* plugin, void* player);
+		addPlayerPlugin(&plugin, Common::GetPlayer());
+	}
+
+	static void* SonicContextSetCollision(SonicCollision collisionType, bool enabled)
+	{
+		static void* const pEnableFunc = (void*)0xE65610;
+		static void* const pDisableFunc = (void*)0xE655C0;
+		__asm
+		{
+			mov		edi, PLAYER_CONTEXT
+			mov		edi, [edi]
+
+			mov		ecx, collisionType
+			mov		ecx, [ecx]
+			push	ecx
+
+			cmp		enabled, 0
+			je		jump
+
+			call[pEnableFunc]
+			jmp		end
+
+			jump :
+			call[pDisableFunc]
+
+				end :
+		}
+	}
+
+	static void SonicContextUpdateRotationToVelocity
+	(
+		void* pContext,
+		Hedgehog::Math::CVector* pVelocity,
+		bool updateMatrix
+	)
+	{
+		static void* const pUpdateRotationToVelocity = (void*)0xE56860;
+		__asm
+		{
+			push	updateMatrix
+			push	pVelocity
+			mov		ebx, pContext
+			mov		esi, ebx
+			call[pUpdateRotationToVelocity]
+		}
+	}
+
+	inline void PlaySoundStatic(SharedPtrTypeless& soundHandle, uint32_t cueID)
+	{
+		uint32_t* syncObject = *(uint32_t**)0x1E79044;
+		if (syncObject)
+		{
+			FUNCTION_PTR(void*, __thiscall, sub_75FA60, 0x75FA60, void* This, SharedPtrTypeless&, uint32_t cueId);
+			sub_75FA60((void*)syncObject[8], soundHandle, cueID);
+		}
+	}
+
+	inline void SpawnBoostParticle(uint32_t** This, Eigen::Vector3f const& pos, int amount)
+	{
+		if (amount <= 0) return;
+
+		struct BoostParticleData
+		{
+			Eigen::Vector3f m_pos;
+			float m_unknown0xC = 1.0f;
+			int m_amount = 0;
+			float m_unknown0x14 = 1.0f;
+			float m_unknown0x18 = 0.0f;
+		};
+
+		FUNCTION_PTR(void, __cdecl, fpSpawnBoostParticle, 0x1125210, uint32_t * pCGameService, uint32_t * pCWorld, BoostParticleData * pData);
+		alignas(16) BoostParticleData data = {};
+		data.m_pos = pos;
+		data.m_amount = amount;
+		uint32_t CWorld = (This[41][1] + 0x7C);
+		uint32_t* pCWorld = &CWorld;
+		uint32_t* pCGameService = (uint32_t*)This[41][0];
+		fpSpawnBoostParticle(pCGameService, pCWorld, &data);
+	}
+
+	inline void ApplyPlayerApplyImpulse(MsgApplyImpulse const& message)
+	{
+		FUNCTION_PTR(void, __thiscall, processPlayerMsgAddImpulse, 0xE6CFA0, void* This, void* message);
+		alignas(16) MsgApplyImpulse msgApplyImpulse = message;
+		void* player = *(void**)((uint32_t)*PLAYER_CONTEXT + 0x110);
+		processPlayerMsgAddImpulse(player, &msgApplyImpulse);
+	}
+
+	inline void ApplyObjectPhysicsPosition(void* pObject, Eigen::Vector3f const& pos)
+	{
+		FUNCTION_PTR(void*, __thiscall, processObjectMsgSetPosition, 0xEA2130, void* This, void* message);
+		alignas(16) MsgSetPosition msgSetPosition {};
+		msgSetPosition.m_position = pos;
+		processObjectMsgSetPosition(pObject, &msgSetPosition);
+	}
+
+	inline void ApplyObjectPhysicsRotation(void* pObject, Eigen::Quaternionf const& rot)
+	{
+		FUNCTION_PTR(void*, __thiscall, processObjectMsgSetRotation, 0xEA20D0, void* This, void* message);
+		alignas(16) MsgSetRotation msgSetRotation {};
+		msgSetRotation.m_rotation = rot;
+		processObjectMsgSetRotation(pObject, &msgSetRotation);
+	}
+	static Hedgehog::Math::CVector GetPosition()
+	{
+		auto vecResult = Hedgehog::Math::CVector(0, 0, 0);
+
+		if (!*PLAYER_CONTEXT)
+			return vecResult;
+
+		const uint32_t result = *(uint32_t*)((uint32_t) * (void**)((uint32_t)*PLAYER_CONTEXT + 0x110) + 0xAC);
+		{
+			if (!result)
+				return vecResult;
+		}
+
+		float* pPos = (float*)(*(uint32_t*)(result + 0x10) + 0x70);
+		{
+			vecResult.x() = pPos[0];
+			vecResult.y() = pPos[1];
+			vecResult.z() = pPos[2];
+		}
+
+		return vecResult;
+	}
+
+	// https://github.com/brianuuu/DllMods/blob/master/Dependencies/Common.h
+	static Hedgehog::Math::CQuaternion GetRotation()
+	{
+		auto vecResult = Hedgehog::Math::CQuaternion(0, 0, 0, 0);
+
+		if (!*PLAYER_CONTEXT)
+			return vecResult;
+
+		const uint32_t result = *(uint32_t*)((uint32_t) * (void**)((uint32_t)*PLAYER_CONTEXT + 0x110) + 0xAC);
+		{
+			if (!result)
+				return vecResult;
+		}
+
+		float* pRot = (float*)(*(uint32_t*)(result + 0x10) + 0x60);
+		{
+			vecResult.x() = pRot[0];
+			vecResult.y() = pRot[1];
+			vecResult.z() = pRot[2];
+			vecResult.w() = pRot[3];
+		}
+
+		return vecResult;
+	}
+
+	inline void CreatePlayerSupportShockWave(hh::math::CVector const& pos, float height, float radius, float duration)
+	{
+		struct ShockWaveParam
+		{
+			float m_height;
+			float m_radius;
+			float m_duration;
+			size_t m_actorID;
+		};
+		FUNCTION_PTR(void*, __cdecl, fCreatePlayerSupportShockWave, 0x123D090, boost::shared_ptr<Sonic::CGameObject>&spObject, hh::math::CVector const* pos, ShockWaveParam const& param);
+		boost::shared_ptr<Sonic::CGameObject> spObject;
+		fCreatePlayerSupportShockWave(spObject, &pos, { height, radius, duration, Sonic::Player::CPlayerSpeedContext::GetInstance()->m_pPlayer->m_ActorID });
+		Sonic::CGameDocument::GetInstance()->AddGameObject(spObject);
+	}
+
+	inline LanguageType GetVoiceLanguageType()
+	{
+		return *(LanguageType*)Common::GetMultiLevelAddress(0x1E66B34, { 0x4, 0x1B4, 0x7C, 0x10 });
+	}
+
+	inline LanguageType GetUILanguageType()
+	{
+		return *(LanguageType*)Common::GetMultiLevelAddress(0x1E66B34, { 0x8 });
+	}
+
+	inline bool SolveBallisticArc
+	(
+		const Eigen::Vector3f& start,
+		const Eigen::Vector3f& end,
+		const float speed,
+		const float gravity,
+		const bool bUseHighArc,
+		Eigen::Vector3f& outTrajectory,
+		float& outTime
+	)
+	{
+		Eigen::Vector3f diff = end - start;
+		Eigen::Vector3f diffXZ(diff.x(), 0.0f, diff.z());
+		float groundDist = diffXZ.norm();
+
+		float speed2 = speed * speed;
+		float speed4 = speed2 * speed2;
+		float y = diff.y();
+		float x = groundDist;
+		float gx = gravity * x;
+
+		float root = speed4 - gravity * (gravity * x * x + 2 * y * speed2);
+
+		// No solution
+		if (root < 0) return false;
+
+		root = std::sqrt(root);
+		float lowAng = std::atan2f(speed2 - root, gx);
+		float highAng = std::atan2f(speed2 + root, gx);
+
+		Eigen::Vector3f groundDir = diffXZ.normalized();
+		if (bUseHighArc)
+		{
+			outTrajectory = groundDir * std::cos(highAng) * speed + Eigen::Vector3f::UnitY() * std::sin(highAng) * speed;
+		}
+		else
+		{
+			outTrajectory = groundDir * std::cos(lowAng) * speed + Eigen::Vector3f::UnitY() * std::sin(lowAng) * speed;
+		}
+
+		float speedXZ = Eigen::Vector3f(outTrajectory.x(), 0.0f, outTrajectory.z()).norm();
+		outTime = groundDist / speedXZ;
+
+		return true;
+	}
+
+	inline bool IsFileExist(std::string const& file)
+	{
+		struct stat buffer;
+		return stat(file.c_str(), &buffer) == 0;
+	}
+
+	inline void GetModIniList(std::vector<std::string>& modIniList)
+	{
+		char buffer[MAX_PATH];
+		GetModuleFileNameA(NULL, buffer, MAX_PATH);
+		std::string exePath(buffer);
+		std::string cpkRedirConfig = exePath.substr(0, exePath.find_last_of("\\")) + "\\cpkredir.ini";
+
+		if (!Common::IsFileExist(cpkRedirConfig))
+		{
+			printf("%s not exist.\n", cpkRedirConfig.c_str());
+			return;
+		}
+
+		INIReader reader = INIReader(cpkRedirConfig);
+		std::string modsDatabase = reader.Get("CPKREDIR", "ModsDbIni", "mods\\ModsDB.ini");
+
+		if (!Common::IsFileExist(modsDatabase))
+		{
+			printf("%s not exist.\n", modsDatabase.c_str());
+			return;
+		}
+
+		INIReader modsDatabaseReader = INIReader(modsDatabase);
+		int count = modsDatabaseReader.GetInteger("Main", "ActiveModCount", 0);
+		for (int i = 0; i < count; i++)
+		{
+			std::string guid = modsDatabaseReader.Get("Main", "ActiveMod" + std::to_string(i), "");
+			std::string config = modsDatabaseReader.Get("Mods", guid, "");
+			if (!config.empty() && Common::IsFileExist(config))
 			{
+				modIniList.push_back(config);
+			}
+		}
+	}
+
+	static inline bool IsModEnabled(std::string const& testModName, std::string* o_iniPath = nullptr)
+	{
+		std::vector<std::string> modIniList;
+		GetModIniList(modIniList);
+		for (size_t i = 0; i < modIniList.size(); i++)
+		{
+			std::string const& config = modIniList[i];
+			INIReader configReader(config);
+			std::string name = configReader.Get("Desc", "Title", "");
+			if (name == testModName)
+			{
+				if (o_iniPath)
+				{
+					*o_iniPath = config;
+				}
+
 				return true;
 			}
 		}
-	}
-	return false;
-}
 
+		return false;
+	}
+
+	static inline bool IsModEnabled(std::string const& section, std::string const& name, std::string const& str, std::string* o_iniPath = nullptr)
+	{
+		std::vector<std::string> modIniList;
+		GetModIniList(modIniList);
+		for (size_t i = 0; i < modIniList.size(); i++)
+		{
+			std::string const& config = modIniList[i];
+			INIReader configReader(config);
+			std::string value = configReader.Get(section, name, "");
+			if (value == str)
+			{
+				if (o_iniPath)
+				{
+					*o_iniPath = config;
+				}
+
+				return true;
+			}
+		}
+
+		return false;
+	}
+	static inline bool IsModEnabledID(std::string const& testModID, std::string* o_iniPath = nullptr)
+	{
+		std::vector<std::string> modIniList;
+		GetModIniList(modIniList);
+		for (size_t i = 0; i < modIniList.size(); i++)
+		{
+			std::string const& config = modIniList[i];
+			INIReader configReader(config);
+			std::string id = configReader.Get("Main", "ID", "");
+			if (id == testModID)
+			{
+				if (o_iniPath)
+				{
+					*o_iniPath = config;
+				}
+
+				return true;
+			}
+		}
+
+		return false;
+	}
+	static inline bool IsModEnabledContains(std::string const& testModName, std::string* o_iniPath = nullptr)
+	{
+		std::vector<std::string> modIniList;
+		GetModIniList(modIniList);
+		for (size_t i = 0; i < modIniList.size(); i++)
+		{
+			std::string const& config = modIniList[i];
+			INIReader configReader(config);
+			std::string name = configReader.Get("Desc", "Title", "");
+			if (name.find(testModName) != std::string::npos)
+			{
+				if (o_iniPath)
+				{
+					*o_iniPath = config;
+				}
+
+				return true;
+			}
+		}
+
+		return false;
+	}
+	inline bool TestModPriority(std::string const& currentModName, std::string const& testModName, bool higherPriority)
+	{
+		int currentModIndex = -1;
+		int testModIndex = -1;
+
+		std::vector<std::string> modIniList;
+		GetModIniList(modIniList);
+		for (size_t i = 0; i < modIniList.size(); i++)
+		{
+			std::string const& config = modIniList[i];
+			INIReader configReader(config);
+			std::string name = configReader.Get("Desc", "Title", "");
+			if (name == currentModName)
+			{
+				currentModIndex = i;
+			}
+			else if (name == testModName)
+			{
+				testModIndex = i;
+			}
+		}
+
+		if (currentModIndex != -1 && testModIndex != -1)
+		{
+			bool success = true;
+			if (higherPriority)
+			{
+				success = (testModIndex < currentModIndex);
+			}
+			else
+			{
+				success = (testModIndex > currentModIndex);
+			}
+			return success;
+		}
+
+		// Mod not found
+		return false;
+	}
+
+	inline std::string wideCharToMultiByte(LPCWSTR value)
+	{
+		char multiByte[0x1000];
+		WideCharToMultiByte(CP_UTF8, 0, value, -1, multiByte, _countof(multiByte), 0, 0);
+		return std::string(multiByte);
+	}
+
+	inline std::wstring multiByteToWideChar(const char* value)
+	{
+		WCHAR wideChar[0x1000];
+		MultiByteToWideChar(CP_UTF8, 0, value, -1, wideChar, _countof(wideChar));
+		return std::wstring(wideChar);
+	}
+
+	inline bool DoesArchiveExist(std::string const& archiveName, std::set<std::string> ignoreModList = {})
+	{
+		std::vector<std::string> modIniList;
+		GetModIniList(modIniList);
+		for (std::string const& modIni : modIniList)
+		{
+			bool ignore = false;
+			INIReader configReader(modIni);
+			std::string modName = configReader.Get("Desc", "Title", "");
+			for (std::string const& ignoreMod : ignoreModList)
+			{
+				if (modName.find(ignoreMod) != std::string::npos)
+				{
+					ignore = true;
+					break;
+				}
+			}
+
+			if (ignore)
+			{
+				continue;
+			}
+
+			std::string folder = modIni.substr(0, modIni.length() - 7);
+			for (const auto& dirEntry : std::filesystem::recursive_directory_iterator(folder))
+			{
+				if (dirEntry.path().filename() == archiveName)
+				{
+					return true;
+				}
+			}
+		}
+		return false;
+	}
+
+	inline float rand_FloatRange(float a, float b)
+	{
+		return ((b - a) * ((float)rand() / RAND_MAX)) + a;
+	}
+	inline float Lerp(float firstFloat, float secondFloat, float by)
+	{
+		return firstFloat + (secondFloat - firstFloat) * by;
+	}
+
+	inline float EaseOutQuint(float x)
+	{
+		return 1 - pow(1 - x, 5);
+	}
+
+	inline float EaseOutExpo(float x) {
+		return x == 1 ? 1 : 1 - pow(2, -10 * x);
+	}
+
+	inline float Clamp01(float num) {
+		return std::clamp(num, 0.0f, 1.0f);
+	}
+
+	// Score Generations Code
+	inline bool FileExists(const std::string& path)
+	{
+		struct stat buffer;
+
+		return stat(path.c_str(), &buffer) == 0;
+	}
+
+	inline std::string GetExecutablePath()
+	{
+		char buffer[MAX_PATH];
+
+		GetModuleFileNameA(NULL, buffer, MAX_PATH);
+
+		return buffer;
+	}
+
+	inline std::string GetWorkingDirectory()
+	{
+		std::string executablePath = GetExecutablePath();
+
+		return executablePath.substr(0, executablePath.find_last_of("\\"));
+	}
+
+	inline std::string GetCpkRedirConfig()
+	{
+		return GetWorkingDirectory() + "\\cpkredir.ini";
+	}
+
+	inline std::string ToLower(std::string str)
+	{
+		if (!str.empty())
+			std::transform(str.begin(), str.end(), str.begin(), ::tolower);
+
+		return str;
+	}
+
+	inline bool Compare(const char* charPtr1, const char* charPtr2)
+	{
+		return strcmp(charPtr1, charPtr2) == 0 ? true : false;
+	}
+
+	inline std::string GetModsDatabase()
+	{
+		std::string cpkRedirConfig = GetCpkRedirConfig();
+
+		std::string modsDatabase;
+		const char* mod_default = "mods\\ModsDB.ini";
+		if (FileExists(cpkRedirConfig))
+		{
+			INIReader reader(cpkRedirConfig);
+
+			modsDatabase = reader.Get("CPKREDIR", "ModsDbIni", mod_default);
+		}
+
+		// Early builds of Hedge Mod Manager use relative paths.
+		if (Compare(ToLower(modsDatabase).c_str(), ToLower(mod_default).c_str()))
+			return GetWorkingDirectory() + "\\" + "mods\\ModsDB.ini";
+
+		return modsDatabase;
+	}
+
+	static INIReader reader("mod.ini");
+	static bool SUHud = Common::IsModEnabledID("ptkickass.sonicgenerations.unleashedhud");
+	static bool SUTitle = Common::IsModEnabledID("nextinhkry.sonicgenerations.unleashedtitle");
+	static bool UP = Common::IsModEnabled("Unleashed Project");
+	static bool UPC = Common::IsModEnabledID("the.k1.addon") && UP;
+	static CSonicContext** const PLAYER_CONTEXT_GET = (CSonicContext**)0x1E5E2F0;
 } // namespace Common
