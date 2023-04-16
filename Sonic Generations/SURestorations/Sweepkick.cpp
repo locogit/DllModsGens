@@ -74,7 +74,7 @@ HOOK(void, __fastcall, CSonicStateSquatKickBegin, 0x12526D0, hh::fnd::CStateMach
 HOOK(void, __fastcall, CSonicStateSquatKickAdvance, 0x1252810, hh::fnd::CStateMachineBase::CStateBase* This) {
 	auto* context = (Sonic::Player::CPlayerSpeedContext*)This->GetContextBase();
 	Hedgehog::Math::CVector pos = context->m_spMatrixNode->m_Transform.m_Position;
-	if (sweepkickColTime <= 0 && sweepIni.GetBoolean("Gameplay", "UseSupportShockWave", true)) { Common::CreatePlayerSupportShockWave(pos, 0.5f, 2.5f, 0.1f); }
+	if (sweepkickColTime <= 0 && sweepIni.GetBoolean("Gameplay", "UseSupportShockWave", true)) { Common::CreatePlayerSupportShockWave(pos, 0.15f, 3.5f, 0.1f); }
 	originalCSonicStateSquatKickAdvance(This);
 }
 
@@ -209,6 +209,8 @@ void SweepConfig() {
 	}
 }
 
+float lightColor[3] = {}; // RGBA (A doesn't do anything so we lerp to black)
+
 HOOK(void, __fastcall, SonicUpdateSweep, 0xE6BF20, Sonic::Player::CPlayerSpeed* This, void* _, const hh::fnd::SUpdateInfo& updateInfo) {
 	originalSonicUpdateSweep(This, _, updateInfo);
 	if (BlueBlurCommon::IsModern()) {
@@ -244,7 +246,6 @@ HOOK(void, __fastcall, SonicUpdateSweep, 0xE6BF20, Sonic::Player::CPlayerSpeed* 
 
 				sweepLightAlpha = Common::Lerp(sweepLightAlpha, desiredSweepLightAlpha, updateInfo.DeltaTime * sweepLightAlphaSpeed);
 
-				float lightColor[3] = {}; // RGBA (A doesn't do anything so we lerp to black)
 				lightColor[0] = sweepLightBool ? Common::Lerp(0.0f, sweepIni.GetFloat("Color", "ColorR", 0.0f), sweepLightAlpha) : 0.0f;
 				lightColor[1] = sweepLightBool ? Common::Lerp(0.0f, sweepIni.GetFloat("Color", "ColorG", 0.0f), sweepLightAlpha) : 0.0f;
 				lightColor[2] = sweepLightBool ? Common::Lerp(0.0f, sweepIni.GetFloat("Color", "ColorB", 0.0f), sweepLightAlpha) : 0.0f;

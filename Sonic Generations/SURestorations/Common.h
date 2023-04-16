@@ -2263,9 +2263,40 @@ namespace Common
 	}
 
 	static INIReader reader("mod.ini");
+	static INIReader saveReader("sur_save.ini");
 	static bool SUHud = Common::IsModEnabledID("ptkickass.sonicgenerations.unleashedhud");
 	static bool SUTitle = Common::IsModEnabledID("nextinhkry.sonicgenerations.unleashedtitle");
 	static bool UP = Common::IsModEnabled("Unleashed Project");
 	static bool UPC = Common::IsModEnabledID("the.k1.addon") && UP;
 	static CSonicContext** const PLAYER_CONTEXT_GET = (CSonicContext**)0x1E5E2F0;
+
+	class SaveDataStructure {
+	public:
+		static inline int expLevel;
+		static inline float expAmount;
+		static inline int rings;
+		SaveDataStructure() {};
+		SaveDataStructure(int _expLevel, float _expAmount, float _rings) {
+			expLevel = _expLevel;
+			expAmount = _expAmount;
+			rings = _rings;
+		}
+	};
+
+	static SaveDataStructure saveData = SaveDataStructure(0, 0.0f, 0);
+
+	inline void LoadData() {
+		saveData.expLevel = saveReader.GetInteger("EXP", "EXPLevel", 0);
+		saveData.expAmount = saveReader.GetFloat("EXP", "EXPAmount", 0.0f);
+		saveData.rings = saveReader.GetInteger("Hub", "Rings", 0);
+	}
+
+	inline void SaveDataINI() {
+		INIReader::INIFile ini({
+				INIReader::INISection("EXP", { INIReader::INIValue("EXPLevel", saveData.expLevel), INIReader::INIValue("EXPAmount", saveData.expAmount) }),
+				INIReader::INISection("Hub", { INIReader::INIValue("Rings", saveData.rings) }),
+			});
+
+		INIReader::WriteINI("sur_save.ini", ini);
+	}
 } // namespace Common

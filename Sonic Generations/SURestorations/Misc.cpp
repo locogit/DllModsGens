@@ -74,6 +74,21 @@ HOOK(void, __stdcall, MiscLife, 0xE75520, Sonic::Player::CPlayerContext* context
 HOOK(void, __fastcall, MiscLifeRing, 0xE761A0, int a1) {
 	if (!ringLife) { originalMiscLifeRing(a1); }
 }
+SharedPtrTypeless airBoostParticleHandle;
+SharedPtrTypeless airBoostParticleHandle2;
+float airBoostTimer = -1;
+float airBoostActiveTime = -1;
+bool airBoostParticle = false;
+
+// brianuuu
+HOOK(void, __fastcall, CSonicStateAirBoostBegin, 0x1233380, hh::fnd::CStateMachineBase::CStateBase* This)
+{
+	originalCSonicStateAirBoostBegin(This);
+
+	auto* sonic = (Sonic::Player::CPlayerSpeedContext*)This->GetContextBase();
+	airBoostActiveTime = sonic->m_spParameter->Get<float>(Sonic::Player::ePlayerSpeedParameter_AirBoostTime) - 0.15f;
+	airBoostParticle = false;
+}
 
 HOOK(void, __fastcall, SonicMiscUpdate, 0xE6BF20, Sonic::Player::CPlayerSpeed* This, void* _, const hh::fnd::SUpdateInfo& updateInfo)
 {
@@ -94,8 +109,26 @@ HOOK(void, __fastcall, SonicMiscUpdate, 0xE6BF20, Sonic::Player::CPlayerSpeed* T
 			sonic->m_spParameter->m_scpNode->m_ValueMap[Sonic::Player::ePlayerSpeedParameter_XButtonHoming] = true;
 		}
 
-		if (input.IsDown(Sonic::eKeyState_DpadDown)) {
-			sonic->m_RingCount += 25;
+		if (airBoostActiveTime > -1) {
+			airBoostActiveTime -= updateInfo.DeltaTime;
+			if (airBoostActiveTime <= 0 && !airBoostParticle) {
+				if (input.IsDown(Sonic::eKeyState_X)) {
+					void* middlematrixNode = (void*)((uint32_t)sonic + 0x30);
+					Common::fCGlitterCreate(sonic, airBoostParticleHandle, middlematrixNode, "ef_ch_sng_yh1_boost1", 0);
+					Common::fCGlitterCreate(sonic, airBoostParticleHandle2, middlematrixNode, "ef_ch_sng_yh1_boost2", 0);
+				}
+				airBoostTimer = 0.1f;
+				airBoostParticle = true;
+			}
+		}
+
+		if (airBoostTimer > -1) {
+			airBoostTimer -= updateInfo.DeltaTime;
+			if (airBoostTimer <= 0) {
+				Common::fCGlitterEnd(sonic, airBoostParticleHandle, false);
+				Common::fCGlitterEnd(sonic, airBoostParticleHandle2, false);
+				airBoostTimer = -1;
+			}
 		}
 
 		if (anim == "IdleInWater" && WaterIdle) {
@@ -217,6 +250,7 @@ void NOP(int floatInstrAddr, int paramStrAddr)
 
 void Misc::Install()
 {
+	INSTALL_HOOK(CSonicStateAirBoostBegin);
 	INSTALL_HOOK(CSonicStatePluginOnWaterUpdate);
 
 	if (EnergyChange) {

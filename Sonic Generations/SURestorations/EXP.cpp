@@ -9,7 +9,6 @@ bool expParticleTimerPlay = false;
 bool expHidden = false;
 int expLevel = 0;
 float expAmount = 0;
-const std::string expFileName = "exp.sav";
 
 boost::shared_ptr<Sonic::CGameObjectCSD> spExp;
 Chao::CSD::RCPtr<Chao::CSD::CProject> rcExp;
@@ -63,33 +62,7 @@ HOOK(void, __fastcall, CHudSonicStageDelayProcessImpEXP, 0x109A8D0, Sonic::CGame
 		CreateScreenEXP(This);
 	}
 }
-std::string readExpFile(int index)
-{
-	std::string line;
-	std::ifstream expFile(expFileName);
-	int currentLine = 0;
-	if (expFile.is_open())
-	{
-		while (!expFile.eof()) {
-			currentLine++;
-			std::getline(expFile, line);
-			if (currentLine == index) break;
-		}
-		return line;
-	}
-	else {
-		return "NULL";
-	}
-}
-void writeToExpFile() {
-	std::ofstream expFile(expFileName);
-	if (expFile.is_open())
-	{
-		expFile << std::to_string(expLevel) + "\n";
-		expFile << std::to_string(expAmount) + "\n";
-		expFile.close();
-	}
-}
+
 HOOK(void, __fastcall, ChaosEnergy_MsgGetHudPosition, 0x1096790, void* This, void* Edx, MsgGetHudPosition* message)
 {
 	if (message->m_type == 0)
@@ -169,7 +142,7 @@ void chaosEnergyParticle() {
 				expAmount -= 63;
 				expLevel++;
 			}
-			expAmount = std::clamp(expAmount, 8.8f, 63.0f);
+			expAmount = std::clamp(expAmount, 4.0f, 63.0f);
 		}
 		char text[256];
 		sprintf(text, "%02d", expLevel);
@@ -239,24 +212,24 @@ HOOK(int, __fastcall, ProcMsgRestartStageEXP, 0xE76810, uint32_t* This, void* Ed
 	}
 	return originalProcMsgRestartStageEXP(This, Edx, message);
 }
-HOOK(void, __fastcall, HudResult_MsgStartGoalResultEXP, 0x10B58A0, uint32_t* This, void* Edx, void* message)
-{
-	if (!maxEXP)
-		writeToExpFile();
-	originalHudResult_MsgStartGoalResultEXP(This, Edx, message);
+
+void EXP::Save() {
+	if (!maxEXP) {
+		Common::saveData.expLevel = expLevel;
+		Common::saveData.expAmount = expAmount;
+	}
 }
 
 void EXP::Install() {
 	maxEXP = Common::reader.GetBoolean("EXP", "Max", false);
 
-	expLevel = stoi(readExpFile(1));
-	expAmount = stof(readExpFile(2));
+	expLevel = Common::saveData.expLevel;
+	expAmount = Common::saveData.expAmount;
 
 	INSTALL_HOOK(ChaosEnergy_MsgGetHudPosition);
 	INSTALL_HOOK(CHudSonicStageDelayProcessImpEXP);
 	INSTALL_HOOK(CHudSonicStageUpdateParallelEXP);
 	INSTALL_HOOK(ProcMsgRestartStageEXP);
-	INSTALL_HOOK(HudResult_MsgStartGoalResultEXP);
 
 	// 06 Experience Code
 	// Set absorb time to config settings

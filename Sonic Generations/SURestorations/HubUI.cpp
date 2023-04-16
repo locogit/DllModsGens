@@ -3,35 +3,6 @@ Chao::CSD::RCPtr<Chao::CSD::CProject> rcTownScreen;
 Chao::CSD::RCPtr<Chao::CSD::CScene> info, cam;
 
 int ringCount = 0;
-std::string hubFileName = "hub.sav";
-
-std::string readHubFile(int index)
-{
-	std::string line;
-	std::ifstream hubFile(hubFileName);
-	int currentLine = 0;
-	if (hubFile.is_open())
-	{
-		while (!hubFile.eof()) {
-			currentLine++;
-			std::getline(hubFile, line);
-			if (currentLine == index) break;
-		}
-		return line;
-	}
-	else {
-		return "NULL";
-	}
-}
-
-void writeToHubFile() {
-	std::ofstream hubFile(hubFileName);
-	if (hubFile.is_open())
-	{
-		hubFile << std::to_string(ringCount) + "\n";
-		hubFile.close();
-	}
-}
 
 void CreateScreenTownScreen(Sonic::CGameObject* pParentGameObject)
 {
@@ -57,12 +28,10 @@ void __fastcall RemoveHubCallbackTownScreen(Sonic::CGameObject* This, void*, Son
 	rcTownScreen = nullptr;
 }
 
-HOOK(void, __fastcall, HudResult_MsgStartGoalResultHUB, 0x10B58A0, uint32_t* This, void* Edx, void* message)
-{
+void HubUI::Save() {
 	Sonic::Player::CPlayerSpeedContext* sonic = Sonic::Player::CPlayerSpeedContext::GetInstance();
 	ringCount += sonic->m_RingCount;
-	writeToHubFile();
-	originalHudResult_MsgStartGoalResultHUB(This, Edx, message);
+	Common::saveData.rings = ringCount;
 }
 
 Sonic::CGameObject *ThisObjReference;
@@ -90,7 +59,7 @@ HOOK(void, __fastcall, CHudPlayableMenuStart, 0x108DEB0, Sonic::CGameObject *Thi
 	CSDCommon::PlayAnimation(*info, "Usual_so_Anim", Chao::CSD::eMotionRepeatType_Loop, 1, 0);
 	CSDCommon::PlayAnimation(*cam, "Usual_so_Anim", Chao::CSD::eMotionRepeatType_Loop, 1, 0);
 
-	ringCount = std::clamp(stoi(readHubFile(1)), 0, 999999);
+	ringCount = std::clamp(Common::saveData.rings, 0, 999999);
 
 	char text[256];
 	sprintf(text, "%d", ringCount);
@@ -113,8 +82,7 @@ void HubUI::SetHide(bool hide) {
 	}
 }
 void HubUI::Install() {
-	ringCount = std::clamp(stoi(readHubFile(1)), 0, 999999);
-	INSTALL_HOOK(HudResult_MsgStartGoalResultHUB);
+	ringCount = std::clamp(Common::saveData.rings, 0, 999999);
 	INSTALL_HOOK(CHudPlayableMenuStart);
 	WRITE_MEMORY(0x16A467C, void*, RemoveHubCallbackTownScreen);
 }

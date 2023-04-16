@@ -97,6 +97,7 @@
       <OptimizeReferences>true</OptimizeReferences>
       <AdditionalDependencies>detours.lib;syelog.lib;d3d9.lib;winmm.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <AdditionalLibraryDirectories>$(SolutionDir)Dependencies\BlueBlur;$(SolutionDir)Dependencies\Detours\lib\x86</AdditionalLibraryDirectories>
+      <GenerateDebugInformation>true</GenerateDebugInformation>
     </Link>
     <PostBuildEvent>
       <Command>
@@ -119,6 +120,7 @@
     <ClInclude Include="Pole.h" />
     <ClInclude Include="QTE.h" />
     <ClInclude Include="Ramp.h" />
+    <ClInclude Include="Save.h" />
     <ClInclude Include="Shop.h" />
     <ClInclude Include="ShortJump.h" />
     <ClInclude Include="Stumble.h" />
@@ -146,6 +148,7 @@
     <ClCompile Include="Pole.cpp" />
     <ClCompile Include="QTE.cpp" />
     <ClCompile Include="Ramp.cpp" />
+    <ClCompile Include="Save.cpp" />
     <ClCompile Include="Shop.cpp" />
     <ClCompile Include="ShortJump.cpp" />
     <ClCompile Include="Stumble.cpp" />

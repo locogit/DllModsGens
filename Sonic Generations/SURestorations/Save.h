@@ -1,7 +1,6 @@
 #pragma once
-class EXP
+class Save
 {
 public:
     static void Install();
-    static void Save();
 };

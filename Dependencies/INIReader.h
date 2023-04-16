@@ -314,7 +314,6 @@ inline int ini_parse(const char* filename, ini_handler handler, void* user)
 
 #endif /* __INI_H__ */
 
-
 #ifndef __INIREADER_H__
 #define __INIREADER_H__
 
@@ -327,6 +326,53 @@ inline int ini_parse(const char* filename, ini_handler handler, void* user)
 class INIReader
 {
 public:
+
+    class INIValue {
+    public:
+        std::string name;
+        std::string value;
+        INIValue(std::string _name, std::any _value = "") {
+            name = _name;
+            if (_value.type() == typeid(bool)) {           
+                value = std::any_cast<bool>(_value) ? "True" : "False";
+            }
+            else if(_value.type() == typeid(float)) {
+                value = std::to_string(std::any_cast<float>(_value));
+            }
+            else if (_value.type() == typeid(double)) {
+                value = std::to_string(std::any_cast<double>(_value));
+            }
+            else if (_value.type() == typeid(int)) {
+                value = std::to_string(std::any_cast<int>(_value));
+            }
+            else if (_value.type() == typeid(std::string)) {
+                value = std::any_cast<std::string>(_value);
+            }
+            else if (_value.type() == typeid(const char*)) {
+                value = std::any_cast<const char*>(_value);
+            }
+        }
+    };
+
+    class INISection {
+    public:
+        std::string name;
+        std::vector<INIValue> values;
+        INISection(std::string _name, std::vector<INIValue> _values) {
+            name = _name;
+            values = _values;
+        }
+    };
+
+    class INIFile {
+    public:
+        std::vector<INISection> sections;
+        INIFile() {};
+        INIFile(std::vector<INISection> _sections) {
+            sections = _sections;
+        }
+    };
+
     // Empty Constructor
     INIReader() {};
 
@@ -348,6 +394,7 @@ public:
     // Get a string value from INI file, returning default_value if not found.
     std::string Get(std::string section, std::string name,
                     std::string default_value) const;
+
     bool Check(std::string section, std::string name) const;
 
     // Get an integer (long) value from INI file, returning default_value if
@@ -368,6 +415,27 @@ public:
     // not a valid true/false value. Valid true values are "true", "yes", "on", "1",
     // and valid false values are "false", "no", "off", "0" (not case sensitive).
     bool GetBoolean(std::string section, std::string name, bool default_value) const;
+
+    inline static void WriteINI(std::string filename, INIFile info) {
+        std::string finalStr = "";
+        for (int s = 0; s < info.sections.size(); s++)
+        {
+            INISection section = info.sections[s];
+            finalStr += "[" + section.name + "]";
+            for (int v = 0; v < section.values.size(); v++)
+            {
+                INIValue value = section.values[v];
+                finalStr += "\n" + value.name + "=" + value.value;
+                if (v == section.values.size()-1 && s != info.sections.size()-1) { finalStr += "\n"; }
+            }
+        }
+        std::ofstream iniFile(filename, std::ios::out | std::ios::trunc);
+        if (iniFile.is_open())
+        {
+            iniFile << finalStr;
+            iniFile.close();
+        }
+    }
 
 protected:
     int _error;

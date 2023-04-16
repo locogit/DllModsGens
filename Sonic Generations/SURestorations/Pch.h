@@ -18,6 +18,7 @@
 
 #include <iostream>
 #include <fstream>
+#include <any>
 
 // Dependencies
 #include <INIReader.h>
@@ -44,3 +45,5 @@
 #include "LetterboxHelper.h"
 #include "QTE.h"
 #include "Shop.h"
+#include "DebugDrawText.h"
+#include "Save.h"

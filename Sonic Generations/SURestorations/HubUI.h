@@ -4,4 +4,5 @@ class HubUI
 public:
     static void Install();
     static void SetHide(bool hide);
+    static void Save();
 };

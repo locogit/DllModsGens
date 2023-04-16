@@ -36,9 +36,10 @@ void TestBuild() {
 
 extern "C" _declspec(dllexport) void Init()
 {
+	Common::LoadData();
+
 	CreateConsole();
 	//TestBuild();
-
 	CSDCommon::Initialize();
 
 	if(Common::reader.GetBoolean("Restorations", "Explosion", true)) ArchiveTreePatcher::m_archiveDependencies.push_back(ArchiveDependency("Explosion", { "EnemyCommon" }));
@@ -97,6 +98,8 @@ extern "C" _declspec(dllexport) void Init()
 	//if (Common::SUHud) Medal::Install();
 
 	Missile::Install();
+
+	Save::Install();
 }
 
 extern "C" __declspec(dllexport) void PostInit() {
