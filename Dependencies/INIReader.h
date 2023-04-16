@@ -73,7 +73,7 @@ extern "C" {
              specified by INI_INLINE_COMMENT_PREFIXES). Set to 0 to turn off and match
              Python 3.2+ configparser behaviour. */
 #ifndef INI_ALLOW_INLINE_COMMENTS
-#define INI_ALLOW_INLINE_COMMENTS 1
+#define INI_ALLOW_INLINE_COMMENTS 0
 #endif
 #ifndef INI_INLINE_COMMENT_PREFIXES
 #define INI_INLINE_COMMENT_PREFIXES ";"
@@ -260,6 +260,7 @@ inline int ini_parse_stream(ini_reader reader, void* stream, ini_handler handler
                 *end = '\0';
                 name = rstrip(start);
                 value = lskip(end + 1);
+                
 #if INI_ALLOW_INLINE_COMMENTS
                 end = find_chars_or_comment(value, NULL);
                 if (*end)
@@ -316,7 +317,7 @@ inline int ini_parse(const char* filename, ini_handler handler, void* user)
 
 #ifndef __INIREADER_H__
 #define __INIREADER_H__
-
+#define stringify( name ) #name
 #include <map>
 #include <set>
 #include <string>
@@ -326,17 +327,34 @@ inline int ini_parse(const char* filename, ini_handler handler, void* user)
 class INIReader
 {
 public:
-
     class INIValue {
-    public:
+    private:
         std::string name;
         std::string value;
+    public:
+
+        std::string TidyString(std::string input) {
+            std::string tidy;
+            tidy = std::regex_replace(input, std::regex("\n"), "\\n");
+            return tidy;
+        }
+
+        INIValue() {};
+
         INIValue(std::string _name, std::any _value = "") {
+            Set(_name, _value);
+        }
+
+        INIValue(std::string _name, std::any _value, bool _quotes) {
+            Set(_name, _value, _quotes);
+        }
+
+        void Set(std::string _name, std::any _value, bool _quotes = true) {
             name = _name;
-            if (_value.type() == typeid(bool)) {           
+            if (_value.type() == typeid(bool)) {
                 value = std::any_cast<bool>(_value) ? "True" : "False";
             }
-            else if(_value.type() == typeid(float)) {
+            else if (_value.type() == typeid(float)) {
                 value = std::to_string(std::any_cast<float>(_value));
             }
             else if (_value.type() == typeid(double)) {
@@ -345,33 +363,172 @@ public:
             else if (_value.type() == typeid(int)) {
                 value = std::to_string(std::any_cast<int>(_value));
             }
+            else if (_value.type() == typeid(long)) {
+                value = std::to_string(std::any_cast<long>(_value));
+            }
             else if (_value.type() == typeid(std::string)) {
-                value = std::any_cast<std::string>(_value);
+                if (_quotes) {
+                    value = TidyString('"' + std::any_cast<std::string>(_value) + '"');
+                }
+                else {
+                    value = TidyString(std::any_cast<std::string>(_value));
+                }
             }
             else if (_value.type() == typeid(const char*)) {
-                value = std::any_cast<const char*>(_value);
+                if (_quotes) {
+                    value = TidyString('"' + std::string(*std::any_cast<const char*>(&_value)) + '"');
+                }
+                else {
+                    value = TidyString(std::string(*std::any_cast<const char*>(&_value)));
+                }
             }
+            else if (_value.type() == typeid(char)) {
+                if (_quotes) {
+                    value = TidyString("'" + std::string(std::any_cast<char>(&_value)) + "'");
+                }
+                else {
+                    value = TidyString(std::string(std::any_cast<char>(&_value)));
+                }
+
+            }
+        }
+
+        std::string & GetName() {
+            return name;
+        }
+
+        std::string & GetValue() {
+            return value;
         }
     };
 
     class INISection {
-    public:
-        std::string name;
         std::vector<INIValue> values;
+        std::string name;
+    public:
+        std::vector<INIValue> & getValues() { return values; }
+        INISection() {};
         INISection(std::string _name, std::vector<INIValue> _values) {
             name = _name;
             values = _values;
         }
-    };
 
-    class INIFile {
-    public:
-        std::vector<INISection> sections;
-        INIFile() {};
-        INIFile(std::vector<INISection> _sections) {
-            sections = _sections;
+        INIValue& GetValue(std::string name) {
+            for (INIValue& v : values) {
+                if (v.GetName() == name) {
+                    return v;
+                }
+            }
+        }
+
+        bool HasValue(std::string name) {
+            for (INIValue& v : values) {
+                if (v.GetName() == name) {
+                    return true;
+                }
+            }
+            return false;
+        }
+
+        void SetValue(std::string name, std::any value) {
+            for (INIValue& v : values) {
+                if (v.GetName() == name) {
+                    v.Set(name, value, true);
+                }
+            }
+        }
+
+        void AddValue(std::string name, std::any value) {
+            values.emplace_back(name, value, true);
+        }
+
+        std::string & GetName() {
+            return name;
         }
     };
+
+    class INIFileClass {
+        std::vector<INISection> sections;
+        bool pretty = false;
+    public:
+        std::vector<INISection>& getSections() { return sections; }
+        INIFileClass() {};
+        INIFileClass(std::vector<INISection> _sections, bool _pretty = false) {
+            sections = _sections;
+            pretty = _pretty;
+        }
+
+        INISection& GetSection(const std::string name) {
+            for (INISection& s : sections) {
+                if (s.GetName() == name) {
+                    return s;
+                }
+            }
+        }
+
+        bool HasSection(std::string name) {
+            for (INISection& s : sections) {
+                if (s.GetName() == name) {
+                    return true;
+                }
+            }
+            return false;
+        }
+
+        void AddSection(std::string name, std::vector<INIValue> values = {}) {
+            if (!HasSection(name)) {
+                sections.emplace_back(name, values);
+            }
+            else {
+                GetSection(name).getValues() = values;
+            }
+        }
+
+        bool & IsPretty() {
+            return pretty;
+        }
+
+        void SetIsPretty(bool p) {
+            pretty = p;
+        }
+
+        INIValue& GetValue(std::string section, std::string name) {
+            GetSection(section).GetValue(name);
+        }
+
+        void SetValue(std::string section, std::string name, std::any value) {
+            bool success = false;
+            for (INIValue& v : GetSection(section).getValues()) {
+                if (v.GetName() == name) {
+                    v.Set(name, value, true);
+                    success = true;
+                }
+            }
+            if (!success) {
+                AddValue(section, name, value);
+                SetValue(section, name, value);
+            }
+        }
+
+        void AddValue(std::string section, std::string name, std::any value) {
+            GetSection(section).AddValue(name, value);
+        }
+    };
+
+    // Import existing ini
+    //INIReader::INIFileClass outputFile = INIReader::INIToINIFileClass(filename); Ini file -> IniFileClass
+
+    // Manual initialization
+    //INIReader::INIFileClass outputFile;
+    //outputFile.SetIsPretty(bool);
+    //outputFile.AddValue(sectionName, valueName, value);
+
+    // Get/Set
+    //outputFile.SetValue(sectionName, valueName, value);
+    //std::string value = outputFile.GetValue(sectionName, valueName).GetValue();
+
+    //Export
+	//INIReader::WriteINI("output.ini", outputFile);
 
     // Empty Constructor
     INIReader() {};
@@ -395,7 +552,11 @@ public:
     std::string Get(std::string section, std::string name,
                     std::string default_value) const;
 
-    bool Check(std::string section, std::string name) const;
+    // Searches for a section from INI file, returning false if not found.
+    bool SectionExists(std::string section) const;
+
+    // Searches for a value in a section from INI file, returning false if not found.
+    bool ValueExists(std::string section, std::string name) const;
 
     // Get an integer (long) value from INI file, returning default_value if
     // not found or not a valid integer (decimal "1234", "-1234", or hex "0x4d2").
@@ -416,17 +577,43 @@ public:
     // and valid false values are "false", "no", "off", "0" (not case sensitive).
     bool GetBoolean(std::string section, std::string name, bool default_value) const;
 
-    inline static void WriteINI(std::string filename, INIFile info) {
+    inline static INIFileClass INIToINIFileClass(std::string filename, bool pretty = false) {
+        INIReader reader(filename);
+        INIFileClass file;
+        for (std::string s : reader._sections) {
+            INISection Isection;
+            Isection.GetName() = s;
+
+            for (std::pair<std::string, std::string> v : reader._values) {
+                std::string sectionFile = v.first.substr(0, v.first.find("="));
+                std::string valueName = v.first.substr(v.first.find("=") + 1, v.first.length());
+                if (sectionFile == s) {
+                    Isection.getValues().emplace_back(valueName, v.second, false);
+                }
+            }
+
+            file.getSections().emplace_back(Isection);
+        }
+        file.SetIsPretty(pretty);
+        return file;
+    }
+
+    inline static void WriteINI(std::string filename, INIFileClass info) {
         std::string finalStr = "";
-        for (int s = 0; s < info.sections.size(); s++)
+        for (int s = 0; s < info.getSections().size(); s++)
         {
-            INISection section = info.sections[s];
-            finalStr += "[" + section.name + "]";
-            for (int v = 0; v < section.values.size(); v++)
+            INISection& section = info.getSections()[s];
+            if (s > 0) { finalStr += "\n[" + section.GetName() + "]"; } else{ finalStr += "[" + section.GetName() + "]"; }
+            for (int v = 0; v < section.getValues().size(); v++)
             {
-                INIValue value = section.values[v];
-                finalStr += "\n" + value.name + "=" + value.value;
-                if (v == section.values.size()-1 && s != info.sections.size()-1) { finalStr += "\n"; }
+                INIValue& value = section.getValues()[v];
+                if (info.IsPretty()) {
+                    finalStr += "\n" + value.GetName() + " = " + value.GetValue();
+                }
+                else {
+                    finalStr += "\n" + value.GetName() + "=" + value.GetValue();
+                }
+                if (v == section.getValues().size()-1 && s != info.getSections().size()-1) { finalStr += "\n"; }
             }
         }
         std::ofstream iniFile(filename, std::ios::out | std::ios::trunc);
@@ -490,7 +677,13 @@ inline std::string INIReader::Get(std::string section, std::string name, std::st
 
     return value;
 }
-inline bool INIReader::Check(std::string section, std::string name) const
+
+inline bool INIReader::SectionExists(std::string section) const
+{
+    return Sections().find(section) != Sections().end();
+}
+
+inline bool INIReader::ValueExists(std::string section, std::string name) const
 {
     std::string key = MakeKey(section, name);
 
@@ -499,6 +692,7 @@ inline bool INIReader::Check(std::string section, std::string name) const
 
     return true;
 }
+
 inline long INIReader::GetInteger(std::string section, std::string name, long default_value) const
 {
     std::string valstr = Get(section, name, "");
@@ -543,8 +737,6 @@ inline bool INIReader::GetBoolean(std::string section, std::string name, bool de
 inline std::string INIReader::MakeKey(std::string section, std::string name)
 {
     std::string key = section + "=" + name;
-    // Convert to lower case to make section/name lookups case-insensitive
-    std::transform(key.begin(), key.end(), key.begin(), ::tolower);
     return key;
 }
 

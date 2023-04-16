@@ -37,6 +37,7 @@ void TestBuild() {
 extern "C" _declspec(dllexport) void Init()
 {
 	Common::LoadData();
+	Common::SaveDataINI();
 
 	CreateConsole();
 	//TestBuild();

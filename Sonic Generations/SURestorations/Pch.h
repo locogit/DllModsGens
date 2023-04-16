@@ -19,6 +19,7 @@
 #include <iostream>
 #include <fstream>
 #include <any>
+#include <regex>
 
 // Dependencies
 #include <INIReader.h>

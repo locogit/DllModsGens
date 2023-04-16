@@ -2284,6 +2284,7 @@ namespace Common
 	};
 
 	static SaveDataStructure saveData = SaveDataStructure(0, 0.0f, 0);
+	static INIReader::INIFileClass saveFile;
 
 	inline void LoadData() {
 		saveData.expLevel = saveReader.GetInteger("EXP", "EXPLevel", 0);
@@ -2292,11 +2293,16 @@ namespace Common
 	}
 
 	inline void SaveDataINI() {
-		INIReader::INIFile ini({
-				INIReader::INISection("EXP", { INIReader::INIValue("EXPLevel", saveData.expLevel), INIReader::INIValue("EXPAmount", saveData.expAmount) }),
-				INIReader::INISection("Hub", { INIReader::INIValue("Rings", saveData.rings) }),
-			});
+		saveFile = INIReader::INIFileClass();
+		saveFile.SetIsPretty(false);
 
-		INIReader::WriteINI("sur_save.ini", ini);
+		saveFile.AddSection("EXP");
+		saveFile.AddValue("EXP", "EXPLevel", saveData.expLevel);
+		saveFile.AddValue("EXP", "EXPAmount", saveData.expAmount);
+
+		saveFile.AddSection("Hub");
+		saveFile.AddValue("Hub", "Rings", saveData.rings);
+
+		INIReader::WriteINI("sur_save.ini", saveFile);
 	}
 } // namespace Common
