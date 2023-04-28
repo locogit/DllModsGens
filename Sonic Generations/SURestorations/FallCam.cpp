@@ -1,6 +1,4 @@
 float factor = 0.0f;
-float maxRotation = 90.0f;
-
 bool pause = false;
 
 bool fadePlayed = false;
@@ -11,7 +9,7 @@ boost::shared_ptr<Sonic::CGameObject> fadeSingleton;
 
 Timer* fadeIntroTimer = new Timer(2.0f);
 
-const float deadToRestart = 0.65f;
+const float deadToRestart = 0.75f;
 
 class FadeObject : public Sonic::CGameObject {
 	boost::shared_ptr<Sonic::CGameObjectCSD> spFade;
@@ -107,6 +105,12 @@ void StopFade() {
 	}
 }
 
+float angleBetween(const Hedgehog::Math::CVector& a, const Hedgehog::Math::CVector& b) {
+	float cosTheta = a.dot(b) / (a.norm() * b.norm());
+
+	return acos(cosTheta);
+}
+
 HOOK(void, __fastcall, FallCam_CCameraUpdateParallel, 0x10FB770, Sonic::CCamera* This, void* Edx, const hh::fnd::SUpdateInfo& in_rUpdateInfo) {
 	auto& camera = This->m_MyCamera;
 	auto* context = Sonic::Player::CPlayerSpeedContext::GetInstance();
@@ -131,7 +135,6 @@ HOOK(void, __fastcall, FallCam_CCameraUpdateParallel, 0x10FB770, Sonic::CCamera*
 	}
 
 	if (!isDeadFall) {
-		maxRotation = 90.0f;
 		factor = 0.0f;
 		originalFallCam_CCameraUpdateParallel(This, Edx, in_rUpdateInfo);
 	}
@@ -144,9 +147,9 @@ HOOK(void, __fastcall, FallCam_CCameraUpdateParallel, 0x10FB770, Sonic::CCamera*
 		}
 		else if (!context->m_Is2DMode) {
 			factor += in_rUpdateInfo.DeltaTime * 0.05;
-			maxRotation += in_rUpdateInfo.DeltaTime * 1.0f;
 			camera.m_Direction = context->m_HorizontalRotation * Eigen::Vector3f::UnitZ();
-			const Eigen::AngleAxisf rotPitch(std::clamp((camera.m_Position.y() + 60 - context->m_spMatrixNode->m_Transform.m_Position.y()), -maxRotation, maxRotation) * DEG_TO_RAD, playerRight);
+			const Eigen::AngleAxisf rotPitch(angleBetween(camera.m_Direction, context->m_spMatrixNode->m_Transform.m_Position - camera.m_Position), playerRight);
+			//angleBetween(playerUp, context->m_spMatrixNode->m_Transform.m_Position - camera.m_Position) for yaw but don't use it
 			const Eigen::AngleAxisf rotYaw(180.0f * DEG_TO_RAD, playerUp);
 			const Eigen::AngleAxisf rotRoll(0.0f * DEG_TO_RAD, playerForward);
 			Hedgehog::Math::CQuaternion rotationSlerp = Hedgehog::Math::CQuaternion(camera.m_View.rotation().inverse()).slerp(factor, rotPitch * rotYaw * rotRoll * context->m_spMatrixNode->m_Transform.m_Rotation);

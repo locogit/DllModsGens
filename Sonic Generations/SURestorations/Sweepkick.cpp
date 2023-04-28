@@ -246,11 +246,8 @@ HOOK(void, __fastcall, SonicUpdateSweep, 0xE6BF20, Sonic::Player::CPlayerSpeed* 
 			}
 		}
 
-		if (state == "SquatKick") {
+		if (state == "SquatKick" || sweepKickActive) {
 			if (sonic->m_Velocity.norm() == 0.0f) { sonic->m_spMatrixNode->m_Transform.SetRotation(squatKickRotation); }
-		}
-
-		if (sweepKickActive) {
 			if (Sweepkick::useLight) {
 				if (sweepLightTime != -1) {
 					sweepLightTime -= updateInfo.DeltaTime;
@@ -262,7 +259,6 @@ HOOK(void, __fastcall, SonicUpdateSweep, 0xE6BF20, Sonic::Player::CPlayerSpeed* 
 				}
 			}
 		}
-
 		if (sweepKickActive && (state != "Squat" && state != "Sliding" && state != "Walk" && state != "SlidingEnd" && state != "StompingLand" && state != "SquatCharge" && state != "SquatKick")) {
 			Common::fCGlitterEnd(BlueBlurCommon::GetContext(), squatKickParticleHandle, true);
 			sweepKickActive = false;
