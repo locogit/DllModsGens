@@ -5,6 +5,8 @@ bool pause = false;
 
 bool fadePlayed = false;
 
+bool fallDead = false;
+
 boost::shared_ptr<Sonic::CGameObject> fadeSingleton;
 
 Timer* fadeIntroTimer = new Timer(2.0f);
@@ -69,6 +71,10 @@ public:
 			break;
 		}
 	}
+
+	void SetVisibility(bool visible) {
+		rect->SetHideFlag(!visible);
+	}
 };
 
 HOOK(bool, __fastcall, FallCam_MsgStartPause, 0x010BC130, void* This, void* Edx, void* a2)
@@ -108,11 +114,11 @@ HOOK(void, __fastcall, FallCam_CCameraUpdateParallel, 0x10FB770, Sonic::CCamera*
 	Hedgehog::Math::CVector playerRight = context->m_spMatrixNode->m_Transform.m_Rotation * Hedgehog::Math::CVector::UnitX();
 	Hedgehog::Math::CVector playerUp = context->m_spMatrixNode->m_Transform.m_Rotation * Hedgehog::Math::CVector::UnitY();
 	Hedgehog::Math::CVector playerForward = context->m_spMatrixNode->m_Transform.m_Rotation * Hedgehog::Math::CVector::UnitZ();
-
-	bool isDeadFall = Common::GetSonicStateFlags()->Dead && context->m_pPlayer->m_StateMachine.GetCurrentState()->GetStateName() == "Fall";
+	Hedgehog::Base::CSharedString state = context->m_pPlayer->m_StateMachine.GetCurrentState()->GetStateName();
+	bool isDeadFall = (Common::GetSonicStateFlags()->Dead && (state == "Fall" || state == "NormalDamageDeadAir")) || fallDead;
+	context->m_spParameter->m_scpNode->m_ValueMap[Sonic::Player::ePlayerSpeedParameter_DeadToRestartTime] = deadToRestart + fadeIntroTimer->GetDuration();
 
 	if (Common::GetSonicStateFlags()->Dead) {
-		context->m_spParameter->m_scpNode->m_ValueMap[Sonic::Player::ePlayerSpeedParameter_DeadToRestartTime] = deadToRestart + fadeIntroTimer->GetDuration();
 		if (!fadePlayed) {
 			fadePlayed = true;
 			fadeIntroTimer->GetOnComplete() = [] {	PlayFade(0); };
@@ -125,12 +131,14 @@ HOOK(void, __fastcall, FallCam_CCameraUpdateParallel, 0x10FB770, Sonic::CCamera*
 	}
 
 	if (!isDeadFall) {
-		originalFallCam_CCameraUpdateParallel(This, Edx, in_rUpdateInfo);
 		maxRotation = 90.0f;
 		factor = 0.0f;
+		originalFallCam_CCameraUpdateParallel(This, Edx, in_rUpdateInfo);
 	}
 	else {
 		if (pause) {
+			camera.m_View = (Eigen::Translation3f(camera.m_Position) * Hedgehog::Math::CQuaternion(camera.m_View.rotation().inverse())).inverse().matrix();
+			camera.m_InputView = camera.m_View;
 			originalFallCam_CCameraUpdateParallel(This, Edx, in_rUpdateInfo);
 			return;
 		}
@@ -154,10 +162,18 @@ HOOK(int, __fastcall, FallCam_MsgRestartStage, 0xE76810, uint32_t* This, void* E
 
 	StopFade();
 
+	fallDead = false;
+
 	return result;
 }
 
+HOOK(DWORD*, __fastcall, EventFallDead, 0x5156D0, DWORD* This, char a2) {
+	fallDead = true;
+	return originalEventFallDead(This, a2);
+}
+
 void FallCam::Install() {
+	INSTALL_HOOK(EventFallDead);
 	INSTALL_HOOK(FallCam_MsgStartPause);
 	INSTALL_HOOK(FallCam_MsgFinishPause);
 	INSTALL_HOOK(FallCam_CCameraUpdateParallel);
