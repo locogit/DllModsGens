@@ -26,3 +26,7 @@
 #include <Helpers.h>
 #include <INIReader.h>
 #include <StringHelper.h>
+#include "Discord.h"
+
+#include <discord_rpc.h>
+#include <discord_register.h>

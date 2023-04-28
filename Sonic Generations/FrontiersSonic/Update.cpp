@@ -543,6 +543,7 @@ HOOK(char, __fastcall, CSonicContextHomingUpdate, 0xDFFE30, int* _this, void* _,
 }
 
 void Update::Install() {
+	WRITE_STRING(0x15E72C8, "sn_float_loop");
 	INSTALL_HOOK(SonicUpdate);
 	INSTALL_HOOK(CustomCamera_CCameraUpdateParallel);
 

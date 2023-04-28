@@ -22,6 +22,7 @@
 #include <regex>
 
 // Dependencies
+#include "DebugDrawText.h"
 #include <INIReader.h>
 #include "CSDCommon.h"
 #include "Common.h"
@@ -29,6 +30,7 @@
 #include "AnimationSetPatcher.h"
 #include "Helpers.h"
 #include <StringHelper.h>
+#include "Timer.h"
 
 #include "Misc.h"
 #include "EXP.h"
@@ -44,7 +46,7 @@
 #include "Ramp.h"
 #include "UPC.h"
 #include "LetterboxHelper.h"
-#include "QTE.h"
 #include "Shop.h"
-#include "DebugDrawText.h"
 #include "Save.h"
+#include "Ring.h"
+#include "FallCam.h"

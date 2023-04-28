@@ -84,7 +84,7 @@
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <SDLCheck>true</SDLCheck>
       <ConformanceMode>true</ConformanceMode>
-      <AdditionalIncludeDirectories>$(SolutionDir)Dependencies\BlueBlur;$(SolutionDir)Dependencies;$(SolutionDir)Dependencies\Detours\include;C:\Users\locol\Downloads\DllModsGens\Dependencies\boost;C:\Users\locol\Downloads\DllModsGens\Dependencies\BlueBlurCustom;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(SolutionDir)Dependencies\BlueBlur;C:\Users\Lito\Downloads\DllModsGens\Dependencies;$(SolutionDir)Dependencies\Detours\include;C:\Users\locol\Downloads\DllModsGens\Dependencies\boost;C:\Users\locol\Downloads\DllModsGens\Dependencies\BlueBlurCustom;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <PrecompiledHeader>Use</PrecompiledHeader>
       <PrecompiledHeaderFile>Pch.h</PrecompiledHeaderFile>
       <ForcedIncludeFiles>Pch.h</ForcedIncludeFiles>
@@ -108,6 +108,7 @@
     <ClInclude Include="AnimationSetPatcher.h" />
     <ClInclude Include="ArchiveTreePatcher.h" />
     <ClInclude Include="Common.h" />
+    <ClInclude Include="FallCam.h" />
     <ClInclude Include="LetterboxHelper.h" />
     <ClInclude Include="Misc.h" />
     <ClInclude Include="Crawl.h" />
@@ -118,8 +119,8 @@
     <ClInclude Include="Missile.h" />
     <ClInclude Include="Pch.h" />
     <ClInclude Include="Pole.h" />
-    <ClInclude Include="QTE.h" />
     <ClInclude Include="Ramp.h" />
+    <ClInclude Include="Ring.h" />
     <ClInclude Include="Save.h" />
     <ClInclude Include="Shop.h" />
     <ClInclude Include="ShortJump.h" />
@@ -134,6 +135,7 @@
     <ClCompile Include="Crawl.cpp" />
     <ClCompile Include="CSDCommon.cpp" />
     <ClCompile Include="DllMain.cpp" />
+    <ClCompile Include="FallCam.cpp" />
     <ClCompile Include="LetterboxHelper.cpp" />
     <ClCompile Include="Misc.cpp" />
     <ClCompile Include="EXP.cpp" />
@@ -146,8 +148,8 @@
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Create</PrecompiledHeader>
     </ClCompile>
     <ClCompile Include="Pole.cpp" />
-    <ClCompile Include="QTE.cpp" />
     <ClCompile Include="Ramp.cpp" />
+    <ClCompile Include="Ring.cpp" />
     <ClCompile Include="Save.cpp" />
     <ClCompile Include="Shop.cpp" />
     <ClCompile Include="ShortJump.cpp" />

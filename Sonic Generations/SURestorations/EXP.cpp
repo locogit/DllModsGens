@@ -80,10 +80,9 @@ HOOK(void, __fastcall, ChaosEnergy_MsgGetHudPosition, 0x1096790, void* This, voi
 	originalChaosEnergy_MsgGetHudPosition(This, Edx, message);
 }
 bool renderGameHudEXP;
-bool maxEXP = false;
 HOOK(void, __fastcall, CHudSonicStageUpdateParallelEXP, 0x1098A50, Sonic::CGameObject* This, void* Edx, const hh::fnd::SUpdateInfo& in_rUpdateInfo) {
 	originalCHudSonicStageUpdateParallelEXP(This, Edx, in_rUpdateInfo);
-	if (BlueBlurCommon::IsModern()) {
+	if (BlueBlurCommon::IsModern() && EXP::useStats) {
 		renderGameHudEXP = *(bool*)0x1A430D8;
 		Sonic::Player::CPlayerSpeedContext* sonic = Sonic::Player::CPlayerSpeedContext::GetInstance();
 		if (expParticleTimerPlay) {
@@ -98,7 +97,7 @@ HOOK(void, __fastcall, CHudSonicStageUpdateParallelEXP, 0x1098A50, Sonic::CGameO
 			if (expTime > 0) {
 				expTime -= in_rUpdateInfo.DeltaTime;
 				float frameBefore = exp_count->m_MotionFrame;
-				CSDCommon::PlayAnimation(*exp_count, "size", Chao::CSD::eMotionRepeatType_PlayOnce, 1, (maxEXP) ? 99 : std::clamp(expAmount / 0.63f,0.0f,99.0f));
+				CSDCommon::PlayAnimation(*exp_count, "size", Chao::CSD::eMotionRepeatType_PlayOnce, 1, (EXP::maxStats) ? 99 : std::clamp(expAmount / 0.63f,0.0f,99.0f));
 				CSDCommon::PlayAnimation(*exp_count, "Intro_Anim", Chao::CSD::eMotionRepeatType_PlayOnce, 1, frameBefore);
 			}
 			else if (expTime <= 0) {
@@ -114,14 +113,20 @@ HOOK(void, __fastcall, CHudSonicStageUpdateParallelEXP, 0x1098A50, Sonic::CGameO
 		}
 		if (renderGameHudEXP) {
 			exp_count->SetHideFlag(expHidden);
+			char text[256];
+			sprintf(text, "%02d", expLevel);
+			exp_count->GetNode("exp")->SetText((EXP::maxStats) ? "99" : text);
 		}
 		else {
 			exp_count->SetHideFlag(true);
 		}
 	}
+	else if (BlueBlurCommon::IsModern() && !EXP::useStats) {
+		renderGameHudEXP = false;
+	}
 }
 void chaosEnergyParticle() {
-	if (BlueBlurCommon::IsModern()) {
+	if (BlueBlurCommon::IsModern() && EXP::useStats) {
 		Sonic::Player::CPlayerSpeedContext* sonic = Sonic::Player::CPlayerSpeedContext::GetInstance();
 		void* middlematrixNode = (void*)((uint32_t)sonic + 0x30);
 		printf("[SU Restorations] EXP Particle Collected\n");
@@ -136,7 +141,7 @@ void chaosEnergyParticle() {
 			expCountDown = true;
 			CSDCommon::PlayAnimation(*exp_count, "Intro_Anim", Chao::CSD::eMotionRepeatType_PlayOnce, 0, 1);
 		}
-		if (!maxEXP) {
+		if (!EXP::maxStats) {
 			expAmount += Common::rand_FloatRange(0.15f, 0.35f);
 			if (expAmount >= 63 && expLevel < 99) {
 				expAmount -= 63;
@@ -144,9 +149,6 @@ void chaosEnergyParticle() {
 			}
 			expAmount = std::clamp(expAmount, 4.0f, 63.0f);
 		}
-		char text[256];
-		sprintf(text, "%02d", expLevel);
-		exp_count->GetNode("exp")->SetText((maxEXP) ? "99" : text);
 		//exp_count->GetNode("gauge")->SetScale(expAmount, 0.65f);
 	}
 }
@@ -204,7 +206,7 @@ void __declspec(naked) getEnemyChaosEnergyAmount()
 }
 HOOK(int, __fastcall, ProcMsgRestartStageEXP, 0xE76810, uint32_t* This, void* Edx, void* message)
 {
-	if (exp_count) {
+	if (exp_count && EXP::useStats) {
 		expCountDown = false;
 		expTime = 0;
 		expHidden = true;
@@ -214,14 +216,15 @@ HOOK(int, __fastcall, ProcMsgRestartStageEXP, 0xE76810, uint32_t* This, void* Ed
 }
 
 void EXP::Save() {
-	if (!maxEXP) {
+	if (!EXP::maxStats && EXP::useStats) {
 		Common::saveData.expLevel = expLevel;
 		Common::saveData.expAmount = expAmount;
 	}
 }
 
 void EXP::Install() {
-	maxEXP = Common::reader.GetBoolean("EXP", "Max", false);
+	EXP::maxStats = Common::reader.GetBoolean("EXP", "Max", false);
+	EXP::useStats = true;
 
 	expLevel = Common::saveData.expLevel;
 	expAmount = Common::saveData.expAmount;

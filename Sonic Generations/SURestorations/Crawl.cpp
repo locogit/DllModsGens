@@ -1,9 +1,7 @@
 bool isCrawling = false;
-const float crawlSpeed = 6.75f;
 float crawlEnterTime = 0;
 float crawlExitTime = 0;
 
-float crawlTurnRate = 175;
 float slopeDot;
 
 HOOK(void, __stdcall, CrawlRotate, 0xE310A0, void* a1, float* targetDir, float turnRate1, float turnRateMultiplier, bool noLockDirection, float turnRate2)
@@ -38,11 +36,11 @@ HOOK(void, __fastcall, SquatAdvanceCrawl, 0x1230B60, void* This)
 			sonic->StateFlag(eStateFlag_UpdateYawByVelocity) = true;
 			sonic->StateFlag(eStateFlag_CalibrateFrontDir) = true;
 
-			sonic->m_HorizontalVelocity = playerRotation * Eigen::Vector3f::UnitZ() * crawlSpeed * moveMult;
+			sonic->m_HorizontalVelocity = playerRotation * Eigen::Vector3f::UnitZ() * Crawl::crawlSpeed * moveMult;
 
 			alignas(16) float dir[4] = { inputDirection.x(), inputDirection.y(), inputDirection.z(), 0 };
 			if (!sonic->m_Is2DMode) {
-				originalCrawlRotate(This, dir, 95, PI_F * 10.0f, true, crawlTurnRate * moveMult);
+				originalCrawlRotate(This, dir, Crawl::crawlTurnSpeed*0.55f, PI_F * Crawl::crawlTurnSpeed * 0.06f, true, Crawl::crawlTurnSpeed * moveMult);
 			}
 			else {
 				originalCrawlRotate(This, dir, 1000, 1000, true, 1000);
@@ -55,7 +53,7 @@ HOOK(void, __fastcall, SquatAdvanceCrawl, 0x1230B60, void* This)
 				}
 			}
 
-			if (slopeDot >= .25f && !Common::GetSonicStateFlags()->OnStairs) {
+			if (slopeDot >= .25f && !Common::GetSonicStateFlags()->OnStairs && Crawl::crawlToSlide) {
 				isCrawling = false;
 				sonic->m_HorizontalVelocity += sonic->m_spMatrixNode->m_Transform.m_Rotation * Eigen::Vector3f::UnitZ() * 3.0f;
 				sonic->ChangeState("Sliding");
@@ -63,7 +61,7 @@ HOOK(void, __fastcall, SquatAdvanceCrawl, 0x1230B60, void* This)
 			}
 		}
 		else {
-			if (slopeDot >= .15f && sonic->m_Grounded && !Common::GetSonicStateFlags()->OnStairs) {
+			if (slopeDot >= .15f && sonic->m_Grounded && !Common::GetSonicStateFlags()->OnStairs && Crawl::crawlToSlide) {
 				isCrawling = false;
 				sonic->SetHorizontalVelocity(sonic->m_spMatrixNode->m_Transform.m_Rotation * Eigen::Vector3f::UnitZ() * 5.0f);
 				sonic->ChangeState("Sliding");
@@ -141,6 +139,9 @@ HOOK(void, __fastcall, SonicCrawlUpdate, 0xE6BF20, Sonic::Player::CPlayerSpeed* 
 }
 
 void Crawl::Install() {
+	Crawl::crawlTurnSpeed = 175;
+	Crawl::crawlSpeed = 6.75f;
+	Crawl::crawlToSlide = true;
 	// Brianuuu 06 Experience
 	// Don't allow stick move start sliding from squat
 	WRITE_MEMORY(0x1230D62, uint8_t, 0xEB);

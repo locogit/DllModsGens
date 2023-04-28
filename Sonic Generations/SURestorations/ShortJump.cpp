@@ -1,14 +1,12 @@
 int lastHurdleIndex = 0;
 int currentHurdleIndex = 1;
 
-bool ShortJumpMove() {
-	Sonic::Player::CPlayerSpeedContext* sonic = Sonic::Player::CPlayerSpeedContext::GetInstance();
-	return sonic->m_Velocity.norm() >= 7.0f;
-}
+bool shortJumpMove = false;
 
 void playAnimBegin() {
 	Sonic::Player::CPlayerSpeedContext* sonic = Sonic::Player::CPlayerSpeedContext::GetInstance();
-	if (ShortJumpMove()) {
+	shortJumpMove = sonic->m_Velocity.norm() >= 7.0f;
+	if (shortJumpMove) {
 		currentHurdleIndex = (lastHurdleIndex == 0) ? 1 : 0;
 		lastHurdleIndex = currentHurdleIndex;
 
@@ -22,7 +20,7 @@ void playAnimBegin() {
 
 void playAnimTop() {
 	Sonic::Player::CPlayerSpeedContext* sonic = Sonic::Player::CPlayerSpeedContext::GetInstance();
-	if (!ShortJumpMove()) {
+	if (!shortJumpMove) {
 		sonic->ChangeAnimation("JumpShortTop");
 	}
 }
@@ -39,11 +37,11 @@ void __declspec(naked) ShortTop()
 
 void __declspec(naked) ShortBegin()
 {
-	static uint32_t shortTop = 0x011BF26E;
+	static uint32_t shortBegin = 0x011BF26E;
 	__asm
 	{
 		call playAnimBegin
-		jmp[shortTop]	
+		jmp[shortBegin]	
 	}
 }
 

@@ -34,12 +34,118 @@ void TestBuild() {
 	MessageBox(nullptr, "This is a test build, please give feedback or bug reports if you encounter any. Thanks!", "SU Restorations", MB_ICONINFORMATION);
 }
 
+HOOK(void, __cdecl, InitializeApplicationParams_Restorations, 0x00D65180, Sonic::CParameterFile* This)
+{
+	// Airboost
+	{
+		boost::shared_ptr<Sonic::CParameterGroup> parameterGroupAirBoost;
+		This->CreateParameterGroup(parameterGroupAirBoost, "SU Restorations", "Parameters for SU Restorations");
+		Sonic::CEditParam* airboost_param = parameterGroupAirBoost->CreateParameterCategory("Airboost", "Parameters for the airboost");
+
+		airboost_param->CreateParamBool(&Misc::fadeOutAirBoost, "Fade Out Airboost");
+		airboost_param->CreateParamFloat(&Misc::airBoostActiveTime, "Airboost Active Time");
+		airboost_param->CreateParamFloat(&Misc::airBoostEndTime, "Airboost End Time");
+
+		parameterGroupAirBoost->Flush();
+	}
+
+	// Sweepkick
+	{
+		boost::shared_ptr<Sonic::CParameterGroup> parameterGroupSweep;
+		This->CreateParameterGroup(parameterGroupSweep, "SU Restorations", "Parameters for SU Restorations");
+		Sonic::CEditParam* sweep_param = parameterGroupSweep->CreateParameterCategory("Sweepkick", "Parameters for the sweepkick");
+
+		sweep_param->CreateParamFloat(&Sweepkick::sweepInputTime, "Sweepkick Input Time");
+		sweep_param->CreateParamBool(&Sweepkick::useSupportShockwave, "Use Support Shockwave");
+		sweep_param->CreateParamFloat(&Sweepkick::supportShockwaveDelay, "Support Shockwave Delay");
+		sweep_param->CreateParamBool(&Sweepkick::transitionToStand, "Transition To Stand");
+
+		parameterGroupSweep->Flush();
+	}
+
+	// Sweepkick Light
+	{
+		boost::shared_ptr<Sonic::CParameterGroup> parameterGroupSweepLight;
+		This->CreateParameterGroup(parameterGroupSweepLight, "SU Restorations", "Parameters for SU Restorations");
+		Sonic::CEditParam* sweepLight_param = parameterGroupSweepLight->CreateParameterCategory("Sweepkick Light", "Parameters for the sweepkick light");
+
+		sweepLight_param->CreateParamBool(&Sweepkick::useLight, "Use Sweepkick Light");
+
+		sweepLight_param->CreateParamFloat(&Sweepkick::offsetX, "Sweepkick Light Offset X");
+		sweepLight_param->CreateParamFloat(&Sweepkick::offsetY, "Sweepkick Light Offset Y");
+		sweepLight_param->CreateParamFloat(&Sweepkick::offsetZ, "Sweepkick Light Offset Z");
+
+		sweepLight_param->CreateParamFloat(&Sweepkick::colorR, "Sweepkick Light Color R");
+		sweepLight_param->CreateParamFloat(&Sweepkick::colorG, "Sweepkick Light Color G");
+		sweepLight_param->CreateParamFloat(&Sweepkick::colorB, "Sweepkick Light Color B");
+
+		sweepLight_param->CreateParamFloat(&Sweepkick::lightRange, "Sweepkick Light Range");
+		sweepLight_param->CreateParamFloat(&Sweepkick::lightLifeTime, "Sweepkick Light Lifetime");
+		sweepLight_param->CreateParamFloat(&Sweepkick::lightInDelay, "Sweepkick Light In Delay");
+		sweepLight_param->CreateParamFloat(&Sweepkick::lerpSpeedIn, "Sweepkick Light Speed In");
+		sweepLight_param->CreateParamFloat(&Sweepkick::lerpSpeedOut, "Sweepkick Light Speed Out");
+
+		parameterGroupSweepLight->Flush();
+	}
+
+	// EXP
+	{
+		boost::shared_ptr<Sonic::CParameterGroup> parameterGroupEXP;
+		This->CreateParameterGroup(parameterGroupEXP, "SU Restorations", "Parameters for SU Restorations");
+		Sonic::CEditParam* exp_param = parameterGroupEXP->CreateParameterCategory("EXP", "Parameters for EXP");
+
+		exp_param->CreateParamBool(&EXP::useStats, "Use EXP");
+		exp_param->CreateParamBool(&EXP::maxStats, "Max EXP");
+
+		parameterGroupEXP->Flush();
+	}
+
+	// UpReel
+	{
+		boost::shared_ptr<Sonic::CParameterGroup> parameterGroupUpReel;
+		This->CreateParameterGroup(parameterGroupUpReel, "SU Restorations", "Parameters for SU Restorations");
+		Sonic::CEditParam* pulley_param = parameterGroupUpReel->CreateParameterCategory("Pulley", "Parameters for pulleys");
+
+		pulley_param->CreateParamFloat(&UpReel::upReelForceMultiplier, "Pulley Forward Force Multiplier");
+
+		parameterGroupUpReel->Flush();
+	}
+
+	// Crawl
+	{
+		boost::shared_ptr<Sonic::CParameterGroup> parameterGroupCrawl;
+		This->CreateParameterGroup(parameterGroupCrawl, "SU Restorations", "Parameters for SU Restorations");
+		Sonic::CEditParam* crawl_param = parameterGroupCrawl->CreateParameterCategory("Crawl", "Parameters for crawling");
+
+		crawl_param->CreateParamFloat(&Crawl::crawlSpeed, "Crawl Speed");
+		crawl_param->CreateParamFloat(&Crawl::crawlTurnSpeed, "Crawl Turn Speed");
+		crawl_param->CreateParamBool(&Crawl::crawlToSlide, "Crawl To Slide");
+
+		parameterGroupCrawl->Flush();
+	}
+
+	// Ring Speed
+	{
+		boost::shared_ptr<Sonic::CParameterGroup> parameterGroupRing;
+		This->CreateParameterGroup(parameterGroupRing, "SU Restorations", "Parameters for SU Restorations");
+		Sonic::CEditParam* ring_param = parameterGroupRing->CreateParameterCategory("Ring Speed", "Parameters for ring speed");
+
+		ring_param->CreateParamFloat(&Ring::ringLess100Add, "Ring <= 100");
+		ring_param->CreateParamFloat(&Ring::ringGreat100Less200Add, " 200 > Ring > 100");
+		ring_param->CreateParamFloat(&Ring::ringGreat200Add, "Ring >= 200");
+
+		parameterGroupRing->Flush();
+	}
+
+	originalInitializeApplicationParams_Restorations(This);
+}
+
 extern "C" _declspec(dllexport) void Init()
 {
 	Common::LoadData();
 	Common::SaveDataINI();
 
-	CreateConsole();
+	//CreateConsole();
 	//TestBuild();
 	CSDCommon::Initialize();
 
@@ -74,8 +180,6 @@ extern "C" _declspec(dllexport) void Init()
 
 	Misc::Install();
 
-	//QTE::Install();
-
 	//if (Common::SUTitle || Common::UPC) Shop::Install();
 
 	if(Common::SUHud && Common::UPC) HubUI::Install();
@@ -101,6 +205,12 @@ extern "C" _declspec(dllexport) void Init()
 	Missile::Install();
 
 	Save::Install();
+
+	Ring::Install();
+
+	FallCam::Install();
+
+	INSTALL_HOOK(InitializeApplicationParams_Restorations);
 }
 
 extern "C" __declspec(dllexport) void PostInit() {

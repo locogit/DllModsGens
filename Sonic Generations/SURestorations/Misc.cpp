@@ -80,13 +80,15 @@ float airBoostTimer = -1;
 float airBoostActiveTime = -1;
 bool airBoostParticle = false;
 
+bool water = false;
+
 // brianuuu
 HOOK(void, __fastcall, CSonicStateAirBoostBegin, 0x1233380, hh::fnd::CStateMachineBase::CStateBase* This)
 {
 	originalCSonicStateAirBoostBegin(This);
 
 	auto* sonic = (Sonic::Player::CPlayerSpeedContext*)This->GetContextBase();
-	airBoostActiveTime = sonic->m_spParameter->Get<float>(Sonic::Player::ePlayerSpeedParameter_AirBoostTime) - 0.15f;
+	airBoostActiveTime = sonic->m_spParameter->Get<float>(Sonic::Player::ePlayerSpeedParameter_AirBoostTime) - Misc::airBoostActiveTime;
 	airBoostParticle = false;
 }
 
@@ -109,25 +111,32 @@ HOOK(void, __fastcall, SonicMiscUpdate, 0xE6BF20, Sonic::Player::CPlayerSpeed* T
 			sonic->m_spParameter->m_scpNode->m_ValueMap[Sonic::Player::ePlayerSpeedParameter_XButtonHoming] = true;
 		}
 
-		if (airBoostActiveTime > -1) {
-			airBoostActiveTime -= updateInfo.DeltaTime;
-			if (airBoostActiveTime <= 0 && !airBoostParticle) {
-				if (input.IsDown(Sonic::eKeyState_X)) {
-					void* middlematrixNode = (void*)((uint32_t)sonic + 0x30);
-					Common::fCGlitterCreate(sonic, airBoostParticleHandle, middlematrixNode, "ef_ch_sng_yh1_boost1", 0);
-					Common::fCGlitterCreate(sonic, airBoostParticleHandle2, middlematrixNode, "ef_ch_sng_yh1_boost2", 0);
-				}
-				airBoostTimer = 0.1f;
-				airBoostParticle = true;
-			}
+		if (!Common::GetSonicStateFlags()->OnWater && water) {
+			water = false;
+			sonic->StateFlag(eStateFlag_DisableGroundSmoke) = false;
 		}
 
-		if (airBoostTimer > -1) {
-			airBoostTimer -= updateInfo.DeltaTime;
-			if (airBoostTimer <= 0) {
-				Common::fCGlitterEnd(sonic, airBoostParticleHandle, false);
-				Common::fCGlitterEnd(sonic, airBoostParticleHandle2, false);
-				airBoostTimer = -1;
+		if (Misc::fadeOutAirBoost) {
+			if (airBoostActiveTime > -1) {
+				airBoostActiveTime -= updateInfo.DeltaTime;
+				if (airBoostActiveTime <= 0 && !airBoostParticle) {
+					if (input.IsDown(Sonic::eKeyState_X)) {
+						void* middlematrixNode = (void*)((uint32_t)sonic + 0x30);
+						Common::fCGlitterCreate(sonic, airBoostParticleHandle, middlematrixNode, "ef_ch_sng_yh1_boost1", 0);
+						Common::fCGlitterCreate(sonic, airBoostParticleHandle2, middlematrixNode, "ef_ch_sng_yh1_boost2", 0);
+					}
+					airBoostTimer = Misc::airBoostEndTime;
+					airBoostParticle = true;
+				}
+			}
+
+			if (airBoostTimer > -1) {
+				airBoostTimer -= updateInfo.DeltaTime;
+				if (airBoostTimer <= 0) {
+					Common::fCGlitterEnd(sonic, airBoostParticleHandle, false);
+					Common::fCGlitterEnd(sonic, airBoostParticleHandle2, false);
+					airBoostTimer = -1;
+				}
 			}
 		}
 
@@ -187,6 +196,8 @@ HOOK(void, __fastcall, SonicMiscUpdate, 0xE6BF20, Sonic::Player::CPlayerSpeed* T
 	}
 	originalSonicMiscUpdate(This, _, updateInfo);
 }
+bool driftParticle = false;
+SharedPtrTypeless driftParticleHandle;
 // Skyth (Unleashed Drift) & Briannu (06 Experience)
 HOOK(void, __fastcall, CSonicStatePluginOnWaterUpdate, 0x119BED0, Hedgehog::Universe::TStateMachine<Sonic::Player::CPlayerSpeedContext>::TState* This)
 {
@@ -198,8 +209,19 @@ HOOK(void, __fastcall, CSonicStatePluginOnWaterUpdate, 0x119BED0, Hedgehog::Univ
 	Hedgehog::Base::CSharedString state = sonic->m_pPlayer->m_StateMachine.GetCurrentState()->GetStateName();
 	Hedgehog::Base::CSharedString anim = sonic->GetCurrentAnimationName();
 
+	if (!water) {
+		water = true;
+		sonic->StateFlag(eStateFlag_DisableGroundSmoke) = true;
+	}
+
 	if (sonic->StateFlag(eStateFlag_OnWater) && state == "Drift" && !sonic->StateFlag(eStateFlag_Boost))
 	{
+		if (!driftParticle) {
+			driftParticle = true;
+			auto RefNode = sonic->m_pPlayer->m_spCharacterModel->GetNode("Reference");
+			Common::fCGlitterCreate(sonic, driftParticleHandle, &RefNode, "ef_ch_sns_yh1_watersplash2", 0);
+		}
+
 		if (sonic->m_Velocity.norm() >= 20.0f) {
 			sonic->m_Velocity *= 1.0f - deltaTime * 0.7f;
 			Common::GetSonicStateFlags()->AcceptBuoyancyForce = true;
@@ -219,6 +241,10 @@ HOOK(void, __fastcall, CSonicStatePluginOnWaterUpdate, 0x119BED0, Hedgehog::Univ
 	}
 	else
 	{
+		if (driftParticle) {
+			driftParticle = false;
+			Common::fCGlitterEnd(sonic, driftParticleHandle, false);
+		}
 		WRITE_MEMORY(0x119C0E5, uint8_t, 0x76, 0x59);
 		WRITE_MEMORY(0xDED132, uint8_t, 0x88, 0x59, 0x59);
 		WRITE_MEMORY(0xDFB98A, uint8_t, 0x74, 0x3A, 0x8B, 0x86, 0x7C, 0x02, 0x00,
@@ -250,7 +276,15 @@ void NOP(int floatInstrAddr, int paramStrAddr)
 
 void Misc::Install()
 {
-	INSTALL_HOOK(CSonicStateAirBoostBegin);
+
+	Misc::fadeOutAirBoost = Common::reader.GetBoolean("Restorations", "AirBoostFade", true);
+	Misc::airBoostActiveTime = 0.3f;
+	Misc::airBoostEndTime = 0.3f;
+
+	if (Common::reader.GetBoolean("Restorations", "AirBoostFade", true)) {
+		INSTALL_HOOK(CSonicStateAirBoostBegin);
+	}
+
 	INSTALL_HOOK(CSonicStatePluginOnWaterUpdate);
 
 	if (EnergyChange) {
