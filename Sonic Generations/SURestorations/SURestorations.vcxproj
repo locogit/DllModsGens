@@ -107,15 +107,15 @@
   <ItemGroup>
     <ClInclude Include="AnimationSetPatcher.h" />
     <ClInclude Include="ArchiveTreePatcher.h" />
-    <ClInclude Include="Common.h" />
     <ClInclude Include="FallCam.h" />
     <ClInclude Include="LetterboxHelper.h" />
+    <ClInclude Include="Light.h" />
+    <ClInclude Include="Math.h" />
     <ClInclude Include="Misc.h" />
     <ClInclude Include="Crawl.h" />
     <ClInclude Include="CSDCommon.h" />
     <ClInclude Include="EXP.h" />
     <ClInclude Include="HubUI.h" />
-    <ClInclude Include="Medal.h" />
     <ClInclude Include="Missile.h" />
     <ClInclude Include="Pch.h" />
     <ClInclude Include="Pole.h" />
@@ -137,10 +137,10 @@
     <ClCompile Include="DllMain.cpp" />
     <ClCompile Include="FallCam.cpp" />
     <ClCompile Include="LetterboxHelper.cpp" />
+    <ClCompile Include="Light.cpp" />
     <ClCompile Include="Misc.cpp" />
     <ClCompile Include="EXP.cpp" />
     <ClCompile Include="HubUI.cpp" />
-    <ClCompile Include="Medal.cpp" />
     <ClCompile Include="Missile.cpp" />
     <ClCompile Include="Mod.cpp" />
     <ClCompile Include="Pch.cpp">

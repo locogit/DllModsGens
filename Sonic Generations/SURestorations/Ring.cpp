@@ -35,24 +35,23 @@ void OnRing(hh::fnd::Message& msg) {
 	if (!BlueBlurCommon::IsModern()) { return; }
 
 	auto const* context = Sonic::Player::CPlayerSpeedContext::GetInstance();
-	if (context->m_pPlayer->m_ActorID == msg.m_SenderActorID)
-	{
-		int rings = context->m_RingCount;
-		if (rings % 25 == 0 && rings > 0) {
-			if (rings <= 100) {
-				speed += 2.5f;
-			}
-			else if (rings < 200 && rings > 100) {
-				speed += 1.0f;
-			}
-			else if (rings >= 200) {
-				speed += 0.5f;
-			}
+	if (context->m_pPlayer->m_ActorID != msg.m_SenderActorID) { return; }
 
-			float* maxSpeed = Common::GetPlayerMaxSpeed();
-			*maxSpeed = GetCorrectedSpeed();
-		}
+	int rings = context->m_RingCount;
+	if (rings % 25 != 0 || rings <= 0) { return; }
+
+	if (rings <= 100) {
+		speed += 2.5f;
 	}
+	else if (rings < 200 && rings > 100) {
+		speed += 1.0f;
+	}
+	else if (rings >= 200) {
+		speed += 0.5f;
+	}
+
+	float* maxSpeed = Common::GetPlayerMaxSpeed();
+	*maxSpeed = GetCorrectedSpeed();
 }
 
 HOOK(void, __fastcall, CObjRingProcMsgHitEventCollision, 0x10534B0, Sonic::CGameObject3D* This, void* Edx, hh::fnd::Message& in_rMsg)

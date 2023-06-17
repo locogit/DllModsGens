@@ -19,7 +19,7 @@ public:
 		}
 		pScene->SetMotion(name);
 		pScene->SetMotionFrame(startFrame);
-		float speed = 1;
+		float speed = motionSpeed;
 		if (startFrame == endFrame)
 			endFrame = pScene->m_MotionEndFrame;
 		if (reverse)

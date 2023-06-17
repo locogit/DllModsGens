@@ -22,6 +22,12 @@ public:
 
     static inline float colorR, colorG, colorB;
 
+    static inline float colorScalar;
+
+    static inline float colorRSS, colorGSS, colorBSS;
+
+    static inline float colorScalarSS;
+
     static inline float sweepInputTime;
 
     static inline bool useLight;

@@ -105,8 +105,7 @@ HOOK(void, __fastcall, SonicMiscUpdate, 0xE6BF20, Sonic::Player::CPlayerSpeed* T
 		Hedgehog::Base::CSharedString state = This->m_StateMachine.GetCurrentState()->GetStateName();
 		Hedgehog::Base::CSharedString anim = sonic->GetCurrentAnimationName();
 		Sonic::SPadState input = Sonic::CInputState::GetInstance()->GetPadState();
-		//printf("\n%s", anim);
-		
+
 		if (HomingX && sonic->m_spParameter->Get<bool>(Sonic::Player::ePlayerSpeedParameter_XButtonHoming) != true) {
 			sonic->m_spParameter->m_scpNode->m_ValueMap[Sonic::Player::ePlayerSpeedParameter_XButtonHoming] = true;
 		}
@@ -122,8 +121,8 @@ HOOK(void, __fastcall, SonicMiscUpdate, 0xE6BF20, Sonic::Player::CPlayerSpeed* T
 				if (airBoostActiveTime <= 0 && !airBoostParticle) {
 					if (input.IsDown(Sonic::eKeyState_X)) {
 						void* middlematrixNode = (void*)((uint32_t)sonic + 0x30);
-						Common::fCGlitterCreate(sonic, airBoostParticleHandle, middlematrixNode, "ef_ch_sng_yh1_boost1", 0);
-						Common::fCGlitterCreate(sonic, airBoostParticleHandle2, middlematrixNode, "ef_ch_sng_yh1_boost2", 0);
+						Common::fCGlitterCreate(sonic, airBoostParticleHandle, middlematrixNode, (BlueBlurCommon::IsSuper() ? "ef_ch_sps_yh1_boost1" : "ef_ch_sng_yh1_boost1"), 0);
+						Common::fCGlitterCreate(sonic, airBoostParticleHandle2, middlematrixNode, (BlueBlurCommon::IsSuper() ? "ef_ch_sps_yh1_boost2" : "ef_ch_sng_yh1_boost2"), 0);
 					}
 					airBoostTimer = Misc::airBoostEndTime;
 					airBoostParticle = true;
@@ -276,7 +275,6 @@ void NOP(int floatInstrAddr, int paramStrAddr)
 
 void Misc::Install()
 {
-
 	Misc::fadeOutAirBoost = Common::reader.GetBoolean("Restorations", "AirBoostFade", true);
 	Misc::airBoostActiveTime = 0.3f;
 	Misc::airBoostEndTime = 0.3f;

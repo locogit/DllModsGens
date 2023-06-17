@@ -78,6 +78,12 @@ HOOK(void, __cdecl, InitializeApplicationParams_Restorations, 0x00D65180, Sonic:
 		sweepLight_param->CreateParamFloat(&Sweepkick::colorR, "Sweepkick Light Color R");
 		sweepLight_param->CreateParamFloat(&Sweepkick::colorG, "Sweepkick Light Color G");
 		sweepLight_param->CreateParamFloat(&Sweepkick::colorB, "Sweepkick Light Color B");
+		sweepLight_param->CreateParamFloat(&Sweepkick::colorScalar, "Sweepkick Light Color Scalar");
+
+		sweepLight_param->CreateParamFloat(&Sweepkick::colorRSS, "Sweepkick Light Color R Super");
+		sweepLight_param->CreateParamFloat(&Sweepkick::colorGSS, "Sweepkick Light Color G Super");
+		sweepLight_param->CreateParamFloat(&Sweepkick::colorBSS, "Sweepkick Light Color B Super");
+		sweepLight_param->CreateParamFloat(&Sweepkick::colorScalarSS, "Sweepkick Light Color Scalar Super");
 
 		sweepLight_param->CreateParamFloat(&Sweepkick::lightRange, "Sweepkick Light Range");
 		sweepLight_param->CreateParamFloat(&Sweepkick::lightLifeTime, "Sweepkick Light Lifetime");
@@ -120,6 +126,7 @@ HOOK(void, __cdecl, InitializeApplicationParams_Restorations, 0x00D65180, Sonic:
 		crawl_param->CreateParamFloat(&Crawl::crawlSpeed, "Crawl Speed");
 		crawl_param->CreateParamFloat(&Crawl::crawlTurnSpeed, "Crawl Turn Speed");
 		crawl_param->CreateParamBool(&Crawl::crawlToSlide, "Crawl To Slide");
+		crawl_param->CreateParamFloat(&Crawl::crawlSlipMult, "Crawl Slip Multiplier");
 
 		parameterGroupCrawl->Flush();
 	}
@@ -159,8 +166,7 @@ extern "C" _declspec(dllexport) void Init()
 	ArchiveTreePatcher::m_archiveDependencies.push_back(ArchiveDependency("Pole", { "ActionCommon" }));
 	ArchiveTreePatcher::m_archiveDependencies.push_back(ArchiveDependency("SonicCrawl", { "Sonic" }));
 	ArchiveTreePatcher::m_archiveDependencies.push_back(ArchiveDependency("SonicSweepKick", { "SonicActionCommon" }));
-	ArchiveTreePatcher::m_archiveDependencies.push_back(ArchiveDependency("SonicUI", { "SonicActionCommonHud" }));
-	ArchiveTreePatcher::m_archiveDependencies.push_back(ArchiveDependency("SonicUIReplace", { "SonicActionCommonHud" }));
+	ArchiveTreePatcher::m_archiveDependencies.push_back(ArchiveDependency("SonicUI", { "Sonic" }));
 	ArchiveTreePatcher::m_archiveDependencies.push_back(ArchiveDependency("SonicRamp", { "Sonic" }));
 	ArchiveTreePatcher::m_archiveDependencies.push_back(ArchiveDependency("SonicEXP", { "Sonic" }));
 	ArchiveTreePatcher::m_archiveDependencies.push_back(ArchiveDependency("SonicSound", { "Sonic" }));

@@ -34,7 +34,7 @@ HOOK(void, __fastcall, CHudSonicStageDelayProcessImpMissile, 0x109A8D0, Sonic::C
 
 		Sonic::CCsdDatabaseWrapper wrapperLockOn(This->m_pMember->m_pGameDocument->m_pMember->m_spDatabase.get());
 
-		auto spCsdProjectLockOn = wrapperLockOn.GetCsdProject("ui_lcursor_launcher");
+		auto spCsdProjectLockOn = wrapperLockOn.GetCsdProject("ui_lcursor_elauncher");
 
 		size_t& flags = ((size_t*)This)[151];
 
@@ -105,24 +105,9 @@ HOOK(void, __fastcall, SonicMissileUpdate, 0xE6BF20, Sonic::Player::CPlayerSpeed
 	}
 }
 
-HOOK(int, __fastcall, test, 0x12411B0, int This, int a2) {
-	printf("\nhi squidward");
-	if (BlueBlurCommon::IsModern()) {
-		missileTimer = 1.5f;
-		if (cursorHidden) {
-			cursor_enemy->SetHideFlag(false);
-			CSDCommon::PlayAnimation(*cursor_enemy, "Lock_Anim", Chao::CSD::eMotionRepeatType_PlayOnce, 0, 1);
-			cursorHidden = false;
-		}
-	}
-	return originaltest(This, a2);
-}
-
-
 void Missile::Install() {
-	INSTALL_HOOK(test);
-	//INSTALL_HOOK(SonicMissileUpdate);
-	//INSTALL_HOOK(missile);
+	INSTALL_HOOK(SonicMissileUpdate);
+	INSTALL_HOOK(missile);
 	INSTALL_HOOK(CHudSonicStageDelayProcessImpMissile);
 	INSTALL_HOOK(CHudSonicStageUpdateParallelMissile);
 	INSTALL_HOOK(ProcMsgRestartStageMissile);

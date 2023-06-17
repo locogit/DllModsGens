@@ -45,8 +45,6 @@ HOOK(void, __fastcall, CHudPlayableMenuStart, 0x108DEB0, Sonic::CGameObject *Thi
 
 	auto spCsdProjectTown = wrapper.GetCsdProject("ui_townscreen");
 
-	size_t& flags = ((size_t*)This)[151];
-
 	rcTownScreen = spCsdProjectTown->m_rcProject;
 	info = rcTownScreen->CreateScene("info");
 	info->SetPosition(0, 0);
@@ -71,8 +69,6 @@ HOOK(void, __fastcall, CHudPlayableMenuStart, 0x108DEB0, Sonic::CGameObject *Thi
 	info->GetNode("M_medal_lv_num")->SetText("7");
 	info->GetNode("M_medal_num")->SetText("[200]");
 
-	flags &= ~(0x1 | 0x2 | 0x4 | 0x200 | 0x800); // Mask to prevent crash when game tries accessing the elements we disabled later on
-
 	CreateScreenTownScreen(This);
 }
 void HubUI::SetHide(bool hide) {
@@ -84,5 +80,4 @@ void HubUI::SetHide(bool hide) {
 void HubUI::Install() {
 	ringCount = std::clamp(Common::saveData.rings, 0, 999999);
 	INSTALL_HOOK(CHudPlayableMenuStart);
-	WRITE_MEMORY(0x16A467C, void*, RemoveHubCallbackTownScreen);
 }

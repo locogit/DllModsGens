@@ -24,14 +24,14 @@ HOOK(int, __fastcall, CSonicStateFallStart, 0x1118FB0, hh::fnd::CStateMachineBas
 HOOK(void, __fastcall, SonicStumbleUpdate, 0xE6BF20, Sonic::Player::CPlayerSpeed* This, void* _, const hh::fnd::SUpdateInfo& updateInfo) {
 	originalSonicStumbleUpdate(This, _, updateInfo);
 
-	if (BlueBlurCommon::IsModern()) {
-		Hedgehog::Base::CSharedString state = This->m_StateMachine.GetCurrentState()->GetStateName();
-		if (state == "StumbleAir" && !stumbleAir) {
-			stumbleAir = true;
-		}
-		if (state != "StumbleAir" && stumbleAir) {
-			stumbleAir = false;
-		}
+	if (!BlueBlurCommon::IsModern()) { return; }
+
+	Hedgehog::Base::CSharedString state = This->m_StateMachine.GetCurrentState()->GetStateName();
+	if (state == "StumbleAir" && !stumbleAir) {
+		stumbleAir = true;
+	}
+	else if (state != "StumbleAir" && stumbleAir) {
+		stumbleAir = false;
 	}
 }
 void Stumble::Install() {

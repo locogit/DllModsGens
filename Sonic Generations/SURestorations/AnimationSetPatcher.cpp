@@ -9,6 +9,7 @@ HOOK(bool, __fastcall, CAnimationControlSingle_Debug, 0x6D84F0, uint32_t** This,
     if (name.find("sn_") != std::string::npos)
     {
         printf("%s\n", name.c_str());
+        DebugDrawText::log(format("Anim File : %s", name.c_str()));
     }
     return originalCAnimationControlSingle_Debug(This, Edx, a2, a3);
 }
@@ -170,6 +171,15 @@ void AnimationSetPatcher::applyPatches()
     m_newAnimationData.emplace_back(CrawlExit, "sn_crawlE", 1.0f, false, nullptr);
     m_newAnimationData.emplace_back(CrawlLoop, "sn_crawl_loop", 1.75f, true, nullptr);
     m_newAnimationData.emplace_back(JumpBoardLoop, "sn_jumpstand_s", 1.0f, false, nullptr);
+
+    m_newAnimationDataSuper.emplace_back(CrawlEnter, "ssn_crawlS", 1.0f, false, nullptr);
+    m_newAnimationDataSuper.emplace_back(CrawlExit, "ssn_crawlE", 1.0f, false, nullptr);
+    m_newAnimationDataSuper.emplace_back(CrawlLoop, "ssn_crawl_loop", 1.75f, true, nullptr);
+
+    m_newAnimationDataSuper.emplace_back("SquatKick", "ssn_squat_kick", 1.0f, false, nullptr);
+
+    INSTALL_HOOK(CAnimationControlSingle_Debug);
+
     if (!m_newAnimationData.empty())
     {
         INSTALL_HOOK(InitializeSonicAnimationList);

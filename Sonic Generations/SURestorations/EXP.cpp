@@ -45,8 +45,6 @@ HOOK(void, __fastcall, CHudSonicStageDelayProcessImpEXP, 0x109A8D0, Sonic::CGame
 
 		auto spCsdProjectExp = wrapperExp.GetCsdProject("exp");
 
-		size_t& flags = ((size_t*)This)[151];
-
 		rcExp = spCsdProjectExp->m_rcProject;
 		exp_count = rcExp->CreateScene("exp_count");
 		char text[256];
@@ -56,8 +54,6 @@ HOOK(void, __fastcall, CHudSonicStageDelayProcessImpEXP, 0x109A8D0, Sonic::CGame
 		exp_count->SetPosition(0, 0);
 		CSDCommon::FreezeMotion(*exp_count);
 		expHidden = true;
-
-		flags &= ~(0x1 | 0x2 | 0x4 | 0x200 | 0x800); // Mask to prevent crash when game tries accessing the elements we disabled later on
 
 		CreateScreenEXP(This);
 	}
@@ -133,7 +129,7 @@ void chaosEnergyParticle() {
 		if (!expParticleTimerPlay && expParticleTime <= 0) {
 			expParticleTimerPlay = true;
 			expParticleTime = expParticleTimer;
-			Common::fCGlitterCreate(sonic, ChaosEnergyHandle, middlematrixNode, "exp_particles", 0);
+			Common::fCGlitterCreate(sonic, ChaosEnergyHandle, middlematrixNode, "ef_ch_sng_lms_expcol", 0);
 		}
 		if (expHidden && expTime <= 0 && !expCountDown) {
 			expHidden = false;

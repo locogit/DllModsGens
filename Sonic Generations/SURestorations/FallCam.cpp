@@ -7,9 +7,9 @@ bool fallDead = false;
 
 boost::shared_ptr<Sonic::CGameObject> fadeSingleton;
 
-Timer* fadeIntroTimer = new Timer(2.0f);
+Timer* fadeIntroTimer = new Timer(3.5f);
 
-const float deadToRestart = 0.75f;
+const float deadToRestart = 0.25f;
 
 class FadeObject : public Sonic::CGameObject {
 	boost::shared_ptr<Sonic::CGameObjectCSD> spFade;
@@ -55,17 +55,17 @@ public:
 		fadeSingleton = nullptr;
 	}
 
-	void Play(int id) {
+	void Play(int id, float speed = 1.0f) {
 		switch (id)
 		{
 		default:
-			CSDCommon::PlayAnimation(*rect, "Fade_Black", Chao::CSD::eMotionRepeatType_PlayOnce, 1.0f, 0.0f, 0.0f, true);
+			CSDCommon::PlayAnimation(*rect, "Fade_Black", Chao::CSD::eMotionRepeatType_PlayOnce, speed, 0.0f, 0.0f, true);
 			break;
 		case 0:
-			CSDCommon::PlayAnimation(*rect, "Fade_Black", Chao::CSD::eMotionRepeatType_PlayOnce, 1.0f, 0.0f, 0.0f, true);
+			CSDCommon::PlayAnimation(*rect, "Fade_Black", Chao::CSD::eMotionRepeatType_PlayOnce, speed, 0.0f, 0.0f, true);
 			break;
 		case 1:
-			CSDCommon::PlayAnimation(*rect, "Fade_White", Chao::CSD::eMotionRepeatType_PlayOnce, 1.0f, 0.0f, 0.0f, true);
+			CSDCommon::PlayAnimation(*rect, "Fade_White", Chao::CSD::eMotionRepeatType_PlayOnce, speed, 0.0f, 0.0f, true);
 			break;
 		}
 	}
@@ -87,7 +87,7 @@ HOOK(int, __fastcall, FallCam_MsgFinishPause, 0x010BC110, void* This, void* Edx,
 	return originalFallCam_MsgFinishPause(This, Edx, a2);
 }
 
-void PlayFade(int id) {
+void PlayFade(int id, float speed = 1.0f) {
 	auto* context = Sonic::Player::CPlayerSpeedContext::GetInstance();
 	if (fadeSingleton)
 	{
@@ -95,7 +95,7 @@ void PlayFade(int id) {
 	}
 	fadeSingleton = boost::make_shared<FadeObject>();
 	context->m_pPlayer->m_pMember->m_pGameDocument->AddGameObject(fadeSingleton);
-	((FadeObject*)fadeSingleton.get())->Play(id);
+	((FadeObject*)fadeSingleton.get())->Play(id, speed);
 }
 
 void StopFade() {
@@ -115,17 +115,26 @@ HOOK(void, __fastcall, FallCam_CCameraUpdateParallel, 0x10FB770, Sonic::CCamera*
 	auto& camera = This->m_MyCamera;
 	auto* context = Sonic::Player::CPlayerSpeedContext::GetInstance();
 
+	if (!context) {
+		originalFallCam_CCameraUpdateParallel(This, Edx, in_rUpdateInfo);
+		return;
+	}
+
 	Hedgehog::Math::CVector playerRight = context->m_spMatrixNode->m_Transform.m_Rotation * Hedgehog::Math::CVector::UnitX();
 	Hedgehog::Math::CVector playerUp = context->m_spMatrixNode->m_Transform.m_Rotation * Hedgehog::Math::CVector::UnitY();
 	Hedgehog::Math::CVector playerForward = context->m_spMatrixNode->m_Transform.m_Rotation * Hedgehog::Math::CVector::UnitZ();
 	Hedgehog::Base::CSharedString state = context->m_pPlayer->m_StateMachine.GetCurrentState()->GetStateName();
 	bool isDeadFall = (Common::GetSonicStateFlags()->Dead && (state == "Fall" || state == "NormalDamageDeadAir")) || fallDead;
-	context->m_spParameter->m_scpNode->m_ValueMap[Sonic::Player::ePlayerSpeedParameter_DeadToRestartTime] = deadToRestart + fadeIntroTimer->GetDuration();
+
+	float time = deadToRestart + fadeIntroTimer->GetDuration();
+	context->m_spParameter->m_scpNode->m_ValueMap[Sonic::Player::ePlayerSpeedParameter_DeadToRestartTime] = time;
+	context->m_spParameter->m_scpNode->m_ValueMap[Sonic::Player::ePlayerSpeedParameter_DeadBgmWaitTime] = time - 0.1f;
+	context->m_spParameter->m_scpNode->m_ValueMap[Sonic::Player::ePlayerSpeedParameter_DeadBgmFadeTime] = 0.1f;
 
 	if (Common::GetSonicStateFlags()->Dead) {
 		if (!fadePlayed) {
 			fadePlayed = true;
-			fadeIntroTimer->GetOnComplete() = [] {	PlayFade(0); };
+			fadeIntroTimer->GetOnComplete() = [] {	PlayFade(0, 1.0f); };
 			fadeIntroTimer->Start();
 		}
 		fadeIntroTimer->Update(in_rUpdateInfo.DeltaTime);
@@ -135,7 +144,6 @@ HOOK(void, __fastcall, FallCam_CCameraUpdateParallel, 0x10FB770, Sonic::CCamera*
 	}
 
 	if (!isDeadFall) {
-		factor = 0.0f;
 		originalFallCam_CCameraUpdateParallel(This, Edx, in_rUpdateInfo);
 	}
 	else {
@@ -166,6 +174,8 @@ HOOK(int, __fastcall, FallCam_MsgRestartStage, 0xE76810, uint32_t* This, void* E
 	StopFade();
 
 	fallDead = false;
+
+	factor = 0.0f;
 
 	return result;
 }

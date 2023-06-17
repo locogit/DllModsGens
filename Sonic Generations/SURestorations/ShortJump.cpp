@@ -45,19 +45,15 @@ void __declspec(naked) ShortBegin()
 	}
 }
 
-HOOK(void, __fastcall, SonicShortJumpUpdate, 0xE6BF20, Sonic::Player::CPlayerSpeed* This, void* _, const hh::fnd::SUpdateInfo& updateInfo) {
-	originalSonicShortJumpUpdate(This, _, updateInfo);
-	if (BlueBlurCommon::IsModern()) {
-		Sonic::Player::CPlayerSpeedContext* sonic = This->GetContext();
-		Hedgehog::Base::CSharedString state = This->m_StateMachine.GetCurrentState()->GetStateName();
-		Hedgehog::Base::CSharedString anim = sonic->GetCurrentAnimationName();
-		if (state == "JumpHurdle")
-			lastHurdleIndex = (anim == "JumpHurdleL") ? 1 : 0;
-	}
+HOOK(int, __fastcall, HurdleJumpBegin, 0xDF1760, int a1, void* Edx) {
+	Sonic::Player::CPlayerSpeedContext* sonic = Sonic::Player::CPlayerSpeedContext::GetInstance();
+	Hedgehog::Base::CSharedString anim = sonic->GetCurrentAnimationName();
+	lastHurdleIndex = (anim == "JumpHurdleL") ? 1 : 0;
+	return originalHurdleJumpBegin(a1, Edx);
 }
 
 void ShortJump::Install() {
-	INSTALL_HOOK(SonicShortJumpUpdate);
+	INSTALL_HOOK(HurdleJumpBegin);
 	WRITE_JUMP(0x011BF008, ShortTop);
 	WRITE_JUMP(0x011BF247, ShortBegin);
 }
