@@ -2,7 +2,7 @@ bool poleTrail = false;
 bool poleSwingTrail = false;
 SharedPtrTypeless swingHandle;
 
-void PlayPoleParticle(Sonic::Player::CPlayerSpeed* This, Sonic::Player::CPlayerSpeedContext* sonic) {
+void PlayPoleParticle(Sonic::Player::CPlayerSpeedContext* sonic) {
 	std::string name;
 
 	if (Common::IsPlayerIn2D() && BlueBlurCommon::IsSuper()) {
@@ -19,16 +19,15 @@ void PlayPoleParticle(Sonic::Player::CPlayerSpeed* This, Sonic::Player::CPlayerS
 		name = "ef_ch_sng_lms_bar_trace01";
 	}
 
-	boost::shared_ptr<Hedgehog::Mirage::CMatrixNodeSingleElementNode> FootNode = This->m_spCharacterModel->GetNode("Foot_L");
+	boost::shared_ptr<Hedgehog::Mirage::CMatrixNodeSingleElementNode> FootNode = sonic->m_pPlayer->m_spCharacterModel->GetNode("Foot_L");
 	Common::fCGlitterCreate(sonic, swingHandle, &FootNode, name.c_str(), 1);
 	poleSwingTrail = true;
 }
 
-HOOK(void, __fastcall, SonicPoleUpdate, 0xE6BF20, Sonic::Player::CPlayerSpeed* This, void* _, const hh::fnd::SUpdateInfo& updateInfo) {
-	originalSonicPoleUpdate(This, _, updateInfo);
+void Pole::OnUpdate(const hh::fnd::SUpdateInfo& updateInfo) {
 	if (!BlueBlurCommon::IsModern()) { return; }
 
-	Sonic::Player::CPlayerSpeedContext* sonic = This->GetContext();
+	Sonic::Player::CPlayerSpeedContext* sonic = Sonic::Player::CPlayerSpeedContext::GetInstance();
 	Hedgehog::Base::CSharedString anim = sonic->GetCurrentAnimationName();
 
 	if (strstr(anim.c_str(), "PoleSpinJump") && !poleTrail) {
@@ -40,7 +39,7 @@ HOOK(void, __fastcall, SonicPoleUpdate, 0xE6BF20, Sonic::Player::CPlayerSpeed* T
 	}
 
 	if (anim == "PoleSpinLoop" && !poleSwingTrail && Common::CheckPlayerNodeExist("Foot_L")) {
-		PlayPoleParticle(This, sonic);
+		PlayPoleParticle(sonic);
 	}
 	else if (anim != "PoleSpinLoop" && poleSwingTrail && Common::CheckPlayerNodeExist("Foot_L")) {
 		Common::fCGlitterEnd(sonic, swingHandle, true);
@@ -49,5 +48,5 @@ HOOK(void, __fastcall, SonicPoleUpdate, 0xE6BF20, Sonic::Player::CPlayerSpeed* T
 	
 }
 void Pole::Install() {
-	INSTALL_HOOK(SonicPoleUpdate);
+
 }

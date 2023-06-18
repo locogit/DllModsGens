@@ -17,6 +17,14 @@ namespace Ease {
     }
 }
 
+namespace Math {
+    static float angleBetween(const Hedgehog::Math::CVector& a, const Hedgehog::Math::CVector& b) {
+        float cosTheta = a.dot(b) / (a.norm() * b.norm());
+
+        return acos(cosTheta);
+    }
+}
+
 namespace Eigen
 {
     template<typename Scalar>

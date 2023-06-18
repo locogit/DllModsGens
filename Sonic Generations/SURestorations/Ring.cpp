@@ -22,9 +22,7 @@ float GetCorrectedSpeed() {
 	return correctedSpeed;
 }
 
-HOOK(void, __fastcall, SonicUpdateRing, 0xE6BF20, Sonic::Player::CPlayerSpeed* This, void* _, const hh::fnd::SUpdateInfo& updateInfo) {
-	originalSonicUpdateRing(This, _, updateInfo);
-
+void Ring::OnUpdate(const hh::fnd::SUpdateInfo& updateInfo) {
 	if (!BlueBlurCommon::IsModern()) { return; }
 
 	Sonic::Player::CPlayerSpeedContext* sonic = Sonic::Player::CPlayerSpeedContext::GetInstance();
@@ -49,6 +47,8 @@ void OnRing(hh::fnd::Message& msg) {
 	else if (rings >= 200) {
 		speed += 0.5f;
 	}
+
+	if (Common::GetPlayerMaxSpeed() == nullptr) { return; }
 
 	float* maxSpeed = Common::GetPlayerMaxSpeed();
 	*maxSpeed = GetCorrectedSpeed();

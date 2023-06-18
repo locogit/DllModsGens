@@ -105,12 +105,6 @@ void StopFade() {
 	}
 }
 
-float angleBetween(const Hedgehog::Math::CVector& a, const Hedgehog::Math::CVector& b) {
-	float cosTheta = a.dot(b) / (a.norm() * b.norm());
-
-	return acos(cosTheta);
-}
-
 HOOK(void, __fastcall, FallCam_CCameraUpdateParallel, 0x10FB770, Sonic::CCamera* This, void* Edx, const hh::fnd::SUpdateInfo& in_rUpdateInfo) {
 	auto& camera = This->m_MyCamera;
 	auto* context = Sonic::Player::CPlayerSpeedContext::GetInstance();
@@ -156,7 +150,7 @@ HOOK(void, __fastcall, FallCam_CCameraUpdateParallel, 0x10FB770, Sonic::CCamera*
 		else if (!context->m_Is2DMode) {
 			factor += in_rUpdateInfo.DeltaTime * 0.05;
 			camera.m_Direction = context->m_HorizontalRotation * Eigen::Vector3f::UnitZ();
-			const Eigen::AngleAxisf rotPitch(angleBetween(camera.m_Direction, context->m_spMatrixNode->m_Transform.m_Position - camera.m_Position), playerRight);
+			const Eigen::AngleAxisf rotPitch(Math::angleBetween(camera.m_Direction, context->m_spMatrixNode->m_Transform.m_Position - camera.m_Position), playerRight);
 			//angleBetween(playerUp, context->m_spMatrixNode->m_Transform.m_Position - camera.m_Position) for yaw but don't use it
 			const Eigen::AngleAxisf rotYaw(180.0f * DEG_TO_RAD, playerUp);
 			const Eigen::AngleAxisf rotRoll(0.0f * DEG_TO_RAD, playerForward);

@@ -431,11 +431,10 @@ void CoolEdgeUpdate(const hh::fnd::SUpdateInfo& updateInfo) {
 	}
 }
 
-HOOK(void, __fastcall, SonicAddonUpdate, 0xE6BF20, Sonic::Player::CPlayerSpeed* This, void* _, const hh::fnd::SUpdateInfo& updateInfo) {
-	originalSonicAddonUpdate(This, _, updateInfo);
+void UPC::OnUpdate(const hh::fnd::SUpdateInfo& updateInfo) {
 	if (!BlueBlurCommon::IsModern()) { return; }
-	Sonic::Player::CPlayerSpeedContext* sonic = This->GetContext();
-	Hedgehog::Base::CSharedString state = This->m_StateMachine.GetCurrentState()->GetStateName();
+	Sonic::Player::CPlayerSpeedContext* sonic = Sonic::Player::CPlayerSpeedContext::GetInstance();
+	Hedgehog::Base::CSharedString state = sonic->m_pPlayer->m_StateMachine.GetCurrentState()->GetStateName();
 	Hedgehog::Base::CSharedString anim = sonic->GetCurrentAnimationName();
 	Sonic::SPadState input = Sonic::CInputState::GetInstance()->GetPadState();
 
@@ -515,7 +514,6 @@ void UPC::Install() {
 	WRITE_MEMORY(0x127AF91, uint32_t, 0x15E7670);
 	WRITE_MEMORY(0x127AFF8, uint32_t, 0x15E7670);
 
-	INSTALL_HOOK(SonicAddonUpdate);
 	INSTALL_HOOK(CitadelDashRing);
 	INSTALL_HOOK(ProcMsgRestartStageUPC);
 }

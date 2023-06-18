@@ -4,12 +4,11 @@ bool rampParticle = false;
 bool RampLoop = Common::reader.GetBoolean("Restorations", "Ramp", true);
 bool RampBoost = Common::reader.GetBoolean("Restorations", "BoostRamp", true);
 
-HOOK(void, __fastcall, SonicRampUpdate, 0xE6BF20, Sonic::Player::CPlayerSpeed* This, void* _, const hh::fnd::SUpdateInfo& updateInfo) {
-	originalSonicRampUpdate(This, _, updateInfo);
+void Ramp::OnUpdate(const hh::fnd::SUpdateInfo& updateInfo) {
 	if (!BlueBlurCommon::IsModern()) { return; }
 
-	Sonic::Player::CPlayerSpeedContext* sonic = This->GetContext();
-	Hedgehog::Base::CSharedString state = This->m_StateMachine.GetCurrentState()->GetStateName();
+	Sonic::Player::CPlayerSpeedContext* sonic = Sonic::Player::CPlayerSpeedContext::GetInstance();
+	Hedgehog::Base::CSharedString state = sonic->m_pPlayer->m_StateMachine.GetCurrentState()->GetStateName();
 	Hedgehog::Base::CSharedString anim = sonic->GetCurrentAnimationName();
 
 	if (anim == "JumpBoard" && state == "SpecialJump" && !sonic->StateFlag(eStateFlag_Boost) && RampLoop) {
@@ -36,5 +35,5 @@ HOOK(void, __fastcall, SonicRampUpdate, 0xE6BF20, Sonic::Player::CPlayerSpeed* T
 }
 
 void Ramp::Install() {
-	INSTALL_HOOK(SonicRampUpdate);
+	
 }

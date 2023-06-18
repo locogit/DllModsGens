@@ -33,10 +33,8 @@ HOOK(int, __fastcall, MiscRestart, 0xE76810, uint32_t* This, void* Edx, void* me
 	return result;
 }
 
-HOOK(void, __fastcall, HudMiscUpdate, 0x1098A50, void* This, void* edx, float* updateInfo)
+void Misc::OnHUDUpdate(const hh::fnd::SUpdateInfo& in_rUpdateInfo)
 {
-	originalHudMiscUpdate(This, edx, updateInfo);
-
 	Sonic::Player::CPlayerSpeedContext* sonic = Sonic::Player::CPlayerSpeedContext::GetInstance();
 
 	// Ring Energy
@@ -92,109 +90,111 @@ HOOK(void, __fastcall, CSonicStateAirBoostBegin, 0x1233380, hh::fnd::CStateMachi
 	airBoostParticle = false;
 }
 
-HOOK(void, __fastcall, SonicMiscUpdate, 0xE6BF20, Sonic::Player::CPlayerSpeed* This, void* _, const hh::fnd::SUpdateInfo& updateInfo)
+void Misc::OnUpdate(const hh::fnd::SUpdateInfo& updateInfo)
 {
 	deltaTime = updateInfo.DeltaTime;
 
-	if ((::byte)Common::GetMultiLevelAddress(0xD59A67, { 0x6 }) == 150 && *Common::GetPlayerLives() != 99 && InfLivesCodeChange)
-		*Common::GetPlayerLives() = 99;
+	const size_t liveCountAddr = Common::GetMultiLevelAddress(0x1E66B34, { 0x4, 0x1B4, 0x7C, 0x9FDC });
+	if (liveCountAddr) {
+		if ((::byte)Common::GetMultiLevelAddress(0xD59A67, { 0x6 }) == 150 && *(int*)liveCountAddr != 99 && InfLivesCodeChange)
+			*(int*)liveCountAddr = 99;
+	}
 	
-	if (BlueBlurCommon::IsModern()) {
+	if (!BlueBlurCommon::IsModern()) { return; }
 
-		Sonic::Player::CPlayerSpeedContext* sonic = This->GetContext();
-		Hedgehog::Base::CSharedString state = This->m_StateMachine.GetCurrentState()->GetStateName();
-		Hedgehog::Base::CSharedString anim = sonic->GetCurrentAnimationName();
-		Sonic::SPadState input = Sonic::CInputState::GetInstance()->GetPadState();
+	Sonic::Player::CPlayerSpeedContext* sonic = Sonic::Player::CPlayerSpeedContext::GetInstance();
+	Hedgehog::Base::CSharedString state = sonic->m_pPlayer->m_StateMachine.GetCurrentState()->GetStateName();
+	Hedgehog::Base::CSharedString anim = sonic->GetCurrentAnimationName();
+	Sonic::SPadState input = Sonic::CInputState::GetInstance()->GetPadState();
 
-		if (HomingX && sonic->m_spParameter->Get<bool>(Sonic::Player::ePlayerSpeedParameter_XButtonHoming) != true) {
-			sonic->m_spParameter->m_scpNode->m_ValueMap[Sonic::Player::ePlayerSpeedParameter_XButtonHoming] = true;
-		}
+	if (HomingX && sonic->m_spParameter->Get<bool>(Sonic::Player::ePlayerSpeedParameter_XButtonHoming) != true) {
+		sonic->m_spParameter->m_scpNode->m_ValueMap[Sonic::Player::ePlayerSpeedParameter_XButtonHoming] = true;
+	}
 
-		if (!Common::GetSonicStateFlags()->OnWater && water) {
-			water = false;
-			sonic->StateFlag(eStateFlag_DisableGroundSmoke) = false;
-		}
+	if (!Common::GetSonicStateFlags()->OnWater && water) {
+		water = false;
+		sonic->StateFlag(eStateFlag_DisableGroundSmoke) = false;
+	}
 
-		if (Misc::fadeOutAirBoost) {
-			if (airBoostActiveTime > -1) {
-				airBoostActiveTime -= updateInfo.DeltaTime;
-				if (airBoostActiveTime <= 0 && !airBoostParticle) {
-					if (input.IsDown(Sonic::eKeyState_X)) {
-						void* middlematrixNode = (void*)((uint32_t)sonic + 0x30);
-						Common::fCGlitterCreate(sonic, airBoostParticleHandle, middlematrixNode, (BlueBlurCommon::IsSuper() ? "ef_ch_sps_yh1_boost1" : "ef_ch_sng_yh1_boost1"), 0);
-						Common::fCGlitterCreate(sonic, airBoostParticleHandle2, middlematrixNode, (BlueBlurCommon::IsSuper() ? "ef_ch_sps_yh1_boost2" : "ef_ch_sng_yh1_boost2"), 0);
-					}
-					airBoostTimer = Misc::airBoostEndTime;
-					airBoostParticle = true;
+	if (Misc::fadeOutAirBoost) {
+		if (airBoostActiveTime > -1) {
+			airBoostActiveTime -= updateInfo.DeltaTime;
+			if (airBoostActiveTime <= 0 && !airBoostParticle) {
+				if (input.IsDown(Sonic::eKeyState_X)) {
+					void* middlematrixNode = (void*)((uint32_t)sonic + 0x30);
+					Common::fCGlitterCreate(sonic, airBoostParticleHandle, middlematrixNode, (BlueBlurCommon::IsSuper() ? "ef_ch_sps_yh1_boost1" : "ef_ch_sng_yh1_boost1"), 0);
+					Common::fCGlitterCreate(sonic, airBoostParticleHandle2, middlematrixNode, (BlueBlurCommon::IsSuper() ? "ef_ch_sps_yh1_boost2" : "ef_ch_sng_yh1_boost2"), 0);
 				}
-			}
-
-			if (airBoostTimer > -1) {
-				airBoostTimer -= updateInfo.DeltaTime;
-				if (airBoostTimer <= 0) {
-					Common::fCGlitterEnd(sonic, airBoostParticleHandle, false);
-					Common::fCGlitterEnd(sonic, airBoostParticleHandle2, false);
-					airBoostTimer = -1;
-				}
+				airBoostTimer = Misc::airBoostEndTime;
+				airBoostParticle = true;
 			}
 		}
 
-		if (anim == "IdleInWater" && WaterIdle) {
-			int randNum = rand() % 5;
-
-			switch (randNum)
-			{
-			case 0:
-				sonic->ChangeAnimation("Stand");
-				break;
-			case 1:
-				sonic->ChangeAnimation("IdleA");
-				break;
-			case 2:
-				sonic->ChangeAnimation("IdleB");
-				break;
-			case 3:
-				sonic->ChangeAnimation("IdleC");
-				break;
-			case 4:
-				sonic->ChangeAnimation("IdleD");
-				break;
-			case 5:
-				sonic->ChangeAnimation("IdleE");
-				break;
-			}
-		}
-
-		if (anim == "DashRingL" || anim == "DashRingR") {
-			if (MoreVoice) {
-				if (lastAnimDashRing != anim.c_str()) {
-					lastAnimDashRing = anim.c_str();
-					sonic->PlaySound(2002498, true);
-				}
-			}
-		}
-		else {
-			if (lastAnimDashRing != "") {
-				lastAnimDashRing = "";
-			}
-		}
-
-		if (sonic->m_ChaosEnergy != 100 && Common::CheckCurrentStage("pam000")) // For Boost Gauge Starts Empty Code
-			sonic->m_ChaosEnergy = 100;
-
-		// B Button Drift
-		if (BDrift && abs(sonic->m_Velocity.norm()) >= 30.0f && !sonic->m_Is2DMode && !Common::IsPlayerInForwardPath() && !sonic->StateFlag(eStateFlag_OutOfControl) && !strstr(anim.c_str(),"Grind")) {
-			// Regular Drift
-			if (input.IsDown(Sonic::eKeyState_B) && abs(input.LeftStickHorizontal) >= 0.85f && (state == "Walk" || state == "Sliding")) {
-				sonic->ChangeState("Drift");
-			}
-			else if (input.IsUp(Sonic::eKeyState_B) && state == "Drift" && input.IsUp(Sonic::eKeyState_LeftTrigger) && input.IsUp(Sonic::eKeyState_RightTrigger)) {
-				sonic->ChangeState("Walk");
+		if (airBoostTimer > -1) {
+			airBoostTimer -= updateInfo.DeltaTime;
+			if (airBoostTimer <= 0) {
+				Common::fCGlitterEnd(sonic, airBoostParticleHandle, false);
+				Common::fCGlitterEnd(sonic, airBoostParticleHandle2, false);
+				airBoostTimer = -1;
 			}
 		}
 	}
-	originalSonicMiscUpdate(This, _, updateInfo);
+
+	if (anim == "IdleInWater" && WaterIdle) {
+		int randNum = rand() % 5;
+
+		switch (randNum)
+		{
+		case 0:
+			sonic->ChangeAnimation("Stand");
+			break;
+		case 1:
+			sonic->ChangeAnimation("IdleA");
+			break;
+		case 2:
+			sonic->ChangeAnimation("IdleB");
+			break;
+		case 3:
+			sonic->ChangeAnimation("IdleC");
+			break;
+		case 4:
+			sonic->ChangeAnimation("IdleD");
+			break;
+		case 5:
+			sonic->ChangeAnimation("IdleE");
+			break;
+		}
+	}
+
+	if (anim == "DashRingL" || anim == "DashRingR") {
+		if (MoreVoice) {
+			if (lastAnimDashRing != anim.c_str()) {
+				lastAnimDashRing = anim.c_str();
+				sonic->PlaySound(2002498, true);
+			}
+		}
+	}
+	else {
+		if (lastAnimDashRing != "") {
+			lastAnimDashRing = "";
+		}
+	}
+
+	if (sonic->m_ChaosEnergy != 100 && Common::CheckCurrentStage("pam000")) // For Boost Gauge Starts Empty Code
+		sonic->m_ChaosEnergy = 100;
+
+	// B Button Drift
+	if (BDrift && abs(sonic->m_Velocity.norm()) >= 30.0f && !sonic->m_Is2DMode && !Common::IsPlayerInForwardPath() && !sonic->StateFlag(eStateFlag_OutOfControl) && !strstr(anim.c_str(), "Grind")) {
+		// Regular Drift
+		if (input.IsDown(Sonic::eKeyState_B) && abs(input.LeftStickHorizontal) >= 0.85f && (state == "Walk" || state == "Sliding")) {
+			sonic->ChangeState("Drift");
+		}
+		else if (input.IsUp(Sonic::eKeyState_B) && state == "Drift" && input.IsUp(Sonic::eKeyState_LeftTrigger) && input.IsUp(Sonic::eKeyState_RightTrigger)) {
+			sonic->ChangeState("Walk");
+		}
+	}
 }
+
 bool driftParticle = false;
 SharedPtrTypeless driftParticleHandle;
 // Skyth (Unleashed Drift) & Briannu (06 Experience)
@@ -336,9 +336,7 @@ void Misc::Install()
 	if(Common::reader.GetBoolean("Restorations", "DPadDisable", false))
 		WRITE_JUMP(0xD97B56, (void*)0xD97B9E); // Disable D-Pad Input
 
-	INSTALL_HOOK(SonicMiscUpdate);
 	INSTALL_HOOK(MiscYPrompt);
-	INSTALL_HOOK(HudMiscUpdate);
 	INSTALL_HOOK(MiscRestart);
 
 	INSTALL_HOOK(MiscLife);

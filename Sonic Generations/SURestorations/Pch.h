@@ -31,6 +31,7 @@
 #include "Helpers.h"
 #include <StringHelper.h>
 #include "Timer.h"
+#include "CommonFunctions.h"
 
 #include "Misc.h"
 #include "EXP.h"

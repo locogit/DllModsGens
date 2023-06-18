@@ -152,9 +152,10 @@ extern "C" _declspec(dllexport) void Init()
 	Common::LoadData();
 	Common::SaveDataINI();
 
+	CommonFunctions::Install();
+
 	//CreateConsole();
 	//TestBuild();
-	CSDCommon::Initialize();
 
 	if(Common::reader.GetBoolean("Restorations", "Explosion", true)) ArchiveTreePatcher::m_archiveDependencies.push_back(ArchiveDependency("Explosion", { "EnemyCommon" }));
 	
@@ -233,4 +234,9 @@ extern "C" __declspec(dllexport) void PostInit() {
 		MessageBox(nullptr, TEXT("'Sonic Unleashed HUD' mod must be lower priority than 'SU Restorations'!"), TEXT("SU Restorations"), MB_ICONERROR);
 		exit(-1);
 	}
+}
+
+extern "C" void __declspec(dllexport) OnFrame()
+{
+	CSDCommon::update();
 }

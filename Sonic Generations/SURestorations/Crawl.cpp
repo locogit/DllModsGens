@@ -69,7 +69,7 @@ HOOK(void, __fastcall, SquatAdvanceCrawl, 0x1230B60, void* This)
 		originalCrawlRotate(This, dir, Crawl::crawlTurnSpeed * 0.55f, PI_F * Crawl::crawlTurnSpeed * 0.06f, true, Crawl::crawlTurnSpeed * moveMult);
 	}
 	else if(sonic->m_Is2DMode && isCrawling) {
-		originalCrawlRotate(This, dir, 1000, 1000, true, 1000);
+		originalCrawlRotate(This, dir, 400, 400, true, 100);
 	}
 
 	if (!isCrawling) {
@@ -81,7 +81,7 @@ HOOK(void, __fastcall, SquatAdvanceCrawl, 0x1230B60, void* This)
 		sonic->ChangeAnimation("Squat");
 	}
 
-	if (input.IsDown(Sonic::eKeyState_B) && !inputDirection.isZero() && !isCrawling && crawlEnterTime <= 0 && sonic->m_Grounded && !toSlide && !isCrawling) {
+	if (input.IsDown(Sonic::eKeyState_B) && !inputDirection.isZero() && !isCrawling && crawlEnterTime <= 0 && sonic->m_Grounded && !toSlide && !isCrawling && anim == "Squat") {
 		crawlEnterTime = 0.3f;
 		sonic->ChangeAnimation("CrawlEnter");
 		isCrawling = true;
@@ -122,9 +122,7 @@ HOOK(int, __fastcall, SlideStart, 0x11D7110, void* This) {
 	if (sonic->m_Velocity.norm() <= slideToCrawlSpeed && input.IsDown(Sonic::eKeyState_B) && !inputDirection.isZero() && slopeDot < .15f) {
 		sonic->ChangeState("Squat");
 	}
-	else {
-		return originalSlideStart(This);
-	}
+	return originalSlideStart(This);
 }
 
 void CrawlSound(const hh::fnd::SUpdateInfo& updateInfo, Sonic::Player::CPlayerSpeedContext* sonic) {
@@ -147,12 +145,10 @@ void ResetCrawlVel() {
 	targetCrawlVel = Eigen::Vector3f::Zero();
 }
 
-HOOK(void, __fastcall, SonicCrawlUpdate, 0xE6BF20, Sonic::Player::CPlayerSpeed* This, void* _, const hh::fnd::SUpdateInfo& updateInfo) {
-	originalSonicCrawlUpdate(This, _, updateInfo);
-
+void Crawl::OnUpdate(const hh::fnd::SUpdateInfo& updateInfo) {
 	if (!BlueBlurCommon::IsModern()) { return; }
-	Sonic::Player::CPlayerSpeedContext* sonic = This->GetContext();
-	Hedgehog::Base::CSharedString state = This->m_StateMachine.GetCurrentState()->GetStateName();
+	Sonic::Player::CPlayerSpeedContext* sonic = Sonic::Player::CPlayerSpeedContext::GetInstance();
+	Hedgehog::Base::CSharedString state = sonic->m_pPlayer->m_StateMachine.GetCurrentState()->GetStateName();
 	Sonic::SPadState input = Sonic::CInputState::GetInstance()->GetPadState();
 
 	Eigen::Vector3f inputDirection;
@@ -201,7 +197,6 @@ void Crawl::Install() {
 
 	INSTALL_HOOK(SlideStart);
 	INSTALL_HOOK(SquatAdvanceCrawl);
-	INSTALL_HOOK(SonicCrawlUpdate);
 	INSTALL_HOOK(QuickStepStart);
 	INSTALL_HOOK(ProcMsgRestartStageCrawl);
 }

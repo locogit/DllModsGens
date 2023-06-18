@@ -76,9 +76,9 @@ HOOK(void, __fastcall, ChaosEnergy_MsgGetHudPosition, 0x1096790, void* This, voi
 	originalChaosEnergy_MsgGetHudPosition(This, Edx, message);
 }
 bool renderGameHudEXP;
-HOOK(void, __fastcall, CHudSonicStageUpdateParallelEXP, 0x1098A50, Sonic::CGameObject* This, void* Edx, const hh::fnd::SUpdateInfo& in_rUpdateInfo) {
-	originalCHudSonicStageUpdateParallelEXP(This, Edx, in_rUpdateInfo);
-	if (BlueBlurCommon::IsModern() && EXP::useStats) {
+void EXP::OnHUDUpdate(const hh::fnd::SUpdateInfo& in_rUpdateInfo) {
+	if (!BlueBlurCommon::IsModern()) { return; }
+	if (EXP::useStats) {
 		renderGameHudEXP = *(bool*)0x1A430D8;
 		Sonic::Player::CPlayerSpeedContext* sonic = Sonic::Player::CPlayerSpeedContext::GetInstance();
 		if (expParticleTimerPlay) {
@@ -117,36 +117,35 @@ HOOK(void, __fastcall, CHudSonicStageUpdateParallelEXP, 0x1098A50, Sonic::CGameO
 			exp_count->SetHideFlag(true);
 		}
 	}
-	else if (BlueBlurCommon::IsModern() && !EXP::useStats) {
+	else {
 		renderGameHudEXP = false;
 	}
 }
 void chaosEnergyParticle() {
-	if (BlueBlurCommon::IsModern() && EXP::useStats) {
-		Sonic::Player::CPlayerSpeedContext* sonic = Sonic::Player::CPlayerSpeedContext::GetInstance();
-		void* middlematrixNode = (void*)((uint32_t)sonic + 0x30);
-		printf("[SU Restorations] EXP Particle Collected\n");
-		if (!expParticleTimerPlay && expParticleTime <= 0) {
-			expParticleTimerPlay = true;
-			expParticleTime = expParticleTimer;
-			Common::fCGlitterCreate(sonic, ChaosEnergyHandle, middlematrixNode, "ef_ch_sng_lms_expcol", 0);
-		}
-		if (expHidden && expTime <= 0 && !expCountDown) {
-			expHidden = false;
-			expTime = expTimer;
-			expCountDown = true;
-			CSDCommon::PlayAnimation(*exp_count, "Intro_Anim", Chao::CSD::eMotionRepeatType_PlayOnce, 0, 1);
-		}
-		if (!EXP::maxStats) {
-			expAmount += Common::rand_FloatRange(0.15f, 0.35f);
-			if (expAmount >= 63 && expLevel < 99) {
-				expAmount -= 63;
-				expLevel++;
-			}
-			expAmount = std::clamp(expAmount, 4.0f, 63.0f);
-		}
-		//exp_count->GetNode("gauge")->SetScale(expAmount, 0.65f);
+	if (!BlueBlurCommon::IsModern() || !EXP::useStats) { return; }
+	Sonic::Player::CPlayerSpeedContext* sonic = Sonic::Player::CPlayerSpeedContext::GetInstance();
+	void* middlematrixNode = (void*)((uint32_t)sonic + 0x30);
+	printf("[SU Restorations] EXP Particle Collected\n");
+	if (!expParticleTimerPlay && expParticleTime <= 0) {
+		expParticleTimerPlay = true;
+		expParticleTime = expParticleTimer;
+		Common::fCGlitterCreate(sonic, ChaosEnergyHandle, middlematrixNode, "ef_ch_sng_lms_expcol", 0);
 	}
+	if (expHidden && expTime <= 0 && !expCountDown) {
+		expHidden = false;
+		expTime = expTimer;
+		expCountDown = true;
+		CSDCommon::PlayAnimation(*exp_count, "Intro_Anim", Chao::CSD::eMotionRepeatType_PlayOnce, 0, 1);
+	}
+	if (!EXP::maxStats) {
+		expAmount += Common::rand_FloatRange(0.15f, 0.35f);
+		if (expAmount >= 63 && expLevel < 99) {
+			expAmount -= 63;
+			expLevel++;
+		}
+		expAmount = std::clamp(expAmount, 4.0f, 63.0f);
+	}
+	//exp_count->GetNode("gauge")->SetScale(expAmount, 0.65f);
 }
 void __declspec(naked) addBoostFromChaosEnergy()
 {
@@ -227,7 +226,6 @@ void EXP::Install() {
 
 	INSTALL_HOOK(ChaosEnergy_MsgGetHudPosition);
 	INSTALL_HOOK(CHudSonicStageDelayProcessImpEXP);
-	INSTALL_HOOK(CHudSonicStageUpdateParallelEXP);
 	INSTALL_HOOK(ProcMsgRestartStageEXP);
 
 	// 06 Experience Code

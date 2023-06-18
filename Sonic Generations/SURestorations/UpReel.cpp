@@ -1,11 +1,10 @@
 bool upReelEnd = false;
 
-HOOK(void, __fastcall, SonicUpReelUpdate, 0xE6BF20, Sonic::Player::CPlayerSpeed* This, void* _, const hh::fnd::SUpdateInfo& updateInfo) {
-	originalSonicUpReelUpdate(This, _, updateInfo);
+void UpReel::OnUpdate(const hh::fnd::SUpdateInfo& updateInfo) {
 	if (!BlueBlurCommon::IsModern()) { return; }
 
-	Sonic::Player::CPlayerSpeedContext* sonic = This->GetContext();
-	Hedgehog::Base::CSharedString state = This->m_StateMachine.GetCurrentState()->GetStateName();
+	Sonic::Player::CPlayerSpeedContext* sonic = Sonic::Player::CPlayerSpeedContext::GetInstance();
+	Hedgehog::Base::CSharedString state = sonic->m_pPlayer->m_StateMachine.GetCurrentState()->GetStateName();
 	Hedgehog::Base::CSharedString anim = sonic->GetCurrentAnimationName();
 
 	if (!upReelEnd) { return; }
@@ -17,6 +16,7 @@ HOOK(void, __fastcall, SonicUpReelUpdate, 0xE6BF20, Sonic::Player::CPlayerSpeed*
 	Eigen::Vector4f outPos;
 	Eigen::Vector4f outNormal;
 
+	if ((uint32_t*)0x1E0AFB4 == nullptr) { return; }
 	if (!Common::fRaycast(rayStartPos, rayEndPos, outPos, outNormal, *(uint32_t*)0x1E0AFB4)) { // Raycast from briannu, check if can push forward
 		upReelEnd = false;
 		Hedgehog::Math::CVector ForwardVel = sonic->m_HorizontalRotation * Hedgehog::Math::CVector::UnitZ() * sonic->m_spParameter->Get<float>(Sonic::Player::ePlayerSpeedParameter_HangOnJumpHorzVel) * UpReel::upReelForceMultiplier;
@@ -33,5 +33,4 @@ void UpReel::Install() {
 	//timer = new Timer(4.0f, [] {MessageBoxA(0, format("hooray! took %d ticks!", runTicks), "timer finished", MB_OK); runTicks = 0; }, [](float dt) {runTicks++; });
 	UpReel::upReelForceMultiplier = 2.5f;
 	INSTALL_HOOK(HangEnd);
-	INSTALL_HOOK(SonicUpReelUpdate);
 }

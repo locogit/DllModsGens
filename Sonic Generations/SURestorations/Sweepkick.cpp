@@ -170,13 +170,12 @@ void SweepConfig() {
 }
 
 float lightColor[3] = {}; // RGBA (A doesn't do anything so we lerp to black)
-HOOK(void, __fastcall, SonicUpdateSweep, 0xE6BF20, Sonic::Player::CPlayerSpeed* This, void* _, const hh::fnd::SUpdateInfo& updateInfo) {
-	originalSonicUpdateSweep(This, _, updateInfo);
+void Sweepkick::OnUpdate(const hh::fnd::SUpdateInfo& updateInfo) {
 	if (!BlueBlurCommon::IsModern()) { return; }
 
 	if (sweepkickColTime > 0) sweepkickColTime -= updateInfo.DeltaTime;
-	Sonic::Player::CPlayerSpeedContext* sonic = This->GetContext();
-	Hedgehog::Base::CSharedString state = This->m_StateMachine.GetCurrentState()->GetStateName();
+	Sonic::Player::CPlayerSpeedContext* sonic = Sonic::Player::CPlayerSpeedContext::GetInstance();
+	Hedgehog::Base::CSharedString state = sonic->m_pPlayer->m_StateMachine.GetCurrentState()->GetStateName();
 	Sonic::SPadState input = Sonic::CInputState::GetInstance()->GetPadState();
 
 	sweepLight.Update(updateInfo.DeltaTime);
@@ -284,7 +283,6 @@ void Sweepkick::Install() {
 
 	Sweepkick::sweepInputTime = 0.3f;
 
-	INSTALL_HOOK(SonicUpdateSweep);
 	INSTALL_HOOK(CSonicStateSquatKickBegin);
 	INSTALL_HOOK(CSonicStateSquatKickAdvance);
 }

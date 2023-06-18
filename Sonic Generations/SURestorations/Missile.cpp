@@ -29,29 +29,27 @@ void CreateScreenMissile(Sonic::CGameObject* pParentGameObject)
 
 HOOK(void, __fastcall, CHudSonicStageDelayProcessImpMissile, 0x109A8D0, Sonic::CGameObject* This) {
 	originalCHudSonicStageDelayProcessImpMissile(This);
-	if (BlueBlurCommon::IsModern()) {
-		CHudSonicStageRemoveCallbackMissile(This, nullptr, nullptr);
+	if (!BlueBlurCommon::IsModern()) { return; }
+	CHudSonicStageRemoveCallbackMissile(This, nullptr, nullptr);
 
-		Sonic::CCsdDatabaseWrapper wrapperLockOn(This->m_pMember->m_pGameDocument->m_pMember->m_spDatabase.get());
+	Sonic::CCsdDatabaseWrapper wrapperLockOn(This->m_pMember->m_pGameDocument->m_pMember->m_spDatabase.get());
 
-		auto spCsdProjectLockOn = wrapperLockOn.GetCsdProject("ui_lcursor_elauncher");
+	auto spCsdProjectLockOn = wrapperLockOn.GetCsdProject("ui_lcursor_elauncher");
 
-		size_t& flags = ((size_t*)This)[151];
+	size_t& flags = ((size_t*)This)[151];
 
-		rcLockOn = spCsdProjectLockOn->m_rcProject;
-		cursor_enemy = rcLockOn->CreateScene("cursor_enemy");
-		CSDCommon::FreezeMotion(*cursor_enemy);
-		cursor_enemy->SetHideFlag(true);
-		cursorHidden = true;
+	rcLockOn = spCsdProjectLockOn->m_rcProject;
+	cursor_enemy = rcLockOn->CreateScene("cursor_enemy");
+	CSDCommon::FreezeMotion(*cursor_enemy);
+	cursor_enemy->SetHideFlag(true);
+	cursorHidden = true;
 
-		CreateScreenMissile(This);
-	}
+	CreateScreenMissile(This);
 }
 
-HOOK(void, __fastcall, CHudSonicStageUpdateParallelMissile, 0x1098A50, Sonic::CGameObject* This, void* Edx, const hh::fnd::SUpdateInfo& in_rUpdateInfo) {
-	originalCHudSonicStageUpdateParallelMissile(This, Edx, in_rUpdateInfo);
+void Missile::OnHUDUpdate(const hh::fnd::SUpdateInfo& in_rUpdateInfo) {
 	Sonic::Player::CPlayerSpeedContext* sonic = Sonic::Player::CPlayerSpeedContext::GetInstance();
-	if (!cursorHidden && BlueBlurCommon::IsModern()) {
+	if (!cursorHidden && BlueBlurCommon::IsModern() && cursor_enemy) {
 		Hedgehog::Math::CVector& position = Sonic::Player::CPlayerSpeedContext::GetInstance()->m_spMatrixNode->m_Transform.m_Position;
 		const auto camera = Sonic::CGameDocument::GetInstance()->GetWorld()->GetCamera();
 		hh::math::CVector4 screenPosition = camera->m_MyCamera.m_View * hh::math::CVector4(position.x(), position.y(), position.z(), 1.0f);
@@ -65,7 +63,7 @@ HOOK(void, __fastcall, CHudSonicStageUpdateParallelMissile, 0x1098A50, Sonic::CG
 
 HOOK(int, __fastcall, ProcMsgRestartStageMissile, 0xE76810, uint32_t* This, void* Edx, void* message)
 {
-	if (!cursorHidden && BlueBlurCommon::IsModern()) {
+	if (!cursorHidden && BlueBlurCommon::IsModern() && cursor_enemy) {
 		cursorHidden = true;
 		cursor_enemy->SetHideFlag(true);
 	}
@@ -75,41 +73,37 @@ HOOK(int, __fastcall, ProcMsgRestartStageMissile, 0xE76810, uint32_t* This, void
 HOOK(void, __fastcall, HudResult_MsgStartGoalResultMissile, 0x10B58A0, uint32_t* This, void* Edx, void* message)
 {
 	originalHudResult_MsgStartGoalResultMissile(This, Edx, message);
-	if (!cursorHidden && BlueBlurCommon::IsModern()) {
+	if (!cursorHidden && BlueBlurCommon::IsModern() && cursor_enemy) {
 		cursorHidden = true;
 		cursor_enemy->SetHideFlag(true);
 	}
 }
 
 HOOK(__int8, __fastcall, missile, 0x60EFF0, DWORD** This, int a2, int* a3, void* Edx) {
-	if (BlueBlurCommon::IsModern()) {
-		missileTimer = 1.5f;
-		if (cursorHidden) {
-			cursor_enemy->SetHideFlag(false);
-			CSDCommon::PlayAnimation(*cursor_enemy, "Lock_Anim", Chao::CSD::eMotionRepeatType_PlayOnce, 0, 1);
-			cursorHidden = false;
-		}
+	if (!BlueBlurCommon::IsModern()) { return originalmissile(This, a2, a3, Edx); }
+	missileTimer = 1.5f;
+	if (cursorHidden && cursor_enemy) {
+		cursor_enemy->SetHideFlag(false);
+		CSDCommon::PlayAnimation(*cursor_enemy, "Lock_Anim", Chao::CSD::eMotionRepeatType_PlayOnce, 0, 1);
+		cursorHidden = false;
 	}
 	return originalmissile(This, a2, a3, Edx);
 }
 
-HOOK(void, __fastcall, SonicMissileUpdate, 0xE6BF20, Sonic::Player::CPlayerSpeed* This, void* _, const hh::fnd::SUpdateInfo& updateInfo) {
-	originalSonicMissileUpdate(This, _, updateInfo);
-	if (BlueBlurCommon::IsModern()) {
-		if (missileTimer > 0) { missileTimer -= updateInfo.DeltaTime; }
-		if (missileTimer <= 0 && !cursorHidden)
-		{
-			cursorHidden = true;
-			cursor_enemy->SetHideFlag(true);
-		}
+void Missile::OnUpdate(const hh::fnd::SUpdateInfo& updateInfo) {
+	if (!BlueBlurCommon::IsModern()) { return; }
+
+	if (missileTimer > 0) { missileTimer -= updateInfo.DeltaTime; }
+	if (missileTimer <= 0 && !cursorHidden && cursor_enemy)
+	{
+		cursorHidden = true;
+		cursor_enemy->SetHideFlag(true);
 	}
 }
 
 void Missile::Install() {
-	INSTALL_HOOK(SonicMissileUpdate);
 	INSTALL_HOOK(missile);
 	INSTALL_HOOK(CHudSonicStageDelayProcessImpMissile);
-	INSTALL_HOOK(CHudSonicStageUpdateParallelMissile);
 	INSTALL_HOOK(ProcMsgRestartStageMissile);
 	INSTALL_HOOK(HudResult_MsgStartGoalResultMissile);
 }

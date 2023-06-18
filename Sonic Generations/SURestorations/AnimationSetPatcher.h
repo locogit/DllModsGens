@@ -61,10 +61,4 @@ public:
 
     static void initializeAnimationList(CAnimationStateInfo* pEntries, size_t const count, NewAnimationDataList const& dataList);
     static void createAnimationState(void* A2, NewAnimationDataList const& dataList);
-
-    // New animation states
-    static const char* volatile const CrawlLoop;
-    static const char* volatile const CrawlEnter;
-    static const char* volatile const CrawlExit;
-    static const char* volatile const JumpBoardLoop;
 };

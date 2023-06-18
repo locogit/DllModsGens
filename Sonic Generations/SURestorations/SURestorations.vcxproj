@@ -107,6 +107,7 @@
   <ItemGroup>
     <ClInclude Include="AnimationSetPatcher.h" />
     <ClInclude Include="ArchiveTreePatcher.h" />
+    <ClInclude Include="CommonFunctions.h" />
     <ClInclude Include="FallCam.h" />
     <ClInclude Include="LetterboxHelper.h" />
     <ClInclude Include="Light.h" />
@@ -132,6 +133,7 @@
   <ItemGroup>
     <ClCompile Include="AnimationSetPatcher.cpp" />
     <ClCompile Include="ArchiveTreePatcher.cpp" />
+    <ClCompile Include="CommonFunctions.cpp" />
     <ClCompile Include="Crawl.cpp" />
     <ClCompile Include="CSDCommon.cpp" />
     <ClCompile Include="DllMain.cpp" />

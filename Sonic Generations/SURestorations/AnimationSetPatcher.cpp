@@ -161,24 +161,22 @@ void AnimationSetPatcher::createAnimationState(void* A2, NewAnimationDataList co
     }
 }
 
-const char* volatile const AnimationSetPatcher::CrawlLoop = "CrawlLoop";
-const char* volatile const AnimationSetPatcher::CrawlEnter = "CrawlEnter";
-const char* volatile const AnimationSetPatcher::CrawlExit = "CrawlExit";
-const char* volatile const AnimationSetPatcher::JumpBoardLoop = "JumpBoardLoop";
 void AnimationSetPatcher::applyPatches()
 {
-    m_newAnimationData.emplace_back(CrawlEnter, "sn_crawlS", 1.0f, false, nullptr);
-    m_newAnimationData.emplace_back(CrawlExit, "sn_crawlE", 1.0f, false, nullptr);
-    m_newAnimationData.emplace_back(CrawlLoop, "sn_crawl_loop", 1.75f, true, nullptr);
-    m_newAnimationData.emplace_back(JumpBoardLoop, "sn_jumpstand_s", 1.0f, false, nullptr);
+    //INSTALL_HOOK(CSonic_AnimationBlending);
 
-    m_newAnimationDataSuper.emplace_back(CrawlEnter, "ssn_crawlS", 1.0f, false, nullptr);
-    m_newAnimationDataSuper.emplace_back(CrawlExit, "ssn_crawlE", 1.0f, false, nullptr);
-    m_newAnimationDataSuper.emplace_back(CrawlLoop, "ssn_crawl_loop", 1.75f, true, nullptr);
+    m_newAnimationData.emplace_back("CrawlEnter", "sn_crawlS", 1.0f, false, nullptr);
+    m_newAnimationData.emplace_back("CrawlExit", "sn_crawlE", 1.0f, false, nullptr);
+    m_newAnimationData.emplace_back("CrawlLoop", "sn_crawl_loop", 1.75f, true, nullptr);
+    m_newAnimationData.emplace_back("JumpBoardLoop", "sn_jumpstand_s", 1.0f, false, nullptr);
+
+    m_newAnimationDataSuper.emplace_back("CrawlEnter", "ssn_crawlS", 1.0f, false, nullptr);
+    m_newAnimationDataSuper.emplace_back("CrawlExit", "ssn_crawlE", 1.0f, false, nullptr);
+    m_newAnimationDataSuper.emplace_back("CrawlLoop", "ssn_crawl_loop", 1.75f, true, nullptr);
 
     m_newAnimationDataSuper.emplace_back("SquatKick", "ssn_squat_kick", 1.0f, false, nullptr);
 
-    INSTALL_HOOK(CAnimationControlSingle_Debug);
+    //INSTALL_HOOK(CAnimationControlSingle_Debug);
 
     if (!m_newAnimationData.empty())
     {
