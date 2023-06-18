@@ -152,8 +152,6 @@ extern "C" _declspec(dllexport) void Init()
 	Common::LoadData();
 	Common::SaveDataINI();
 
-	CommonFunctions::Install();
-
 	//CreateConsole();
 	//TestBuild();
 
@@ -218,6 +216,8 @@ extern "C" _declspec(dllexport) void Init()
 	FallCam::Install();
 
 	INSTALL_HOOK(InitializeApplicationParams_Restorations);
+
+	CommonFunctions::Install();
 }
 
 extern "C" __declspec(dllexport) void PostInit() {

@@ -23,6 +23,10 @@ namespace Math {
 
         return acos(cosTheta);
     }
+    static bool ApproximatelyEqualTo(float f1, float f2, float tolerance) {
+        float norm = abs(f1 - f2);
+        return norm <= tolerance;
+    }
 }
 
 namespace Eigen
@@ -42,6 +46,11 @@ namespace Eigen
             0, 0, -1, 0;
 
         return matrix;
+    }
+
+    static bool ApproximatelyEqualTo(Vector3f v1, Vector3f v2, float tolerance) {
+        float norm = (v1 - v2).norm();
+        return norm <= tolerance;
     }
 
     static Vector3f ClampMagnitude(Vector3f v, float m) { // https://github.com/Unity-Technologies/UnityCsReference/blob/master/Runtime/Export/Math/Vector3.cs

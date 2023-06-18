@@ -4,7 +4,7 @@ float crawlExitTime = 0;
 
 float slopeDot;
 
-float slideToCrawlSpeed = 6.0f;
+float slideToCrawlSpeed = 7.0f;
 
 float crawlSoundTime = -1;
 
@@ -119,10 +119,40 @@ HOOK(int, __fastcall, SlideStart, 0x11D7110, void* This) {
 	Eigen::Vector3f inputDirection;
 	Common::GetWorldInputDirection(inputDirection);
 
-	if (sonic->m_Velocity.norm() <= slideToCrawlSpeed && input.IsDown(Sonic::eKeyState_B) && !inputDirection.isZero() && slopeDot < .15f) {
+	if (sonic->m_HorizontalVelocity.norm() <= slideToCrawlSpeed * 1.5f && !isCrawling && input.IsDown(Sonic::eKeyState_B) && !inputDirection.isZero() && slopeDot < .15f) {
 		sonic->ChangeState("Squat");
+		sonic->ChangeAnimation("CrawlLoop");
+		crawlSoundTime = 0.0f;
+		isCrawling = true;
+		// Disable sliding sfx and voice
+		WRITE_MEMORY(0x11D722C, int, -1);
+		WRITE_MEMORY(0x11D72DC, int, -1);
+		return 0;
 	}
-	return originalSlideStart(This);
+	else {
+		// Sliding sfx and voice
+		WRITE_MEMORY(0x11D722C, uint32_t, 2002032);
+		WRITE_MEMORY(0x11D72DC, uint32_t, 3002016);
+		return originalSlideStart(This);
+	}
+}
+
+HOOK(void, __fastcall, SlideAdvance, 0x11D69A0, hh::fnd::CStateMachineBase::CStateBase* This) {
+	Sonic::Player::CPlayerSpeedContext* sonic = Sonic::Player::CPlayerSpeedContext::GetInstance();
+	Sonic::SPadState input = Sonic::CInputState::GetInstance()->GetPadState();
+
+	Eigen::Vector3f inputDirection;
+	Common::GetWorldInputDirection(inputDirection);
+
+	if (sonic->m_HorizontalVelocity.norm() <= Crawl::crawlSpeed * 1.25f && !isCrawling && input.IsDown(Sonic::eKeyState_B) && !inputDirection.isZero() && slopeDot < .15f) {
+		sonic->ChangeState("Squat");
+		sonic->ChangeAnimation("CrawlLoop");
+		crawlSoundTime = 0.0f;
+		isCrawling = true;
+	}
+	else {
+		return originalSlideAdvance(This);
+	}
 }
 
 void CrawlSound(const hh::fnd::SUpdateInfo& updateInfo, Sonic::Player::CPlayerSpeedContext* sonic) {
@@ -185,7 +215,7 @@ HOOK(int, __fastcall, ProcMsgRestartStageCrawl, 0xE76810, uint32_t* This, void* 
 
 void Crawl::Install() {
 	Crawl::crawlTurnSpeed = 125;
-	Crawl::crawlSpeed = 6.75f;
+	Crawl::crawlSpeed = 7.35f;
 	Crawl::crawlToSlide = true;
 	Crawl::crawlSlipMult = 1.0f;
 	// Brianuuu 06 Experience
@@ -196,6 +226,8 @@ void Crawl::Install() {
 	WRITE_NOP(0x11D6A6D, 2);
 
 	INSTALL_HOOK(SlideStart);
+	INSTALL_HOOK(SlideAdvance);
+
 	INSTALL_HOOK(SquatAdvanceCrawl);
 	INSTALL_HOOK(QuickStepStart);
 	INSTALL_HOOK(ProcMsgRestartStageCrawl);

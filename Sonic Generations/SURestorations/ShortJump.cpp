@@ -10,7 +10,7 @@ void playAnimBegin() {
 		currentHurdleIndex = (lastHurdleIndex == 0) ? 1 : 0;
 		lastHurdleIndex = currentHurdleIndex;
 
-		Hedgehog::Base::CSharedString hurdleAnimName = (currentHurdleIndex == 0) ? "JumpHurdleL" : "JumpHurdle";
+		Hedgehog::Base::CSharedString hurdleAnimName = (currentHurdleIndex == 0) ? "JumpHurdleL" : "JumpHurdleR";
 		sonic->ChangeAnimation(hurdleAnimName);
 	}
 	else {

@@ -34,13 +34,12 @@ HOOK(void*, __cdecl, InitializeSonicAnimationList, 0x1272490)
     void* pResult = originalInitializeSonicAnimationList();
     {
         CAnimationStateSet* pList = (CAnimationStateSet*)0x15E8D40;
-        size_t newCount = pList->m_Count + AnimationSetPatcher::m_newAnimationData.size();
-        CAnimationStateInfo* pEntries = new CAnimationStateInfo[newCount];
+        CAnimationStateInfo* pEntries = new CAnimationStateInfo[pList->m_Count + AnimationSetPatcher::m_newAnimationData.size()];
         std::copy(pList->m_pEntries, pList->m_pEntries + pList->m_Count, pEntries);
 
         AnimationSetPatcher::initializeAnimationList(pEntries, pList->m_Count, AnimationSetPatcher::m_newAnimationData);
         WRITE_MEMORY(&pList->m_pEntries, void*, pEntries);
-        WRITE_MEMORY(&pList->m_Count, size_t, newCount);
+        WRITE_MEMORY(&pList->m_Count, size_t, pList->m_Count + AnimationSetPatcher::m_newAnimationData.size());
     }
 
     return pResult;
@@ -48,8 +47,8 @@ HOOK(void*, __cdecl, InitializeSonicAnimationList, 0x1272490)
 
 HOOK(void, __fastcall, CSonicCreateAnimationStates, 0xE1B6C0, void* This, void* Edx, void* A2, void* A3)
 {
-    AnimationSetPatcher::createAnimationState(A2, AnimationSetPatcher::m_newAnimationData);
     originalCSonicCreateAnimationStates(This, Edx, A2, A3);
+    AnimationSetPatcher::createAnimationState(A2, AnimationSetPatcher::m_newAnimationData);
 }
 
 //---------------------------------------------------
