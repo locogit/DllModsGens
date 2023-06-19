@@ -1,3 +1,5 @@
+#include "CSDCommon.h"
+
 bool IsAnimDone(Chao::CSD::CScene* scene)
 {
 	if (scene->m_MotionSpeed < 0.0f)

@@ -15,8 +15,16 @@ namespace Hedgehog::Mirage
 
         virtual ~CMatrixNode() = default;
         virtual void UpdateMatrix(CMatrixNode* pParentMatrixNode) = 0;
-        virtual Hedgehog::Math::CMatrix& GetLocalMatrix() const = 0;
-        virtual Hedgehog::Math::CMatrix& GetWorldMatrix() const = 0;
+        virtual Hedgehog::Math::CMatrix& GetLocalMatrix() = 0;
+        virtual Hedgehog::Math::CMatrix& GetWorldMatrix() = 0;
+
+        CMatrixNode(const bb_null_ctor&) : CObject(bb_null_ctor{}) {}
+
+        CMatrixNode()
+        {
+            BB_FUNCTION_PTR(void, __thiscall, fpCtor, 0x006F4530, CMatrixNode*);
+            fpCtor(this);
+        }
 
         void NotifyChanged()
         {

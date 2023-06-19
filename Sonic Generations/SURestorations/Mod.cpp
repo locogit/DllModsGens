@@ -144,6 +144,21 @@ HOOK(void, __cdecl, InitializeApplicationParams_Restorations, 0x00D65180, Sonic:
 		parameterGroupRing->Flush();
 	}
 
+	// Jumpball
+	{
+		boost::shared_ptr<Sonic::CParameterGroup> parameterGroupJump;
+		This->CreateParameterGroup(parameterGroupJump, "SU Restorations", "Parameters for SU Restorations");
+		Sonic::CEditParam* ball_param = parameterGroupJump->CreateParameterCategory("Jumpball", "Parameters for jumpball");
+
+		ball_param->CreateParamTypeList((uint32_t*)&Jumpball::ballType, "Jump Ball Type", "Choose the jumpball",
+			{
+				{ "Default", 0},
+				{ "Preview", 1},
+			});
+
+		parameterGroupJump->Flush();
+	}
+
 	originalInitializeApplicationParams_Restorations(This);
 }
 
@@ -162,7 +177,7 @@ extern "C" _declspec(dllexport) void Init()
 		EXP::Install(); 
 	}
 
-	ArchiveTreePatcher::m_archiveDependencies.push_back(ArchiveDependency("Pole", { "ActionCommon" }));
+	ArchiveTreePatcher::m_archiveDependencies.push_back(ArchiveDependency("Pole", { "SonicActionCommon" }));
 	ArchiveTreePatcher::m_archiveDependencies.push_back(ArchiveDependency("SonicCrawl", { "Sonic" }));
 	ArchiveTreePatcher::m_archiveDependencies.push_back(ArchiveDependency("SonicSweepKick", { "SonicActionCommon" }));
 	ArchiveTreePatcher::m_archiveDependencies.push_back(ArchiveDependency("SonicUI", { "Sonic" }));
@@ -174,6 +189,10 @@ extern "C" _declspec(dllexport) void Init()
 	ArchiveTreePatcher::m_archiveDependencies.push_back(ArchiveDependency("SonicFirework", { "Sonic" }));
 	ArchiveTreePatcher::m_archiveDependencies.push_back(ArchiveDependency("SonicParaloop", { "SonicActionCommon" }));
 	ArchiveTreePatcher::m_archiveDependencies.push_back(ArchiveDependency("SonicLife", { "Sonic" }));
+
+	ArchiveTreePatcher::m_archiveDependencies.push_back(ArchiveDependency("SonicJumpPreview", { "Sonic" }));
+	ArchiveTreePatcher::m_archiveDependencies.push_back(ArchiveDependency("SuperSonicJumpPreview", { "Sonic" }));
+
 	ArchiveTreePatcher::m_archiveDependencies.push_back(ArchiveDependency("SWAShop", { "pam000" }));
 
 	WRITE_STRING(0x15E90DC, "oneUpChanged");
@@ -184,6 +203,8 @@ extern "C" _declspec(dllexport) void Init()
 	LetterboxHelper::Initialize(1280, 720);
 
 	Misc::Install();
+
+	Jumpball::Install();
 
 	//if (Common::SUTitle || Common::UPC) Shop::Install();
 

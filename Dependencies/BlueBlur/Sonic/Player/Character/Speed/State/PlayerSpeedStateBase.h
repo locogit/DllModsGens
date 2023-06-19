@@ -28,6 +28,19 @@ namespace Sonic::Player
             fCtor(this);
         }
 
+        void SetCondition(const Hedgehog::Base::CSharedString& name, const bool& condition)
+        {
+            uint32_t func = 0x0050DD40;
+
+            __asm
+            {
+                push condition
+                mov eax, this
+                mov edi, name
+                call func
+            }
+        }
+
         CPlayerSpeedContext* GetContext() const
         {
             return static_cast<CPlayerSpeedContext*>(m_pContext);

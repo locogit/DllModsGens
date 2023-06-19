@@ -19,6 +19,8 @@
 #undef _ITERATOR_DEBUG_LEVEL
 #pragma pop_macro("_ITERATOR_DEBUG_LEVEL")
 
+#include <Hedgehog/Animation/hhAnimationPose.h>
+#include <Hedgehog/Animation/hhPose.h>
 #include <Hedgehog/Base/hhObject.h>
 #include <Hedgehog/Base/hhRefCountObject.h>
 #include <Hedgehog/Base/Platform/D3D9/hhCriticalSectionD3D9.h>
@@ -32,6 +34,7 @@
 #include <Hedgehog/Base/Type/hhCowData.h>
 #include <Hedgehog/Base/Type/hhSharedString.h>
 #include <Hedgehog/Database/System/hhArchiveDatabaseLoader.h>
+#include <Hedgehog/Database/System/hhArchiveParam.h>
 #include <Hedgehog/Database/System/hhDatabase.h>
 #include <Hedgehog/Database/System/hhDatabaseData.h>
 #include <Hedgehog/Database/System/hhDatabaseLoader.h>
@@ -49,13 +52,17 @@
 #include <Hedgehog/MirageCore/Misc/hhPrimitive.h>
 #include <Hedgehog/MirageCore/Misc/hhRenderingDevice.h>
 #include <Hedgehog/MirageCore/Misc/hhRenderingInfrastructure.h>
+#include <Hedgehog/MirageCore/Misc/hhRenderScene.h>
 #include <Hedgehog/MirageCore/Misc/hhSamplerState.h>
 #include <Hedgehog/MirageCore/Misc/hhStaticLightContext.h>
 #include <Hedgehog/MirageCore/Misc/hhTransform.h>
 #include <Hedgehog/MirageCore/Misc/hhVertexDeclarationPtr.h>
+#include <Hedgehog/MirageCore/Renderable/hhBundle.h>
 #include <Hedgehog/MirageCore/Renderable/hhElement.h>
+#include <Hedgehog/MirageCore/Renderable/hhOptimalBundle.h>
 #include <Hedgehog/MirageCore/Renderable/hhRenderable.h>
 #include <Hedgehog/MirageCore/Renderable/hhSingleElement.h>
+#include <Hedgehog/MirageCore/Renderable/hhTerrainRenderable.h>
 #include <Hedgehog/MirageCore/RenderData/hhLightData.h>
 #include <Hedgehog/MirageCore/RenderData/hhLightListData.h>
 #include <Hedgehog/MirageCore/RenderData/hhMaterialData.h>
@@ -65,10 +72,14 @@
 #include <Hedgehog/MirageCore/RenderData/hhNodeGroupModelData.h>
 #include <Hedgehog/MirageCore/RenderData/hhParameterElement.h>
 #include <Hedgehog/MirageCore/RenderData/hhPictureData.h>
+#include <Hedgehog/MirageCore/RenderData/hhPixelShaderCodeData.h>
 #include <Hedgehog/MirageCore/RenderData/hhPixelShaderData.h>
 #include <Hedgehog/MirageCore/RenderData/hhShaderListData.h>
+#include <Hedgehog/MirageCore/RenderData/hhTerrainInstanceInfoData.h>
+#include <Hedgehog/MirageCore/RenderData/hhTerrainModelData.h>
 #include <Hedgehog/MirageCore/RenderData/hhTexsetData.h>
 #include <Hedgehog/MirageCore/RenderData/hhTextureData.h>
+#include <Hedgehog/MirageCore/RenderData/hhVertexShaderCodeData.h>
 #include <Hedgehog/MirageCore/RenderData/hhVertexShaderData.h>
 #include <Hedgehog/MotionCore/MotionData/hhLightMotionData.h>
 #include <Hedgehog/MotionCore/MotionData/hhMotionDatabaseWrapper.h>
@@ -83,6 +94,7 @@
 #include <Hedgehog/Universe/Engine/hhUpdateManager.h>
 #include <Hedgehog/Universe/Engine/hhUpdateUnit.h>
 #include <Hedgehog/Universe/Thread/hhParallelJob.h>
+#include <Hedgehog/Utility/hhScopedPointerVector.h>
 #include <Hedgehog/Yggdrasill/hhYggAbstractBuffer.h>
 #include <Hedgehog/Yggdrasill/hhYggAllocator.h>
 #include <Hedgehog/Yggdrasill/hhYggDevice.h>
@@ -187,7 +199,9 @@
 #include <Sonic/Tool/EditParam/ParamValue.h>
 #include <Sonic/Tool/ParameterEditor/AbstractParameter.h>
 #include <Sonic/Tool/ParameterEditor/AbstractParameterNode.h>
+#include <Sonic/Tool/ParameterEditor/GlobalParameterManager.h>
 #include <Sonic/Tool/ParameterEditor/ParameterCategory.h>
+#include <Sonic/Tool/ParameterEditor/ParameterEditor.h>
 #include <Sonic/Tool/ParameterEditor/ParameterFile.h>
 #include <Sonic/Tool/ParameterEditor/ParameterGroup.h>
 

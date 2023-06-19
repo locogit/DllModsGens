@@ -68,7 +68,7 @@ HOOK(void, __fastcall, SquatAdvanceCrawl, 0x1230B60, void* This)
 	if (!sonic->m_Is2DMode && isCrawling) {
 		originalCrawlRotate(This, dir, Crawl::crawlTurnSpeed * 0.55f, PI_F * Crawl::crawlTurnSpeed * 0.06f, true, Crawl::crawlTurnSpeed * moveMult);
 	}
-	else if(sonic->m_Is2DMode && isCrawling) {
+	else if (sonic->m_Is2DMode && isCrawling) {
 		originalCrawlRotate(This, dir, 400, 400, true, 100);
 	}
 
@@ -106,7 +106,7 @@ HOOK(void, __fastcall, SquatAdvanceCrawl, 0x1230B60, void* This)
 		isCrawling = false;
 	}
 
-	if(!sonic->m_Grounded && isCrawling) {
+	if (!sonic->m_Grounded && isCrawling) {
 		sonic->ChangeAnimation("Fall");
 		isCrawling = false;
 	}

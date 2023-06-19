@@ -22,15 +22,20 @@
 #include <regex>
 
 // Dependencies
-#include "DebugDrawText.h"
+#include <DebugDrawText.h>
 #include <INIReader.h>
+#include <Common.h>
+#include <Light.h>
+#include <CustomMath.h>
+#include <StringHelper.h>
+#include <Timer.h>
+
 #include "CSDCommon.h"
-#include "Common.h"
+#include "LetterboxHelper.h"
+
 #include "ArchiveTreePatcher.h"
 #include "AnimationSetPatcher.h"
 #include "Helpers.h"
-#include <StringHelper.h>
-#include "Timer.h"
 #include "CommonFunctions.h"
 
 #include "Misc.h"
@@ -45,10 +50,8 @@
 #include "Pole.h"
 #include "Ramp.h"
 #include "UPC.h"
-#include "LetterboxHelper.h"
 #include "Shop.h"
 #include "Save.h"
 #include "Ring.h"
-#include "Light.h"
-#include "Math.h"
 #include "FallCam.h"
+#include "Jumpball.h"

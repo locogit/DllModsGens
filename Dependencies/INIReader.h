@@ -25,6 +25,7 @@ extern "C" {
 
 #include <stdio.h>
 
+
     /* Typedef for prototype of handler function. */
     typedef int (*ini_handler)(void* user, const char* section,
                                const char* name, const char* value);
@@ -321,6 +322,12 @@ inline int ini_parse(const char* filename, ini_handler handler, void* user)
 #include <map>
 #include <set>
 #include <string>
+#include <any>
+#include <iostream>
+#include <type_traits>
+#include <utility>
+#include <regex>
+#include <iterator>
 
 // Read an INI file into easy-to-access name/value pairs. (Note that I've gone
 // for simplicity here rather than speed, but it should be pretty decent.)

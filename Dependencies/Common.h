@@ -1346,6 +1346,13 @@ namespace Common
 		return *(uint32_t*)stageIDAddress;
 	}
 
+	inline std::string GetCurrentStageName() {
+		int8_t stageID = Common::GetCurrentStageID() & 0xFF;
+		static char* stageName = *(char**)(4 * stageID + 0x1E66B48);
+		stageName[5] = '0' + ((Common::GetCurrentStageID() & 0xFF00) >> 8);
+		return std::string(stageName);
+	}
+
 	inline char* GetCurrentTerrain()
 	{
 		uint32_t terrainAddress = GetMultiLevelAddress(0x1E66B34, { 0x4, 0x1B4, 0x80, 0x20 });
@@ -2263,9 +2270,46 @@ namespace Common
 	}
 
 	static INIReader reader("mod.ini");
+	static INIReader saveReader("sur_save.ini");
 	static bool SUHud = Common::IsModEnabledID("ptkickass.sonicgenerations.unleashedhud");
 	static bool SUTitle = Common::IsModEnabledID("nextinhkry.sonicgenerations.unleashedtitle");
 	static bool UP = Common::IsModEnabled("Unleashed Project");
 	static bool UPC = Common::IsModEnabledID("the.k1.addon") && UP;
 	static CSonicContext** const PLAYER_CONTEXT_GET = (CSonicContext**)0x1E5E2F0;
+
+	class SaveDataStructure {
+	public:
+		static inline int expLevel;
+		static inline float expAmount;
+		static inline int rings;
+		SaveDataStructure() {};
+		SaveDataStructure(int _expLevel, float _expAmount, float _rings) {
+			expLevel = _expLevel;
+			expAmount = _expAmount;
+			rings = _rings;
+		}
+	};
+
+	static SaveDataStructure saveData = SaveDataStructure(0, 0.0f, 0);
+	static INIReader::INIFileClass saveFile;
+
+	inline void LoadData() {
+		saveData.expLevel = saveReader.GetInteger("EXP", "EXPLevel", 0);
+		saveData.expAmount = saveReader.GetFloat("EXP", "EXPAmount", 0.0f);
+		saveData.rings = saveReader.GetInteger("Hub", "Rings", 0);
+	}
+
+	inline void SaveDataINI() {
+		saveFile = INIReader::INIFileClass();
+		saveFile.SetIsPretty(false);
+
+		saveFile.AddSection("EXP");
+		saveFile.AddValue("EXP", "EXPLevel", saveData.expLevel);
+		saveFile.AddValue("EXP", "EXPAmount", saveData.expAmount);
+
+		saveFile.AddSection("Hub");
+		saveFile.AddValue("Hub", "Rings", saveData.rings);
+
+		INIReader::WriteINI("sur_save.ini", saveFile);
+	}
 } // namespace Common

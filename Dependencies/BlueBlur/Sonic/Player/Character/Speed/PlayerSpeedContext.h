@@ -9,6 +9,8 @@
 
 #define StateFlag(x) \
     m_pStateFlag->m_Flags[Sonic::Player::CPlayerSpeedContext::x]
+#define FGetParameter(x) \
+    m_spParameter->Get<float>(Sonic::Player::x)
 
 namespace Sonic
 {
@@ -28,6 +30,8 @@ namespace Sonic::Player
 
     class CSonicHudCountDownImpl;
     class CSonicHudHomingAttackImpl;
+
+    enum EPlayerSpeedParameter;
 }
 
 namespace Hedgehog::Sound
@@ -68,14 +72,13 @@ namespace Sonic::Player
 
         enum EStateFlag;
         class CStateFlag;
-
         class CStateSpeedBase;
 
         Hedgehog::Math::CVector m_Velocity; //0x290
         Hedgehog::Math::CVector m_HorizontalVelocity; //0x2A0
         Hedgehog::Math::CVector m_VerticalVelocity; //0x2B0
         Hedgehog::Math::CVector m_PreviousVelocity; //0x2C0
-        Hedgehog::Math::CMatrix44 m_Matrix2D0; //0x2D0
+        Hedgehog::Math::CMatrix44 m_InputMatrixTransposed; //0x2D0
         Hedgehog::Math::CMatrix44 m_InputMatrix; //0x310
         Hedgehog::Math::CVector m_HighSpeedVector; //0x350
         char m_Field360;    // Seems to be a flag for something?
@@ -110,7 +113,7 @@ namespace Sonic::Player
         BB_INSERT_PADDING(0x0C);
 
         CStateFlag* m_pStateFlag;   // 0x534
-        void* m_pField538;   // unknownMemRegion
+        CStateFlag* m_pField538;   // unknownMemRegion
         float m_MaxVelocity; // 0x53C
         float m_DeadHeight; // 0x540
         int  m_Field544;    // Some kind of... array size specifier
@@ -118,8 +121,13 @@ namespace Sonic::Player
         int m_NormalStrength;
         BB_INSERT_PADDING(0x20);
         bool m_Field58C; // Something to do with velocity?
-        BB_INSERT_PADDING(0x13);
-        Hedgehog::Math::CVector m_CameraTargetOffset;
+        BB_INSERT_PADDING(0x03);
+        //BB_INSERT_PADDING(0x10);
+        float m_Field590;
+        float m_RunOnWaterTimer;
+        float m_Field598;
+        float m_Field59C;
+        Hedgehog::Math::CVector m_CameraTargetOffset; // 0x5A0
         float m_CameraHeight;
         float m_Field5B4;
         uint32_t m_RingCount;
@@ -133,8 +141,8 @@ namespace Sonic::Player
 
         boost::shared_ptr<CPlayerSpeedProxyListener> m_spPlayerSpeedProxyListener; // 0x5D8
         BB_INSERT_PADDING(0x08);
-        bool m_VelocityChanged;
-        bool m_HorizontalOrVerticalVelocityChanged;
+        bool m_VelocityChanged;   // 0x5E8
+        bool m_HorizontalOrVerticalVelocityChanged; // 0x5E9
         boost::shared_ptr<CRayCastCollision>   m_spRayCastCollision_01;   // 0x5EC
         boost::shared_ptr<CShapeCastCollision> m_spShapeCastCollision_01; // 0x5F4
         boost::shared_ptr<CShapeCastCollision> m_spShapeCastCollision_02; // 0x5FC
@@ -151,9 +159,14 @@ namespace Sonic::Player
         boost::shared_ptr<CMatrixNodeWorldOffset> m_spMatrixNodeWorldOffset; // 0x634
 
         BB_INSERT_PADDING(0x44);
-        size_t m_ChaosEnergyGaugeSize;
-        float m_ChaosEnergySetting;
-        BB_INSERT_PADDING(0x58);
+        size_t m_ChaosEnergyGaugeSize; // 0x680
+        float m_ChaosEnergySetting;    // 0x684
+
+        //BB_INSERT_PADDING(0x58);
+        BB_INSERT_PADDING(0x38);
+        float m_FloatA;
+        float m_FloatB;
+        BB_INSERT_PADDING(0x18);
 
         Hedgehog::Math::CVector m_FloorNormal; //0x6E0
         BB_INSERT_PADDING(0xA0);
@@ -166,8 +179,8 @@ namespace Sonic::Player
         float m_Field7BC;
         float m_Field7C0;
         BB_INSERT_PADDING(0x14);
-        size_t m_HangOnActorID; // 0x7D8
-        BB_INSERT_PADDING(0x04);
+        bool m_CameraOnlyUseGroundTarget;
+        BB_INSERT_PADDING(0x07);
         Hedgehog::Math::CVector m_CameraHeightStatic;
         BB_INSERT_PADDING(0x04);
 
@@ -185,15 +198,19 @@ namespace Sonic::Player
         CRigidBody* m_pRigidBody_04; // 0xB00
         BB_INSERT_PADDING(0xFC);
         CRigidBody* m_pRigidBody_05; // 0xC00
-        BB_INSERT_PADDING(0x244);
+        BB_INSERT_PADDING(0x1EC);
+
+        Hedgehog::Math::CVector m_FieldDF0;
+        Hedgehog::Math::CVector m_FieldE00;
+        BB_INSERT_PADDING(56);
 
         boost::shared_ptr<CSonicHudCountDownImpl>    m_spSonicHudCountDownImpl;    // 0xE48
         boost::shared_ptr<CSonicHudHomingAttackImpl> m_spSonicHudHomingAttackImpl; // 0xE50
 
-        boost::shared_ptr<CShapeCastCollision> m_spShapeCastCollision_06; // 0xE58
-        boost::shared_ptr<CShapeCastCollision> m_spShapeCastCollision_07; // 0xE60
-        boost::shared_ptr<CShapeCastCollision> m_spShapeCastCollision_08; // 0xE68
-        boost::shared_ptr<CShapeCastCollision> m_spShapeCastCollision_09; // 0xE70
+        boost::shared_ptr<CShapeCastCollision> m_spHomingShapeCastCollision_3D; // 0xE58
+        boost::shared_ptr<CShapeCastCollision> m_spHomingShapeCastCollision_3DNoAdLibTrick; // 0xE60
+        boost::shared_ptr<CShapeCastCollision> m_spHomingShapeCastCollision_2D; // 0xE68
+        boost::shared_ptr<CShapeCastCollision> m_spHomingShapeCastCollision_2DNoAdLibTrick; // 0xE70
         boost::shared_ptr<CConvexShape> m_spConvexShape_01; // 0xE78
         boost::shared_ptr<CConvexShape> m_spConvexShape_02; // 0xE80
         boost::shared_ptr<CConvexShape> m_spConvexShape_03; // 0xE88
@@ -237,11 +254,16 @@ namespace Sonic::Player
         uint8_t GetStateFlag(const EStateFlag in_stateFlag) const;
         void SetStateFlag(const EStateFlag in_stateFlag, const uint8_t in_flag) const;
 
-        // Trick IntelliSense to suggest this macro.
+        // Trick IntelliSense to suggest these macros.
 #pragma push_macro("StateFlag")
 #undef StateFlag
         void StateFlag(const EStateFlag in_stateFlag) const;
 #pragma pop_macro("StateFlag")
+
+#pragma push_macro("FGetParameter")
+#undef FGetParameter
+        void FGetParameter(const EPlayerSpeedParameter in_Parameter) const;
+#pragma pop_macro("FGetParameter")
 
         void HandleVelocityChanged()
         {
@@ -270,23 +292,23 @@ namespace Sonic::Player
             m_HorizontalOrVerticalVelocityChanged = false;
         }
 
-        const Hedgehog::Math::CVector& GetHorizontalVelocity()
-        {
-            if (m_VelocityChanged)
-                HandleVelocityChanged();
+        //const Hedgehog::Math::CVector& GetHorizontalVelocity()
+        //{
+        //    if (m_VelocityChanged)
+        //        HandleVelocityChanged();
+        //
+        //    return m_HorizontalVelocity;
+        //}
 
-            return m_HorizontalVelocity;
-        }
-
-        void SetHorizontalVelocity(const Hedgehog::Math::CVector& in_rVelocity)
-        {
-            if (m_VelocityChanged)
-                HandleVelocityChanged();
-
-            m_HorizontalVelocity = in_rVelocity;
-            m_VelocityChanged = false;
-            m_HorizontalOrVerticalVelocityChanged = true;
-        }
+        //void SetHorizontalVelocity(const Hedgehog::Math::CVector& in_rVelocity)
+        //{
+        //    if (m_VelocityChanged)
+        //        HandleVelocityChanged();
+        //
+        //    m_HorizontalVelocity = in_rVelocity;
+        //    m_VelocityChanged = false;
+        //    m_HorizontalOrVerticalVelocityChanged = true;
+        //}
 
         const Hedgehog::Math::CVector& GetVerticalVelocity()
         {
@@ -306,12 +328,218 @@ namespace Sonic::Player
             m_HorizontalOrVerticalVelocityChanged = true;
         }
 
+    	// My crap
+        void __cdecl CleanTransforms()
+        {
+            uint32_t func = 0x00E4F100;
+            __asm
+            {
+                mov esi, this
+                call func
+            }
+        }
+
+        Hedgehog::Math::CVector GetHorizontalVelocity()
+        {
+            uint32_t func = 0x00E4F390;
+            Hedgehog::Math::CVector junkVar;
+            uint32_t junkVarPtr = (uint32_t)&junkVar;
+            uint32_t result;
+            __asm
+            {
+                mov eax, this
+                mov edi, junkVarPtr
+                call func
+                mov result, eax
+            }
+            return *(Hedgehog::Math::CVector*)result;
+        }
+
+        /*inline Hedgehog::Math::CVector GetHorizontalVelocityDirection()
+        {
+            return GetHorizontalVelocity().normalizedSafe();
+        }*/
+
+        Hedgehog::Math::CVector __cdecl GetUpDirection()
+        {
+            // ret: eax || eax, esi
+            uint32_t func = 0x00E71FB0;
+
+            Hedgehog::Math::CVector junkVar;
+            uint32_t result = (uint32_t)&junkVar;
+
+            __asm
+            {
+                mov eax, this
+                mov esi, result
+                call func
+                mov result, eax
+            }
+
+            return *(Hedgehog::Math::CVector*)result;
+        }
+
+        Hedgehog::Math::CVector __cdecl GetRightDirection()
+        {
+            // ret: eax || eax, esi
+            uint32_t func = 0x00E72070;
+
+            Hedgehog::Math::CVector junkVar;
+            uint32_t result = (uint32_t)&junkVar;
+
+            __asm
+            {
+                mov eax, this
+                mov esi, result
+                call func
+                mov result, eax
+            }
+
+            return *(Hedgehog::Math::CVector*)result;
+        }
+
+        Hedgehog::Math::CVector __cdecl GetFrontDirection()
+        {
+            // ret: eax || eax, esi
+            uint32_t func = 0x00E72010;
+
+            Hedgehog::Math::CVector junkVar;
+            uint32_t result = (uint32_t)&junkVar;
+
+            __asm
+            {
+                mov eax, this
+                mov esi, result
+                call func
+                mov result, eax
+            }
+
+            return *(Hedgehog::Math::CVector*)result;
+        }
+
+        float GetRotationSpeed()
+        {
+            uint32_t func = 0x00E547F0;
+            volatile float result = 0.0f;
+
+        	__asm
+        	{
+        		mov esi, this
+        		call func
+                movss dword ptr[result], xmm0
+        	}
+
+            return result;
+        	
+        	/*
+            Sonic::Player::CPlayerSpeedContext* a1 = this;
+            float rotationSpeedMax;
+            float v5;
+            int* unk = (int*)a1;
+
+            if (a1->m_pStateFlag->m_Flags[Sonic::Player::CPlayerSpeedContext::eStateFlag_InvokePtmSpike])
+            {
+                float v2 = a1->GetFloatParamByInt(0xE8); // ePlayerParameter_RotationSpeedMaxSpike
+                return v2 * 0.01745329238474369;
+            }
+            if (!*(uint8_t*)(*(uint32_t*)(unk[334] + 4) + 9) && unk[886])
+            {
+                v5 = a1->GetFloatParamByInt(0xDC); // ePlayerParameter_EnemyBlockedRotationSpeedMaxDec
+                rotationSpeedMax = a1->GetFloatParamByInt(0xDB) // ePlayerParameter_EnemyBlockedRotationSpeedMax1
+                    - (float)unk[886] * v5;
+                if (rotationSpeedMax < 0.0)
+                    rotationSpeedMax = 0.0;
+                return rotationSpeedMax * 0.01745329238474369;
+            }
+
+            if (!a1->m_pStateFlag->m_Flags[Sonic::Player::CPlayerSpeedContext::eStateFlag_DriftingLowSpeed])
+            {
+                rotationSpeedMax = a1->GetFloatParamByInt(0xE7); // ePlayerParameter_RotationSpeedMax
+                return rotationSpeedMax * 0.01745329238474369;
+            }
+
+            return a1->GetFloatParamByInt(0xE7) // ePlayerParameter_RotationSpeedMax
+                * 0.1000000014901161
+                * 0.01745329238474369;
+            */
+        }
+
+        inline float GetRotationForce( //@<xmm0>
+            const Hedgehog::Math::CVector& frontDirection, //@<edi> 
+            const Hedgehog::Math::CVector& targetDirection)
+        {
+            volatile float result = 0.0f;
+            uint32_t func = 0x00E53490;
+
+            __asm
+            {
+                push targetDirection
+                mov edi, frontDirection
+                mov eax, this
+                call[func]
+                movss dword ptr[result], xmm0
+            }
+
+            return result;
+        }
+
+        inline void SetHorizontalVelocity(const Hedgehog::Math::CVector& vec)
+        {
+            this->m_HorizontalVelocity = vec;
+            this->m_Velocity = this->m_HorizontalVelocity + this->m_VerticalVelocity;
+            this->m_VelocityChanged = 0;
+            this->m_HorizontalOrVerticalVelocityChanged = 0;
+        }
+
+        inline void SetHorizontalVelocity_Dirty(const Hedgehog::Math::CVector& in_rVelocity)
+        {
+            if (this->m_VelocityChanged)
+            {
+                this->CleanTransforms();
+            }
+            this->m_HorizontalVelocity = in_rVelocity;
+            this->m_HorizontalOrVerticalVelocityChanged = 1;
+            this->m_VelocityChanged = 0;
+        }
+
+        inline void SetYawRotation(const Hedgehog::Math::CQuaternion& inRotation, bool updateMatrix = true)
+        {
+            uint32_t func = 0x00E51800;
+
+            __asm
+            {
+                push updateMatrix
+                mov ecx, inRotation
+                mov eax, this
+                call func
+            }
+        }
+
+        /*inline void SetYawRotation(float angle, bool updateMatrix = true)
+        {
+            SetYawRotation(Hedgehog::Math::CQuaternion::FromAngleAxis(angle, Hedgehog::Math::CVector::Up()));
+        }*/
+
+        inline void AddVelocity(const Hedgehog::Math::CVector& vec)
+        {
+            if (this->m_HorizontalOrVerticalVelocityChanged)
+            {
+                this->m_Velocity = this->m_VerticalVelocity + this->m_HorizontalVelocity;
+                this->m_HorizontalOrVerticalVelocityChanged = 0;
+                this->m_VelocityChanged = 0;
+            }
+            this->m_Velocity += vec;
+            this->m_VelocityChanged = 1;
+            this->m_HorizontalOrVerticalVelocityChanged = 0;
+        }
+
         float GetMaxChaosEnergy() const;
     };
 
     BB_ASSERT_OFFSETOF(CPlayerSpeedContext, m_VerticalRotation, 0x4C0);
     BB_ASSERT_OFFSETOF(CPlayerSpeedContext, m_HorizontalRotation, 0x4E0);
     BB_ASSERT_OFFSETOF(CPlayerSpeedContext, m_ModelUpDirection, 0x4F0);
+    BB_ASSERT_OFFSETOF(CPlayerSpeedContext, m_CameraTargetOffset, 0x5A0);
     BB_ASSERT_OFFSETOF(CPlayerSpeedContext, m_spPlayerSpeedProxyListener, 0x5D8);
     BB_ASSERT_OFFSETOF(CPlayerSpeedContext, m_VelocityChanged, 0x5E8);
     BB_ASSERT_OFFSETOF(CPlayerSpeedContext, m_HorizontalOrVerticalVelocityChanged, 0x5E9);
@@ -327,7 +555,6 @@ namespace Sonic::Player
     BB_ASSERT_OFFSETOF(CPlayerSpeedContext, m_ChaosEnergyGaugeSize, 0x680);
     BB_ASSERT_OFFSETOF(CPlayerSpeedContext, m_ChaosEnergySetting, 0x684);
     BB_ASSERT_OFFSETOF(CPlayerSpeedContext, m_FloorNormal, 0x6E0);
-    BB_ASSERT_OFFSETOF(CPlayerSpeedContext, m_HangOnActorID, 0x7D8);
     BB_ASSERT_OFFSETOF(CPlayerSpeedContext, m_spReactionJumpQTE_HUDPtr, 0x7F4);
     BB_ASSERT_OFFSETOF(CPlayerSpeedContext, m_spTrickJumpSequence, 0x800);
     BB_ASSERT_OFFSETOF(CPlayerSpeedContext, m_pRigidBody_01, 0x980);
@@ -337,10 +564,10 @@ namespace Sonic::Player
     BB_ASSERT_OFFSETOF(CPlayerSpeedContext, m_pRigidBody_05, 0xC00);
     BB_ASSERT_OFFSETOF(CPlayerSpeedContext, m_spSonicHudCountDownImpl, 0xE48);
     BB_ASSERT_OFFSETOF(CPlayerSpeedContext, m_spSonicHudHomingAttackImpl, 0xE50);
-    BB_ASSERT_OFFSETOF(CPlayerSpeedContext, m_spShapeCastCollision_06, 0xE58);
-    BB_ASSERT_OFFSETOF(CPlayerSpeedContext, m_spShapeCastCollision_07, 0xE60);
-    BB_ASSERT_OFFSETOF(CPlayerSpeedContext, m_spShapeCastCollision_08, 0xE68);
-    BB_ASSERT_OFFSETOF(CPlayerSpeedContext, m_spShapeCastCollision_09, 0xE70);
+    BB_ASSERT_OFFSETOF(CPlayerSpeedContext, m_spHomingShapeCastCollision_3D, 0xE58);
+    BB_ASSERT_OFFSETOF(CPlayerSpeedContext, m_spHomingShapeCastCollision_3DNoAdLibTrick, 0xE60);
+    BB_ASSERT_OFFSETOF(CPlayerSpeedContext, m_spHomingShapeCastCollision_2D, 0xE68);
+    BB_ASSERT_OFFSETOF(CPlayerSpeedContext, m_spHomingShapeCastCollision_2DNoAdLibTrick, 0xE70);
     BB_ASSERT_OFFSETOF(CPlayerSpeedContext, m_spConvexShape_01, 0xE78);
     BB_ASSERT_OFFSETOF(CPlayerSpeedContext, m_spConvexShape_02, 0xE80);
     BB_ASSERT_OFFSETOF(CPlayerSpeedContext, m_spConvexShape_03, 0xE88);

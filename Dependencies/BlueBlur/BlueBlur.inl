@@ -63,6 +63,8 @@ struct bb_assert_sizeof
     static_assert(TActual == TExpected, "sizeof assertion failed");
 };
 
+#ifndef BB_EXCLUDE_MATH_DEFINITIONS
+
 // Hedgehog::Math
 namespace Hedgehog::Math
 {
@@ -75,7 +77,14 @@ namespace Hedgehog::Math
     using CVector4 = Eigen::Vector4f;
 }
 
+#endif
+
 struct bb_null_ctor{};
 
 template<int n>
 struct bb_insert_padding { BB_INSERT_PADDING(n); };
+
+namespace boost
+{
+    typedef boost::shared_ptr<void> anonymous_shared_ptr;
+}

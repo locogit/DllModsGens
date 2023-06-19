@@ -75,7 +75,7 @@ HOOK(void, __fastcall, MiscLifeRing, 0xE761A0, int a1) {
 SharedPtrTypeless airBoostParticleHandle;
 SharedPtrTypeless airBoostParticleHandle2;
 float airBoostTimer = -1;
-float airBoostActiveTime = -1;
+float _airBoostActiveTime = -1;
 bool airBoostParticle = false;
 
 bool water = false;
@@ -86,7 +86,7 @@ HOOK(void, __fastcall, CSonicStateAirBoostBegin, 0x1233380, hh::fnd::CStateMachi
 	originalCSonicStateAirBoostBegin(This);
 
 	auto* sonic = (Sonic::Player::CPlayerSpeedContext*)This->GetContextBase();
-	airBoostActiveTime = sonic->m_spParameter->Get<float>(Sonic::Player::ePlayerSpeedParameter_AirBoostTime) - Misc::airBoostActiveTime;
+	_airBoostActiveTime = sonic->m_spParameter->Get<float>(Sonic::Player::ePlayerSpeedParameter_AirBoostTime) - Misc::airBoostActiveTime;
 	airBoostParticle = false;
 }
 
@@ -116,10 +116,11 @@ void Misc::OnUpdate(const hh::fnd::SUpdateInfo& updateInfo)
 		sonic->StateFlag(eStateFlag_DisableGroundSmoke) = false;
 	}
 
+
 	if (Misc::fadeOutAirBoost) {
-		if (airBoostActiveTime > -1) {
-			airBoostActiveTime -= updateInfo.DeltaTime;
-			if (airBoostActiveTime <= 0 && !airBoostParticle) {
+		if (_airBoostActiveTime > -1) {
+			_airBoostActiveTime -= updateInfo.DeltaTime;
+			if (_airBoostActiveTime <= 0 && !airBoostParticle) {
 				if (input.IsDown(Sonic::eKeyState_X)) {
 					void* middlematrixNode = (void*)((uint32_t)sonic + 0x30);
 					Common::fCGlitterCreate(sonic, airBoostParticleHandle, middlematrixNode, (BlueBlurCommon::IsSuper() ? "ef_ch_sps_yh1_boost1" : "ef_ch_sng_yh1_boost1"), 0);
@@ -275,6 +276,7 @@ void NOP(int floatInstrAddr, int paramStrAddr)
 
 void Misc::Install()
 {
+
 	Misc::fadeOutAirBoost = Common::reader.GetBoolean("Restorations", "AirBoostFade", true);
 	Misc::airBoostActiveTime = 0.3f;
 	Misc::airBoostEndTime = 0.3f;
