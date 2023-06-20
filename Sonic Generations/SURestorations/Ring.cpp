@@ -19,6 +19,10 @@ float GetCorrectedSpeed() {
 		correctedSpeed *= 0.75f;
 	}
 
+	if (Crawl::isCrawling) {
+		correctedSpeed = Crawl::crawlSpeed;
+	}
+
 	return correctedSpeed;
 }
 
