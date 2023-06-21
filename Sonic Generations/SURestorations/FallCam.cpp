@@ -90,9 +90,7 @@ HOOK(int, __fastcall, FallCam_MsgFinishPause, 0x010BC110, void* This, void* Edx,
 void PlayFade(int id, float speed = 1.0f) {
 	auto* context = Sonic::Player::CPlayerSpeedContext::GetInstance();
 	if (fadeSingleton)
-	{
 		((FadeObject*)fadeSingleton.get())->Kill();
-	}
 	fadeSingleton = boost::make_shared<FadeObject>();
 	context->m_pPlayer->m_pMember->m_pGameDocument->AddGameObject(fadeSingleton);
 	((FadeObject*)fadeSingleton.get())->Play(id, speed);
@@ -100,9 +98,7 @@ void PlayFade(int id, float speed = 1.0f) {
 
 void StopFade() {
 	if (fadeSingleton)
-	{
 		((FadeObject*)fadeSingleton.get())->Kill();
-	}
 }
 
 HOOK(void, __fastcall, FallCam_CCameraUpdateParallel, 0x10FB770, Sonic::CCamera* This, void* Edx, const hh::fnd::SUpdateInfo& in_rUpdateInfo) {
@@ -133,9 +129,8 @@ HOOK(void, __fastcall, FallCam_CCameraUpdateParallel, 0x10FB770, Sonic::CCamera*
 		}
 		fadeIntroTimer->Update(in_rUpdateInfo.DeltaTime);
 	}
-	else {
+	else
 		fadePlayed = false;
-	}
 
 	if (!isDeadFall) {
 		originalFallCam_CCameraUpdateParallel(This, Edx, in_rUpdateInfo);
@@ -174,9 +169,9 @@ HOOK(int, __fastcall, FallCam_MsgRestartStage, 0xE76810, uint32_t* This, void* E
 	return result;
 }
 
-HOOK(DWORD*, __fastcall, EventFallDead, 0x5156D0, DWORD* This, char a2) {
+HOOK(DWORD*, __fastcall, EventFallDead, 0x5156D0, DWORD* This, char a2, void* Edx) {
 	fallDead = true;
-	return originalEventFallDead(This, a2);
+	return originalEventFallDead(This, a2, Edx);
 }
 
 void FallCam::Install() {

@@ -3,54 +3,49 @@ float speed = 70.0f;
 float GetCorrectedSpeed() {
 	float correctedSpeed = speed;
 
-	if (Common::GetSonicStateFlags()->Boost) {
+	if (Common::GetSonicStateFlags()->Boost)
 		correctedSpeed *= 1.3f;
-	}
 
-	if (Common::GetSonicStateFlags()->Squat) {
+	if (Common::GetSonicStateFlags()->Squat)
 		correctedSpeed *= 0.1f;
-	}
 
-	if (Common::IsPlayerIn2D()) {
+	if (Common::IsPlayerIn2D())
 		correctedSpeed *= 0.5f;
-	}
 
-	if (Common::GetSonicStateFlags()->KeepRunning) {
+	if (Common::GetSonicStateFlags()->KeepRunning)
 		correctedSpeed *= 0.75f;
-	}
-
-	if (Crawl::isCrawling) {
-		correctedSpeed = Crawl::crawlSpeed;
-	}
 
 	return correctedSpeed;
 }
 
 void Ring::OnUpdate(const hh::fnd::SUpdateInfo& updateInfo) {
-	if (!BlueBlurCommon::IsModern()) { return; }
+	if (!BlueBlurCommon::IsModern()) 
+		return;
 
 	Sonic::Player::CPlayerSpeedContext* sonic = Sonic::Player::CPlayerSpeedContext::GetInstance();
 	sonic->m_MaxVelocity = GetCorrectedSpeed();
 }
 
 void OnRing(hh::fnd::Message& msg) {
-	if (!BlueBlurCommon::IsModern()) { return; }
+	if (!BlueBlurCommon::IsModern()) 
+		return;
 
 	auto const* context = Sonic::Player::CPlayerSpeedContext::GetInstance();
-	if (context->m_pPlayer->m_ActorID != msg.m_SenderActorID) { return; }
+
+	if (context->m_pPlayer->m_ActorID != msg.m_SenderActorID) 
+		return;
 
 	int rings = context->m_RingCount;
-	if (rings % 25 != 0 || rings <= 0) { return; }
 
-	if (rings <= 100) {
+	if (rings % 25 != 0 || rings <= 0)
+		return;
+
+	if (rings <= 100)
 		speed += 2.5f;
-	}
-	else if (rings < 200 && rings > 100) {
+	else if (rings < 200 && rings > 100)
 		speed += 1.0f;
-	}
-	else if (rings >= 200) {
+	else if (rings >= 200)
 		speed += 0.5f;
-	}
 
 	if (Common::GetPlayerMaxSpeed() == nullptr) { return; }
 

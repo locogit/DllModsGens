@@ -29,6 +29,7 @@
 #include <CustomMath.h>
 #include <StringHelper.h>
 #include <Timer.h>
+#include <BBTime.h>
 
 #include "CSDCommon.h"
 #include "LetterboxHelper.h"

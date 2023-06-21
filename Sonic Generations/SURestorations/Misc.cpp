@@ -29,7 +29,8 @@ HOOK(int, __fastcall, MiscRestart, 0xE76810, uint32_t* This, void* Edx, void* me
 {
 	int result = originalMiscRestart(This, Edx, message);
 	prevRingCount = 0;
-	if (UseRingLife) { ringLife = false; }
+	if (UseRingLife)
+		ringLife = false; 
 	return result;
 }
 
@@ -40,38 +41,39 @@ void Misc::OnHUDUpdate(const hh::fnd::SUpdateInfo& in_rUpdateInfo)
 	// Ring Energy
 	if (EnergyChange) {
 		if (prevRingCount < sonic->m_RingCount) {
-			if (sonic->m_ChaosEnergy < 100.0f) sonic->m_ChaosEnergy = std::clamp(sonic->m_ChaosEnergy + ringEnergyAmount, 0.0f, 100.0f);
+			if (sonic->m_ChaosEnergy < 100.0f) 
+				sonic->m_ChaosEnergy = std::clamp(sonic->m_ChaosEnergy + ringEnergyAmount, 0.0f, 100.0f);
 			prevRingCount = sonic->m_RingCount;
 		}
 		else {
-			if (prevRingCount > sonic->m_RingCount) {
+			if (prevRingCount > sonic->m_RingCount)
 				prevRingCount = sonic->m_RingCount;
-			}
 		}
 	}
 }
 
 // Unleashed HUD
-HOOK(void, __stdcall, MiscLife, 0xE75520, Sonic::Player::CPlayerContext* context, int lifeCount, bool playSound)
+HOOK(void, __stdcall, MiscLife, 0xE75520, Sonic::Player::CPlayerSpeedContext* context, int lifeCount, bool playSound)
 {
 	if (lifeCount > 0)
 	{
-		Sonic::Player::CPlayerSpeedContext* sonic = Sonic::Player::CPlayerSpeedContext::GetInstance();
+		if (BlueBlurCommon::IsModern() && MoreVoice)
+			context->PlaySound(2002499, true);
 
-		if (sonic && BlueBlurCommon::IsModern() && MoreVoice) {
-			sonic->PlaySound(2002499, true);
-		}
+		if (!Common::SUHud && playSound)
+			context->PlaySound(4001009, 0); // SU Hud plays the sound
 
-		if (sonic->m_RingCount % 100 == 0 && sonic->m_RingCount != 0 && UseRingLife) {
+		if (context->m_RingCount % 100 == 0 && context->m_RingCount != 0 && UseRingLife)
 			ringLife = true;
-		}
 	}
 	originalMiscLife(context, lifeCount, playSound);
 }
 
 HOOK(void, __fastcall, MiscLifeRing, 0xE761A0, int a1) {
-	if (!ringLife) { originalMiscLifeRing(a1); }
+	if (!ringLife) 
+		originalMiscLifeRing(a1);
 }
+
 SharedPtrTypeless airBoostParticleHandle;
 SharedPtrTypeless airBoostParticleHandle2;
 float airBoostTimer = -1;
@@ -85,7 +87,7 @@ HOOK(void, __fastcall, CSonicStateAirBoostBegin, 0x1233380, hh::fnd::CStateMachi
 {
 	originalCSonicStateAirBoostBegin(This);
 
-	auto* sonic = (Sonic::Player::CPlayerSpeedContext*)This->GetContextBase();
+	Sonic::Player::CPlayerSpeedContext* sonic = (Sonic::Player::CPlayerSpeedContext*)This->GetContextBase();
 	_airBoostActiveTime = sonic->m_spParameter->Get<float>(Sonic::Player::ePlayerSpeedParameter_AirBoostTime) - Misc::airBoostActiveTime;
 	airBoostParticle = false;
 }
@@ -100,20 +102,24 @@ void Misc::OnUpdate(const hh::fnd::SUpdateInfo& updateInfo)
 			*(int*)liveCountAddr = 99;
 	}
 	
-	if (!BlueBlurCommon::IsModern()) { return; }
+	if (!BlueBlurCommon::IsModern())
+		return;
 
 	Sonic::Player::CPlayerSpeedContext* sonic = Sonic::Player::CPlayerSpeedContext::GetInstance();
 	Hedgehog::Base::CSharedString state = sonic->m_pPlayer->m_StateMachine.GetCurrentState()->GetStateName();
 	Hedgehog::Base::CSharedString anim = sonic->GetCurrentAnimationName();
 	Sonic::SPadState input = Sonic::CInputState::GetInstance()->GetPadState();
 
-	if (HomingX && sonic->m_spParameter->Get<bool>(Sonic::Player::ePlayerSpeedParameter_XButtonHoming) != true) {
+	if (HomingX && sonic->m_spParameter->Get<bool>(Sonic::Player::ePlayerSpeedParameter_XButtonHoming) != true)
 		sonic->m_spParameter->m_scpNode->m_ValueMap[Sonic::Player::ePlayerSpeedParameter_XButtonHoming] = true;
-	}
 
 	if (!Common::GetSonicStateFlags()->OnWater && water) {
 		water = false;
 		sonic->StateFlag(eStateFlag_DisableGroundSmoke) = false;
+	}
+
+	if (input.IsTapped(Sonic::eKeyState_Y) && BlueBlurCommon::IsSuper() && state != "TransformSp") {
+		sonic->ChangeState("TransformStandard");
 	}
 
 
@@ -167,19 +173,14 @@ void Misc::OnUpdate(const hh::fnd::SUpdateInfo& updateInfo)
 		}
 	}
 
-	if (anim == "DashRingL" || anim == "DashRingR") {
-		if (MoreVoice) {
-			if (lastAnimDashRing != anim.c_str()) {
-				lastAnimDashRing = anim.c_str();
-				sonic->PlaySound(2002498, true);
-			}
+	if ((anim == "DashRingL" || anim == "DashRingR") && MoreVoice) {
+		if (lastAnimDashRing != anim.c_str()) {
+			lastAnimDashRing = anim.c_str();
+			sonic->PlaySound(2002498, true);
 		}
 	}
-	else {
-		if (lastAnimDashRing != "") {
-			lastAnimDashRing = "";
-		}
-	}
+	else if (anim != "DashRingL" && anim != "DashRingR" && MoreVoice && lastAnimDashRing != "")
+		lastAnimDashRing = "";
 
 	if (sonic->m_ChaosEnergy != 100 && Common::CheckCurrentStage("pam000")) // For Boost Gauge Starts Empty Code
 		sonic->m_ChaosEnergy = 100;
@@ -187,12 +188,10 @@ void Misc::OnUpdate(const hh::fnd::SUpdateInfo& updateInfo)
 	// B Button Drift
 	if (BDrift && abs(sonic->m_Velocity.norm()) >= 30.0f && !sonic->m_Is2DMode && !Common::IsPlayerInForwardPath() && !sonic->StateFlag(eStateFlag_OutOfControl) && !strstr(anim.c_str(), "Grind")) {
 		// Regular Drift
-		if (input.IsDown(Sonic::eKeyState_B) && abs(input.LeftStickHorizontal) >= 0.85f && (state == "Walk" || state == "Sliding")) {
+		if (input.IsDown(Sonic::eKeyState_B) && abs(input.LeftStickHorizontal) >= 0.85f && (state == "Walk" || state == "Sliding"))
 			sonic->ChangeState("Drift");
-		}
-		else if (input.IsUp(Sonic::eKeyState_B) && state == "Drift" && input.IsUp(Sonic::eKeyState_LeftTrigger) && input.IsUp(Sonic::eKeyState_RightTrigger)) {
+		else if (input.IsUp(Sonic::eKeyState_B) && state == "Drift" && input.IsUp(Sonic::eKeyState_LeftTrigger) && input.IsUp(Sonic::eKeyState_RightTrigger))
 			sonic->ChangeState("Walk");
-		}
 	}
 }
 
@@ -202,8 +201,8 @@ SharedPtrTypeless driftParticleHandle;
 HOOK(void, __fastcall, CSonicStatePluginOnWaterUpdate, 0x119BED0, Hedgehog::Universe::TStateMachine<Sonic::Player::CPlayerSpeedContext>::TState* This)
 {
 	originalCSonicStatePluginOnWaterUpdate(This);
-	if (!BlueBlurCommon::IsModern()) { return; }
-	if (!WaterDrift) { return; }
+	if (!BlueBlurCommon::IsModern() || !WaterDrift) 
+		return;
 
 	Sonic::Player::CPlayerSpeedContext* sonic = This->GetContext();
 	Hedgehog::Base::CSharedString state = sonic->m_pPlayer->m_StateMachine.GetCurrentState()->GetStateName();
@@ -245,6 +244,7 @@ HOOK(void, __fastcall, CSonicStatePluginOnWaterUpdate, 0x119BED0, Hedgehog::Univ
 			driftParticle = false;
 			Common::fCGlitterEnd(sonic, driftParticleHandle, false);
 		}
+
 		WRITE_MEMORY(0x119C0E5, uint8_t, 0x76, 0x59);
 		WRITE_MEMORY(0xDED132, uint8_t, 0x88, 0x59, 0x59);
 		WRITE_MEMORY(0xDFB98A, uint8_t, 0x74, 0x3A, 0x8B, 0x86, 0x7C, 0x02, 0x00,
@@ -281,9 +281,8 @@ void Misc::Install()
 	Misc::airBoostActiveTime = 0.3f;
 	Misc::airBoostEndTime = 0.3f;
 
-	if (Common::reader.GetBoolean("Restorations", "AirBoostFade", true)) {
+	if (Common::reader.GetBoolean("Restorations", "AirBoostFade", true))
 		INSTALL_HOOK(CSonicStateAirBoostBegin);
-	}
 
 	INSTALL_HOOK(CSonicStatePluginOnWaterUpdate);
 
@@ -341,6 +340,11 @@ void Misc::Install()
 	INSTALL_HOOK(MiscYPrompt);
 	INSTALL_HOOK(MiscRestart);
 
+	if(!Common::SUHud)
+		WRITE_JUMP(0xE7555F, (void*)0xE7565F);
+
 	INSTALL_HOOK(MiscLife);
-	if (UseRingLife) { INSTALL_HOOK(MiscLifeRing); }
+
+	if (UseRingLife)
+		INSTALL_HOOK(MiscLifeRing);
 }

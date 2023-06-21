@@ -29,16 +29,16 @@ HOOK(int, __fastcall, CSonicStateFallStart, 0x1118FB0, hh::fnd::CStateMachineBas
 }
 
 void Stumble::OnUpdate(const hh::fnd::SUpdateInfo& updateInfo) {
-	if (!BlueBlurCommon::IsModern()) { return; }
+	if (!BlueBlurCommon::IsModern())
+		return;
 
 	Sonic::Player::CPlayerSpeedContext* sonic = Sonic::Player::CPlayerSpeedContext::GetInstance();
 	Hedgehog::Base::CSharedString state = sonic->m_pPlayer->m_StateMachine.GetCurrentState()->GetStateName();
-	if (state == "StumbleAir" && !stumbleAir) {
+
+	if (state == "StumbleAir" && !stumbleAir)
 		stumbleAir = true;
-	}
-	else if (state != "StumbleAir" && stumbleAir) {
+	else if (state != "StumbleAir" && stumbleAir)
 		stumbleAir = false;
-	}
 }
 void Stumble::Install() {
 	INSTALL_HOOK(CSonicStateFallStart);

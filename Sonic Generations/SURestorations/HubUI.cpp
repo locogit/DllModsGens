@@ -31,7 +31,7 @@ void __fastcall RemoveHubCallbackTownScreen(Sonic::CGameObject* This, void*, Son
 void HubUI::Save() {
 	Sonic::Player::CPlayerSpeedContext* sonic = Sonic::Player::CPlayerSpeedContext::GetInstance();
 	ringCount += sonic->m_RingCount;
-	Common::saveData.rings = ringCount;
+	Save::saveData.rings += ringCount;
 }
 
 Sonic::CGameObject *ThisObjReference;
@@ -57,7 +57,7 @@ HOOK(void, __fastcall, CHudPlayableMenuStart, 0x108DEB0, Sonic::CGameObject *Thi
 	CSDCommon::PlayAnimation(*info, "Usual_so_Anim", Chao::CSD::eMotionRepeatType_Loop, 1, 0);
 	CSDCommon::PlayAnimation(*cam, "Usual_so_Anim", Chao::CSD::eMotionRepeatType_Loop, 1, 0);
 
-	ringCount = std::clamp(Common::saveData.rings, 0, 999999);
+	ringCount = std::clamp(Save::saveData.rings, 0, 999999);
 
 	char text[256];
 	sprintf(text, "%d", ringCount);
@@ -78,6 +78,6 @@ void HubUI::SetHide(bool hide) {
 	}
 }
 void HubUI::Install() {
-	ringCount = std::clamp(Common::saveData.rings, 0, 999999);
+	ringCount = std::clamp(Save::saveData.rings, 0, 999999);
 	INSTALL_HOOK(CHudPlayableMenuStart);
 }

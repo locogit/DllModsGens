@@ -1,3 +1,5 @@
+#include "LetterboxHelper.h"
+
 Hedgehog::Math::CVector2* LetterboxHelper::Resolution;
 Hedgehog::Math::CVector2* LetterboxHelper::OriginalResolution;
 Hedgehog::Math::CVector2* LetterboxHelper::ScreenHalfPoint;

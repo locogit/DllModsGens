@@ -11,6 +11,4 @@ public:
     static inline float crawlSpeed;
     static inline float crawlTurnSpeed;
     static inline float crawlSlipMult;
-    static inline bool isCrawling = false;
 };
-

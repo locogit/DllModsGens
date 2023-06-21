@@ -247,9 +247,8 @@ HOOK(void, __fastcall, CitadelDashRing, 0x11DE240, int This) {
 
 	float dist = (sonic->m_spMatrixNode->m_Transform.m_Position - Hedgehog::Math::CVector(71.332f, -108.133f, 606.234f)).norm();
 	dist = abs(dist);
-	if (dist <= 2.0f && anim != "Fall") {
+	if (dist <= 2.0f && anim != "Fall")
 		sonic->ChangeAnimation("Fall");
-	}
 }
 
 float desiredRotationFloatBobsleigh = 0.0f;
@@ -324,13 +323,11 @@ void CoolEdgeUpdate(const hh::fnd::SUpdateInfo& updateInfo) {
 		bobsleighExplodeAfterTime = -1;
 	}
 
-	if (bobsleighExplodeTime != -1) {
+	if (bobsleighExplodeTime != -1)
 		bobsleighExplodeTime -= updateInfo.DeltaTime;
-	}
 
-	if (bobsleighExplodeTime <= 0 && bobsleighExplodeTime != -1) {
+	if (bobsleighExplodeTime <= 0 && bobsleighExplodeTime != -1)
 		BobsleighExplode();
-	}
 
 	if (state == "CPlayerSpeedStateBoardGetOff") {
 		sonic->m_pPlayer->m_StateMachine.GetCurrentState()->LeaveState();
@@ -338,13 +335,11 @@ void CoolEdgeUpdate(const hh::fnd::SUpdateInfo& updateInfo) {
 		sonic->ChangeAnimation("JumpSpring");
 	}
 
-	if (bobsleighExplodeAfterTime != -1) {
+	if (bobsleighExplodeAfterTime != -1)
 		bobsleighExplodeAfterTime -= updateInfo.DeltaTime;
-	}
 
-	if (bobsleighExplodeAfterTime <= 0 && bobsleighExplodeAfterTime != -1) {
+	if (bobsleighExplodeAfterTime <= 0 && bobsleighExplodeAfterTime != -1)
 		bobsleighExplode = false;
-	}
 
 	if (input.IsTapped(Sonic::eKeyState_X)) {
 		if (!XResetTimerEnable) {
@@ -362,7 +357,8 @@ void CoolEdgeUpdate(const hh::fnd::SUpdateInfo& updateInfo) {
 	}
 
 	if (XResetTimerEnable) {
-		if (XResetTimer > 0) XResetTimer -= updateInfo.DeltaTime;
+		if (XResetTimer > 0) 
+			XResetTimer -= updateInfo.DeltaTime;
 		if (XResetTimer <= 0) {
 			XPressed = 0;
 			XResetTimerEnable = false;
@@ -378,11 +374,11 @@ void CoolEdgeUpdate(const hh::fnd::SUpdateInfo& updateInfo) {
 	}
 
 	if (Common::IsPlayerOnBoard()) {
-		if (state != "SpecialJump") {
+		if (state != "SpecialJump")
 			bobsleighRamp = false;
-		}
 
-		if (!bobsleighBoostCancel) { bobsleighBoostCancel = true; }
+		if (!bobsleighBoostCancel) 
+			bobsleighBoostCancel = true;
 
 		Common::SonicContextSetCollision(TypeSonicBoost, true);
 
@@ -394,12 +390,10 @@ void CoolEdgeUpdate(const hh::fnd::SUpdateInfo& updateInfo) {
 		WRITE_MEMORY(0x16D1C38, size_t, 0x11BCAB0);
 		WRITE_MEMORY(0x16D1C64, size_t, 0x11BCAB0);
 
-		if (sonic->m_Grounded) {
+		if (sonic->m_Grounded)
 			desiredRotationFloatBobsleigh = 0.0f;
-		}
-		else {
+		else
 			desiredRotationFloatBobsleigh = -Common::Lerp(-0.35f, 0.7f, Common::Clamp01(sonic->m_Velocity.y() * updateInfo.DeltaTime * 3.0f));
-		}
 
 		rotationFloatBobsleigh = Common::Lerp(rotationFloatBobsleigh, desiredRotationFloatBobsleigh, updateInfo.DeltaTime * 5.0f);
 		Hedgehog::Math::CQuaternion m_Rotation = Hedgehog::Math::CQuaternion::Identity() * Eigen::AngleAxis<float>(rotationFloatBobsleigh, Eigen::Vector3f::UnitX());
@@ -418,12 +412,10 @@ void CoolEdgeUpdate(const hh::fnd::SUpdateInfo& updateInfo) {
 			bobsleighBoostCancel = false;
 		}
 
-		if (bobsleighExplode) {
+		if (bobsleighExplode)
 			desiredRotationFloatBobsleigh = Common::Lerp(desiredRotationFloatBobsleigh, 1.5f, updateInfo.DeltaTime * 5.0f);
-		}
-		else {
+		else
 			desiredRotationFloatBobsleigh = 0.0f;
-		}
 
 		rotationFloatBobsleigh = Common::Lerp(rotationFloatBobsleigh, desiredRotationFloatBobsleigh, updateInfo.DeltaTime * 5.0f);
 		Hedgehog::Math::CQuaternion m_Rotation = Hedgehog::Math::CQuaternion::Identity() * Eigen::AngleAxis<float>(rotationFloatBobsleigh, Eigen::Vector3f::UnitX());
@@ -441,7 +433,8 @@ void UPC::OnUpdate(const hh::fnd::SUpdateInfo& updateInfo) {
 	//Paraloop
 	Paraloop(sonic);
 
-	if (paraloopTime > 0 && paraloop) paraloopTime -= updateInfo.DeltaTime;
+	if (paraloopTime > 0 && paraloop) 
+		paraloopTime -= updateInfo.DeltaTime;
 
 	if (paraloopTime <= 0 && paraloop) {
 		Common::fCGlitterEnd(sonic, paraloopHandle, true);
@@ -455,7 +448,8 @@ void UPC::OnUpdate(const hh::fnd::SUpdateInfo& updateInfo) {
 		sound = false;
 	}
 
-	if (soundTime > 0 && sound) soundTime -= updateInfo.DeltaTime;
+	if (soundTime > 0 && sound) 
+		soundTime -= updateInfo.DeltaTime;
 
 	if (soundTime <= 0 && sound) {
 		sonic->PlaySound(2002501, true);
@@ -463,13 +457,16 @@ void UPC::OnUpdate(const hh::fnd::SUpdateInfo& updateInfo) {
 	}
 
 	// Bobsleigh
-	if (Common::CheckCurrentStage("cte200")) { CoolEdgeUpdate(updateInfo); }
+	if (Common::CheckCurrentStage("cte200")) 
+		CoolEdgeUpdate(updateInfo);
 
 	
 }
 HOOK(void, __fastcall, RampUPC, 0x11DE240, int This) {
 	originalRampUPC(This);
-	if (!BlueBlurCommon::IsModern() || !Common::CheckCurrentStage("cte200")) { return; }
+
+	if (!BlueBlurCommon::IsModern() || !Common::CheckCurrentStage("cte200")) 
+		return;
 
 	Sonic::Player::CPlayerSpeedContext* sonic = Sonic::Player::CPlayerSpeedContext::GetInstance();
 	if (Common::IsPlayerOnBoard() && !bobsleighRamp) {
@@ -486,14 +483,14 @@ HOOK(void, __fastcall, RampUPC, 0x11DE240, int This) {
 	}
 }
 
-HOOK(char, __fastcall, bobsleighBounce, 0x11BCA70, void* This, int a2) {
+HOOK(char, __fastcall, bobsleighBounce, 0x11BCA70, void* This, int a2, void* Edx) {
 	if (Common::IsPlayerOnBoard() && BlueBlurCommon::IsModern() && Common::CheckCurrentStage("cte200")) {
 		Sonic::Player::CPlayerSpeedContext* sonic = Sonic::Player::CPlayerSpeedContext::GetInstance();
 		sonic->m_Velocity.y() *= 0.3f;
 		sonic->m_Velocity.x() *= 1.7f;
 		sonic->m_Velocity.z() *= 1.7f;
 	}
-	return originalbobsleighBounce(This, a2);
+	return originalbobsleighBounce(This, a2, Edx);
 }
 
 void UPC::Install() {

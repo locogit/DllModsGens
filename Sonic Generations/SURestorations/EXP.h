@@ -7,4 +7,5 @@ public:
     static void OnHUDUpdate(const hh::fnd::SUpdateInfo& in_rUpdateInfo);
     static inline bool maxStats;
     static inline bool useStats;
+    static inline float expMultiplier;
 };

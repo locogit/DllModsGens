@@ -138,7 +138,7 @@ void chaosEnergyParticle() {
 		CSDCommon::PlayAnimation(*exp_count, "Intro_Anim", Chao::CSD::eMotionRepeatType_PlayOnce, 0, 1);
 	}
 	if (!EXP::maxStats) {
-		expAmount += Common::rand_FloatRange(0.15f, 0.35f);
+		expAmount += Common::rand_FloatRange(0.15f, 0.35f) * EXP::expMultiplier;
 		if (expAmount >= 63 && expLevel < 99) {
 			expAmount -= 63;
 			expLevel++;
@@ -212,17 +212,18 @@ HOOK(int, __fastcall, ProcMsgRestartStageEXP, 0xE76810, uint32_t* This, void* Ed
 
 void EXP::Save() {
 	if (!EXP::maxStats && EXP::useStats) {
-		Common::saveData.expLevel = expLevel;
-		Common::saveData.expAmount = expAmount;
+		Save::saveData.expLevel = expLevel;
+		Save::saveData.expAmount = expAmount;
 	}
 }
 
 void EXP::Install() {
+	EXP::expMultiplier = 1.0f;
 	EXP::maxStats = Common::reader.GetBoolean("EXP", "Max", false);
 	EXP::useStats = true;
 
-	expLevel = Common::saveData.expLevel;
-	expAmount = Common::saveData.expAmount;
+	expLevel = Save::saveData.expLevel;
+	expAmount = Save::saveData.expAmount;
 
 	INSTALL_HOOK(ChaosEnergy_MsgGetHudPosition);
 	INSTALL_HOOK(CHudSonicStageDelayProcessImpEXP);

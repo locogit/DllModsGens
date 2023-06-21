@@ -13,16 +13,14 @@ void playAnimBegin() {
 		Hedgehog::Base::CSharedString hurdleAnimName = (currentHurdleIndex == 0) ? "JumpHurdleL" : "JumpHurdleR";
 		sonic->ChangeAnimation(hurdleAnimName);
 	}
-	else {
+	else
 		sonic->ChangeAnimation("JumpShortBegin");
-	}
 }
 
 void playAnimTop() {
 	Sonic::Player::CPlayerSpeedContext* sonic = Sonic::Player::CPlayerSpeedContext::GetInstance();
-	if (!shortJumpMove) {
+	if (!shortJumpMove)
 		sonic->ChangeAnimation("JumpShortTop");
-	}
 }
 
 void __declspec(naked) ShortTop()

@@ -29,7 +29,9 @@ void CreateScreenMissile(Sonic::CGameObject* pParentGameObject)
 
 HOOK(void, __fastcall, CHudSonicStageDelayProcessImpMissile, 0x109A8D0, Sonic::CGameObject* This) {
 	originalCHudSonicStageDelayProcessImpMissile(This);
-	if (!BlueBlurCommon::IsModern()) { return; }
+	if (!BlueBlurCommon::IsModern())
+		return;
+
 	CHudSonicStageRemoveCallbackMissile(This, nullptr, nullptr);
 
 	Sonic::CCsdDatabaseWrapper wrapperLockOn(This->m_pMember->m_pGameDocument->m_pMember->m_spDatabase.get());
@@ -91,9 +93,12 @@ HOOK(__int8, __fastcall, missile, 0x60EFF0, DWORD** This, int a2, int* a3, void*
 }
 
 void Missile::OnUpdate(const hh::fnd::SUpdateInfo& updateInfo) {
-	if (!BlueBlurCommon::IsModern()) { return; }
+	if (!BlueBlurCommon::IsModern()) 
+		return;
 
-	if (missileTimer > 0) { missileTimer -= updateInfo.DeltaTime; }
+	if (missileTimer > 0) 
+		missileTimer -= updateInfo.DeltaTime;
+
 	if (missileTimer <= 0 && !cursorHidden && cursor_enemy)
 	{
 		cursorHidden = true;

@@ -24,7 +24,8 @@ HOOK(void, __fastcall, CSonicStateSquatKickBegin, 0x12526D0, hh::fnd::CStateMach
 
 	sweepkickColTime = Sweepkick::supportShockwaveDelay;
 
-	if (!Sweepkick::useLight) { return; }
+	if (!Sweepkick::useLight) 
+		return;
 
 	sweepLight.SetStartDelay(Sweepkick::lightInDelay);
 
@@ -33,12 +34,10 @@ HOOK(void, __fastcall, CSonicStateSquatKickBegin, 0x12526D0, hh::fnd::CStateMach
 
 	sweepLight.SetRange(Sweepkick::lightRange);
 
-	if (BlueBlurCommon::IsSuper()) {
+	if (BlueBlurCommon::IsSuper())
 		sweepLight.SetColor({ Sweepkick::colorRSS, Sweepkick::colorGSS, Sweepkick::colorBSS, 1.0f, Sweepkick::colorScalarSS });
-	}
-	else {
+	else
 		sweepLight.SetColor({ Sweepkick::colorR, Sweepkick::colorG, Sweepkick::colorB, 1.0f, Sweepkick::colorScalar });
-	}
 
 	sweepLight.Spawn();
 }
@@ -46,7 +45,10 @@ HOOK(void, __fastcall, CSonicStateSquatKickBegin, 0x12526D0, hh::fnd::CStateMach
 HOOK(void, __fastcall, CSonicStateSquatKickAdvance, 0x1252810, hh::fnd::CStateMachineBase::CStateBase* This) {
 	auto* context = (Sonic::Player::CPlayerSpeedContext*)This->GetContextBase();
 	Hedgehog::Math::CVector pos = context->m_spMatrixNode->m_Transform.m_Position;
-	if (sweepkickColTime <= 0 && Sweepkick::useSupportShockwave) { Common::CreatePlayerSupportShockWave(pos, 0.15f, 3.0f, 0.1f); }
+
+	if (sweepkickColTime <= 0 && Sweepkick::useSupportShockwave) 
+		Common::CreatePlayerSupportShockWave(pos, 0.15f, 3.0f, 0.1f);
+
 	originalCSonicStateSquatKickAdvance(This);
 }
 
@@ -171,9 +173,12 @@ void SweepConfig() {
 
 float lightColor[3] = {}; // RGBA (A doesn't do anything so we lerp to black)
 void Sweepkick::OnUpdate(const hh::fnd::SUpdateInfo& updateInfo) {
-	if (!BlueBlurCommon::IsModern()) { return; }
+	if (!BlueBlurCommon::IsModern()) 
+		return;
 
-	if (sweepkickColTime > 0) sweepkickColTime -= updateInfo.DeltaTime;
+	if (sweepkickColTime > 0) 
+		sweepkickColTime -= updateInfo.DeltaTime;
+
 	Sonic::Player::CPlayerSpeedContext* sonic = Sonic::Player::CPlayerSpeedContext::GetInstance();
 	Hedgehog::Base::CSharedString state = sonic->m_pPlayer->m_StateMachine.GetCurrentState()->GetStateName();
 	Sonic::SPadState input = Sonic::CInputState::GetInstance()->GetPadState();
@@ -181,17 +186,11 @@ void Sweepkick::OnUpdate(const hh::fnd::SUpdateInfo& updateInfo) {
 	sweepLight.Update(updateInfo.DeltaTime);
 	sweepLight.SetPosition(sweepLight.playerLocalPos(Sweepkick::offsetX, Sweepkick::offsetY, Sweepkick::offsetZ));
 
-	if (Sweepkick::useLight) {
-		sweepLight.SetEnabled(true);
-	}
-	else {
-		sweepLight.SetEnabled(false);
-	}
+	sweepLight.SetEnabled(Sweepkick::useLight);
 
 	if (input.IsTapped(Sonic::eKeyState_B)) {
-		if (BResetTimer == -1) {
+		if (BResetTimer == -1)
 			BResetTimer = Sweepkick::sweepInputTime;
-		}
 		BPressed++;
 		if (BPressed == 2) {
 			BPressed = 0;
@@ -206,16 +205,14 @@ void Sweepkick::OnUpdate(const hh::fnd::SUpdateInfo& updateInfo) {
 		}
 	}
 
-	if (state == "SquatKick" || sweepKickActive) {
-		if (sonic->m_Velocity.norm() == 0.0f) { sonic->m_spMatrixNode->m_Transform.SetRotation(squatKickRotation); }
-	}
+	if ((state == "SquatKick" || sweepKickActive) && sonic->m_Velocity.norm() == 0.0f)
+		sonic->m_spMatrixNode->m_Transform.SetRotation(squatKickRotation);
 
 	if (sweepKickActive && (state != "Squat" && state != "Sliding" && state != "Walk" && state != "SlidingEnd" && state != "StompingLand" && state != "SquatCharge" && state != "SquatKick")) {
 		Common::fCGlitterEnd(BlueBlurCommon::GetContext(), squatKickParticleHandle, true);
 		sweepKickActive = false;
-		if (Sweepkick::useLight) {
+		if (Sweepkick::useLight)
 			sweepLight.Despawn();
-		}
 	}
 
 	if (BResetTimer != -1) {

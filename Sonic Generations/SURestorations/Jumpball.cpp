@@ -22,7 +22,7 @@ const char* GetParticleName() {
 	return "";
 }
 
-HOOK(char, __fastcall, JumpBallStart, 0x11BCBE0, size_t* This) {
+HOOK(char, __fastcall, JumpBallStart, 0x11BCBE0, rsize_t* This) {
 	Sonic::Player::CPlayerSpeedContext* sonic = Sonic::Player::CPlayerSpeedContext::GetInstance();
 	void* middlematrixNode = (void*)((uint32_t)sonic + 0x30);
 	Common::fCGlitterCreate(sonic, jumpBallHandle, middlematrixNode, GetParticleName(), 1);

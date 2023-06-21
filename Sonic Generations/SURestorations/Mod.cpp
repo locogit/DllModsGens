@@ -102,6 +102,7 @@ HOOK(void, __cdecl, InitializeApplicationParams_Restorations, 0x00D65180, Sonic:
 
 		exp_param->CreateParamBool(&EXP::useStats, "Use EXP");
 		exp_param->CreateParamBool(&EXP::maxStats, "Max EXP");
+		exp_param->CreateParamFloat(&EXP::expMultiplier, "EXP Multiplier");
 
 		parameterGroupEXP->Flush();
 	}
@@ -164,8 +165,8 @@ HOOK(void, __cdecl, InitializeApplicationParams_Restorations, 0x00D65180, Sonic:
 
 extern "C" _declspec(dllexport) void Init()
 {
-	Common::LoadData();
-	Common::SaveDataINI();
+	Save::Initialize();
+	Save::SaveDataINI();
 
 	//CreateConsole();
 	//TestBuild();
@@ -195,9 +196,18 @@ extern "C" _declspec(dllexport) void Init()
 
 	ArchiveTreePatcher::m_archiveDependencies.push_back(ArchiveDependency("SWAShop", { "pam000" }));
 
-	WRITE_STRING(0x15E90DC, "oneUpChanged");
-
 	ArchiveTreePatcher::applyPatches();
+
+	AnimationSetPatcher::CreateAnimation("CrawlEnter", "sn_crawlS", 1.0f, false, nullptr);
+	AnimationSetPatcher::CreateAnimation("CrawlExit", "sn_crawlE", 1.0f, false, nullptr);
+	AnimationSetPatcher::CreateAnimation("CrawlLoop", "sn_crawl_loop", 1.75f, true, nullptr);
+	AnimationSetPatcher::CreateAnimation("JumpBoardLoop", "sn_jumpstand_s", 1.0f, false, nullptr);
+
+	AnimationSetPatcher::CreateAnimationSuper("CrawlEnter", "ssn_crawlS", 1.0f, false, nullptr);
+	AnimationSetPatcher::CreateAnimationSuper("CrawlExit", "ssn_crawlE", 1.0f, false, nullptr);
+	AnimationSetPatcher::CreateAnimationSuper("CrawlLoop", "ssn_crawl_loop", 1.75f, true, nullptr);
+	AnimationSetPatcher::CreateAnimationSuper("SquatKick", "ssn_squat_kick", 1.0f, false, nullptr);
+
 	AnimationSetPatcher::applyPatches();
 
 	LetterboxHelper::Initialize(1280, 720);
@@ -207,26 +217,34 @@ extern "C" _declspec(dllexport) void Init()
 	Jumpball::Install();
 
 	//if (Common::SUTitle || Common::UPC) Shop::Install();
-
-	if(Common::SUHud && Common::UPC) HubUI::Install();
-
-	if(Common::reader.GetBoolean("Restorations", "SweepKick", true)) Sweepkick::Install();
-
-	if (Common::reader.GetBoolean("Restorations", "UpReel", true)) UpReel::Install();
-
-	if(Common::reader.GetBoolean("Restorations", "Stumble", true)) Stumble::Install();
-
-	if(Common::reader.GetBoolean("Restorations", "RunJump", true)) ShortJump::Install();
-
-	if(Common::reader.GetBoolean("Restorations", "Crawl", true)) Crawl::Install();
-
-	if(Common::reader.GetBoolean("Restorations", "PoleTrail", true)) Pole::Install();
-
-	if(Common::reader.GetBoolean("Restorations", "Ramp", true) || Common::reader.GetBoolean("Restorations", "BoostRamp", true)) Ramp::Install();
-
-	if(Common::UPC) UPC::Install();
-
 	//if (Common::SUHud) Medal::Install();
+
+	if(Common::SUHud && Common::UPC) 
+		HubUI::Install();
+
+	if(Common::reader.GetBoolean("Restorations", "SweepKick", true)) 
+		Sweepkick::Install();
+
+	if (Common::reader.GetBoolean("Restorations", "UpReel", true)) 
+		UpReel::Install();
+
+	if(Common::reader.GetBoolean("Restorations", "Stumble", true)) 
+		Stumble::Install();
+
+	if(Common::reader.GetBoolean("Restorations", "RunJump", true)) 
+		ShortJump::Install();
+
+	if(Common::reader.GetBoolean("Restorations", "Crawl", true)) 
+		Crawl::Install();
+
+	if(Common::reader.GetBoolean("Restorations", "PoleTrail", true)) 
+		Pole::Install();
+
+	if(Common::reader.GetBoolean("Restorations", "Ramp", true) || Common::reader.GetBoolean("Restorations", "BoostRamp", true)) 
+		Ramp::Install();
+
+	if(Common::UPC) 
+		UPC::Install();
 
 	Missile::Install();
 
@@ -234,11 +252,15 @@ extern "C" _declspec(dllexport) void Init()
 
 	Ring::Install();
 
+	CommonFunctions::Install();
+
+	BBTime::Start();
+
 	FallCam::Install();
 
 	INSTALL_HOOK(InitializeApplicationParams_Restorations);
+	WRITE_STRING(0x15E90DC, "oneUpChanged");
 
-	CommonFunctions::Install();
 }
 
 extern "C" __declspec(dllexport) void PostInit() {
