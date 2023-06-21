@@ -217,7 +217,6 @@ extern "C" _declspec(dllexport) void Init()
 	Jumpball::Install();
 
 	//if (Common::SUTitle || Common::UPC) Shop::Install();
-	//if (Common::SUHud) Medal::Install();
 
 	if(Common::SUHud && Common::UPC) 
 		HubUI::Install();
@@ -259,7 +258,7 @@ extern "C" _declspec(dllexport) void Init()
 	FallCam::Install();
 
 	INSTALL_HOOK(InitializeApplicationParams_Restorations);
-	WRITE_STRING(0x15E90DC, "oneUpChanged");
+	WRITE_STRING(0x15E90DC, "ef_obj_chn_lms_1up_new");
 
 }
 

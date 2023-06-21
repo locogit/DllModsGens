@@ -4,7 +4,6 @@ HOOK(void, __fastcall, SonicUpdate, 0xE6BF20, Sonic::Player::CPlayerSpeed* This,
 	Misc::OnUpdate(updateInfo);
 	if(Common::reader.GetBoolean("Restorations", "Stumble", true)) Stumble::OnUpdate(updateInfo);
 	if(Common::reader.GetBoolean("Restorations", "SweepKick", true)) Sweepkick::OnUpdate(updateInfo);
-	if(Common::reader.GetBoolean("Restorations", "Ramp", true) || Common::reader.GetBoolean("Restorations", "BoostRamp", true)) Ramp::OnUpdate(updateInfo);
 	if(Common::reader.GetBoolean("Restorations", "UpReel", true)) UpReel::OnUpdate(updateInfo);
 	if(Common::reader.GetBoolean("Restorations", "Crawl", true)) Crawl::OnUpdate(updateInfo);
 	if(Common::reader.GetBoolean("Restorations", "PoleTrail", true)) Pole::OnUpdate(updateInfo);

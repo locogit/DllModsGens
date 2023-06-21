@@ -1,39 +1,45 @@
 SharedPtrTypeless RampHandle;
-bool usedRamp;
-bool rampParticle = false;
 bool RampLoop = Common::reader.GetBoolean("Restorations", "Ramp", true);
 bool RampBoost = Common::reader.GetBoolean("Restorations", "BoostRamp", true);
 
-void Ramp::OnUpdate(const hh::fnd::SUpdateInfo& updateInfo) {
-	if (!BlueBlurCommon::IsModern()) 
+void CreateRampParticle() {
+	if (!RampBoost)
 		return;
 
 	Sonic::Player::CPlayerSpeedContext* sonic = Sonic::Player::CPlayerSpeedContext::GetInstance();
-	Hedgehog::Base::CSharedString state = sonic->m_pPlayer->m_StateMachine.GetCurrentState()->GetStateName();
-	Hedgehog::Base::CSharedString anim = sonic->GetCurrentAnimationName();
+	void* middlematrixNode = (void*)((uint32_t)sonic + 0x30);
+	Common::fCGlitterCreate(sonic, RampHandle, middlematrixNode, "ef_ch_sng_lms_jump_delux", 1);
+	printf("[SU Restorations] Play Ramp Particle\n");
+}
 
-	if (anim == "JumpBoard" && state == "SpecialJump" && !sonic->StateFlag(eStateFlag_Boost) && RampLoop)
-		sonic->ChangeAnimation("JumpBoardLoop");
+void PlayRampAnimation() {
+	if (!RampLoop)
+		return;
 
-	if (strstr(sonic->GetCurrentAnimationName().c_str(), "JumpBoardSpecial") && state == "SpecialJump" && !usedRamp && RampBoost && !rampParticle) {
-		usedRamp = true;
-		rampParticle = false;
-	}
+	Sonic::Player::CPlayerSpeedContext* sonic = Sonic::Player::CPlayerSpeedContext::GetInstance();
+	sonic->ChangeAnimation("JumpBoardLoop");
+}
 
-	if (state != "SpecialJump" && RampBoost) {
-		usedRamp = false;
-		rampParticle = false;
-	}
+//https://github.com/brianuuu/DllMods/blob/master/Source/ColorsVoice/Mod.cpp
+//https://github.com/brianuuu/DllMods/blob/master/Source/Sonic06DefinitiveExperience/NextGenPhysics.cpp
+HOOK(void, __fastcall, RampApplyImpulse, 0xE6CFA0, Sonic::Player::CPlayerSpeedContext* context, void* Edx, MsgApplyImpulse* message)
+{
+	originalRampApplyImpulse(context, Edx, message);
 
-	if (sonic->StateFlag(eStateFlag_Boost) && usedRamp && !rampParticle) {
-		usedRamp = false;
-		rampParticle = true;
-		void* middlematrixNode = (void*)((uint32_t)sonic + 0x30);
-		Common::fCGlitterCreate(sonic, RampHandle, middlematrixNode, "ef_ch_sng_lms_jump_delux", 1);
-		printf("[SU Restorations] Play Ramp Particle\n");
+	if (!BlueBlurCommon::IsModern())
+		return;
+
+	switch (message->m_impulseType) // i would just pass in context here but it crashes.
+	{
+	case ImpulseType::JumpBoardSpecial:
+		CreateRampParticle();
+		break;
+	case ImpulseType::JumpBoard:
+		PlayRampAnimation();
+		break;
 	}
 }
 
 void Ramp::Install() {
-	
+	INSTALL_HOOK(RampApplyImpulse);
 }

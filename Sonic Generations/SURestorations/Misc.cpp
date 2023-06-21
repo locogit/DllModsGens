@@ -118,7 +118,7 @@ void Misc::OnUpdate(const hh::fnd::SUpdateInfo& updateInfo)
 		sonic->StateFlag(eStateFlag_DisableGroundSmoke) = false;
 	}
 
-	if (input.IsTapped(Sonic::eKeyState_Y) && BlueBlurCommon::IsSuper() && state != "TransformSp") {
+	if (input.IsTapped(Sonic::eKeyState_Y) && BlueBlurCommon::IsSuper() && state != "TransformSp" && state != "LightSpeedDash" && !Common::GetSonicStateFlags()->LightSpeedDashReady) {
 		sonic->ChangeState("TransformStandard");
 	}
 
