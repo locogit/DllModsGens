@@ -208,7 +208,7 @@ void Sweepkick::OnUpdate(const hh::fnd::SUpdateInfo& updateInfo) {
 	if ((state == "SquatKick" || sweepKickActive) && sonic->m_Velocity.norm() == 0.0f)
 		sonic->m_spMatrixNode->m_Transform.SetRotation(squatKickRotation);
 
-	if (sweepKickActive && (state != "Squat" && state != "Sliding" && state != "Walk" && state != "SlidingEnd" && state != "StompingLand" && state != "SquatCharge" && state != "SquatKick")) {
+	if (sweepKickActive && (state != "Squat" && state != "Sliding" && state != "Stand" && state != "Walk" && state != "SlidingEnd" && state != "StompingLand" && state != "SquatCharge" && state != "SquatKick")) {
 		Common::fCGlitterEnd(BlueBlurCommon::GetContext(), squatKickParticleHandle, true);
 		sweepKickActive = false;
 		if (Sweepkick::useLight)

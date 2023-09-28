@@ -13,7 +13,7 @@ float GetCorrectedSpeed() {
 		correctedSpeed *= 0.5f;
 
 	if (Common::GetSonicStateFlags()->KeepRunning)
-		correctedSpeed *= 0.75f;
+		correctedSpeed = 70;
 
 	return correctedSpeed;
 }

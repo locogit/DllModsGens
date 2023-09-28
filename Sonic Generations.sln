@@ -8,7 +8,7 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Shared", "Shared", "{0D6EA3
 		Sonic Generations\BlueBlurCommon.h = Sonic Generations\BlueBlurCommon.h
 	EndProjectSection
 EndProject
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "NoRings", "Sonic Generations\NoRings\NoRings.vcxproj", "{5BD6599F-193F-4019-9940-60CD2F88B924}"
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "RingsReimagined", "Sonic Generations\NoRings\NoRings.vcxproj", "{5BD6599F-193F-4019-9940-60CD2F88B924}"
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "SURestorations", "Sonic Generations\SURestorations\SURestorations.vcxproj", "{16F96186-80BE-414E-9D17-12B5A455B6C6}"
 EndProject
@@ -19,6 +19,8 @@ EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "UnleashedUI", "Sonic Generations\UnleashedUI\UnleashedUI.vcxproj", "{272A5DF2-6FDE-4DA2-8F78-76639645D002}"
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "FrontiersSonic", "Sonic Generations\FrontiersSonic\FrontiersSonic.vcxproj", "{7D3AB10A-FD7C-483A-BEAD-518AB1701D48}"
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "ForcesSonic", "Sonic Generations\ForcesSonic\ForcesSonic.vcxproj", "{E640BEC6-5359-4E8F-B820-A0840E1AE389}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -64,6 +66,12 @@ Global
 		{7D3AB10A-FD7C-483A-BEAD-518AB1701D48}.Release|x64.ActiveCfg = Release|Win32
 		{7D3AB10A-FD7C-483A-BEAD-518AB1701D48}.Release|x86.ActiveCfg = Release|Win32
 		{7D3AB10A-FD7C-483A-BEAD-518AB1701D48}.Release|x86.Build.0 = Release|Win32
+		{E640BEC6-5359-4E8F-B820-A0840E1AE389}.Debug|x64.ActiveCfg = Debug|Win32
+		{E640BEC6-5359-4E8F-B820-A0840E1AE389}.Debug|x86.ActiveCfg = Debug|Win32
+		{E640BEC6-5359-4E8F-B820-A0840E1AE389}.Debug|x86.Build.0 = Debug|Win32
+		{E640BEC6-5359-4E8F-B820-A0840E1AE389}.Release|x64.ActiveCfg = Release|Win32
+		{E640BEC6-5359-4E8F-B820-A0840E1AE389}.Release|x86.ActiveCfg = Release|Win32
+		{E640BEC6-5359-4E8F-B820-A0840E1AE389}.Release|x86.Build.0 = Release|Win32
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

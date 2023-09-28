@@ -22,9 +22,9 @@ void PlayRampAnimation() {
 
 //https://github.com/brianuuu/DllMods/blob/master/Source/ColorsVoice/Mod.cpp
 //https://github.com/brianuuu/DllMods/blob/master/Source/Sonic06DefinitiveExperience/NextGenPhysics.cpp
-HOOK(void, __fastcall, RampApplyImpulse, 0xE6CFA0, Sonic::Player::CPlayerSpeedContext* context, void* Edx, MsgApplyImpulse* message)
+HOOK(void, __fastcall, RampApplyImpulse, 0xE6CFA0, void* This, void* Edx, MsgApplyImpulse* message)
 {
-	originalRampApplyImpulse(context, Edx, message);
+	originalRampApplyImpulse(This, Edx, message);
 
 	if (!BlueBlurCommon::IsModern())
 		return;

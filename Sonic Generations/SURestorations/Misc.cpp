@@ -92,6 +92,7 @@ HOOK(void, __fastcall, CSonicStateAirBoostBegin, 0x1233380, hh::fnd::CStateMachi
 	airBoostParticle = false;
 }
 
+
 void Misc::OnUpdate(const hh::fnd::SUpdateInfo& updateInfo)
 {
 	deltaTime = updateInfo.DeltaTime;
@@ -117,11 +118,6 @@ void Misc::OnUpdate(const hh::fnd::SUpdateInfo& updateInfo)
 		water = false;
 		sonic->StateFlag(eStateFlag_DisableGroundSmoke) = false;
 	}
-
-	if (input.IsTapped(Sonic::eKeyState_Y) && BlueBlurCommon::IsSuper() && state != "TransformSp" && state != "LightSpeedDash" && !Common::GetSonicStateFlags()->LightSpeedDashReady) {
-		sonic->ChangeState("TransformStandard");
-	}
-
 
 	if (Misc::fadeOutAirBoost) {
 		if (_airBoostActiveTime > -1) {

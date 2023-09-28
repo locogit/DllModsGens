@@ -83,7 +83,7 @@
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <SDLCheck>true</SDLCheck>
       <ConformanceMode>true</ConformanceMode>
-      <AdditionalIncludeDirectories>$(SolutionDir)Dependencies\BlueBlur;$(SolutionDir)Dependencies;$(SolutionDir)Dependencies\Detours\include;C:\Users\Lito\Downloads\DllModsGens\Dependencies\Discord\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(SolutionDir)Dependencies\BlueBlur;C:\Users\Lito\Downloads\DllModsGens\Dependencies;$(SolutionDir)Dependencies\Detours\include;C:\Users\Lito\Downloads\DllModsGens\Dependencies\ImGui;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <PrecompiledHeader>Use</PrecompiledHeader>
       <PrecompiledHeaderFile>Pch.h</PrecompiledHeaderFile>
       <ForcedIncludeFiles>Pch.h</ForcedIncludeFiles>
@@ -94,7 +94,7 @@
       <SubSystem>Console</SubSystem>
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
-      <AdditionalDependencies>detours.lib;syelog.lib;discord-rpc.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>detours.lib;syelog.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <AdditionalLibraryDirectories>$(SolutionDir)Dependencies\BlueBlur;$(SolutionDir)Dependencies\Detours\lib\x86;C:\Users\Lito\Downloads\DllModsGens\Dependencies\Discord\lib</AdditionalLibraryDirectories>
     </Link>
     <PostBuildEvent>
@@ -103,14 +103,11 @@
     </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClInclude Include="Common.h" />
     <ClInclude Include="DebugDrawText.h" />
-    <ClInclude Include="Discord.h" />
     <ClInclude Include="Update.h" />
     <ClInclude Include="Pch.h" />
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="Discord.cpp" />
     <ClCompile Include="DllMain.cpp" />
     <ClCompile Include="Update.cpp" />
     <ClCompile Include="Mod.cpp" />

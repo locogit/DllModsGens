@@ -191,8 +191,8 @@ extern "C" _declspec(dllexport) void Init()
 	ArchiveTreePatcher::m_archiveDependencies.push_back(ArchiveDependency("SonicParaloop", { "SonicActionCommon" }));
 	ArchiveTreePatcher::m_archiveDependencies.push_back(ArchiveDependency("SonicLife", { "Sonic" }));
 
-	ArchiveTreePatcher::m_archiveDependencies.push_back(ArchiveDependency("SonicJumpPreview", { "Sonic" }));
-	ArchiveTreePatcher::m_archiveDependencies.push_back(ArchiveDependency("SuperSonicJumpPreview", { "Sonic" }));
+	ArchiveTreePatcher::m_archiveDependencies.push_back(ArchiveDependency("SonicJumpPreview", { "SonicActionCommon" }));
+	ArchiveTreePatcher::m_archiveDependencies.push_back(ArchiveDependency("SuperSonicJumpPreview", { "SonicActionCommon" }));
 
 	ArchiveTreePatcher::m_archiveDependencies.push_back(ArchiveDependency("SWAShop", { "pam000" }));
 

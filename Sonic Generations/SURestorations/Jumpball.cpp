@@ -19,10 +19,10 @@ const char* GetParticleName() {
 			return "ef_ch_sng_yh1_spinattack_preview";
 		}
 	}
-	return "";
+	return "ef_ch_sng_yh1_spinattack";
 }
 
-HOOK(char, __fastcall, JumpBallStart, 0x11BCBE0, rsize_t* This) {
+HOOK(char*, __fastcall, JumpBallStart, 0x11BCBE0, rsize_t* This) {
 	Sonic::Player::CPlayerSpeedContext* sonic = Sonic::Player::CPlayerSpeedContext::GetInstance();
 	void* middlematrixNode = (void*)((uint32_t)sonic + 0x30);
 	Common::fCGlitterCreate(sonic, jumpBallHandle, middlematrixNode, GetParticleName(), 1);

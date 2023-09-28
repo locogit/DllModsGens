@@ -1,5 +1,7 @@
+#include <BlueBlur.inl>
+#include "Helpers.h"
+#include <BlueBlur.h>
 #include "LetterboxHelper.h"
-
 Hedgehog::Math::CVector2* LetterboxHelper::Resolution;
 Hedgehog::Math::CVector2* LetterboxHelper::OriginalResolution;
 Hedgehog::Math::CVector2* LetterboxHelper::ScreenHalfPoint;

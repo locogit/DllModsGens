@@ -102,6 +102,11 @@ void StopFade() {
 }
 
 HOOK(void, __fastcall, FallCam_CCameraUpdateParallel, 0x10FB770, Sonic::CCamera* This, void* Edx, const hh::fnd::SUpdateInfo& in_rUpdateInfo) {
+	if (!BlueBlurCommon::IsModern()) {
+		originalFallCam_CCameraUpdateParallel(This, Edx, in_rUpdateInfo);
+		return;
+	}
+
 	auto& camera = This->m_MyCamera;
 	auto* context = Sonic::Player::CPlayerSpeedContext::GetInstance();
 
@@ -160,6 +165,9 @@ HOOK(int, __fastcall, FallCam_MsgRestartStage, 0xE76810, uint32_t* This, void* E
 {
 	int result = originalFallCam_MsgRestartStage(This, Edx, message);
 
+	if (!BlueBlurCommon::IsModern())
+		return result;
+
 	StopFade();
 
 	fallDead = false;
@@ -170,7 +178,8 @@ HOOK(int, __fastcall, FallCam_MsgRestartStage, 0xE76810, uint32_t* This, void* E
 }
 
 HOOK(DWORD*, __fastcall, EventFallDead, 0x5156D0, DWORD* This, char a2, void* Edx) {
-	fallDead = true;
+	if(BlueBlurCommon::IsModern())
+		fallDead = true;
 	return originalEventFallDead(This, a2, Edx);
 }
 

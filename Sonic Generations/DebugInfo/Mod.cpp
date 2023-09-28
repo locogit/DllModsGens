@@ -6,8 +6,3 @@ extern "C" _declspec(dllexport) void Init()
 {
 	Update::Install();
 }
-
-extern "C" _declspec(dllexport) void PostInit()
-{
-	//Discord::Initialize();
-}

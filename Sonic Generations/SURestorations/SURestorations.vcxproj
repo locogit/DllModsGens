@@ -110,10 +110,11 @@
     <ClInclude Include="..\..\Dependencies\ArchiveTreePatcher.h" />
     <ClInclude Include="..\..\Dependencies\BBTime.h" />
     <ClInclude Include="..\..\Dependencies\CSDCommon.h" />
-    <ClInclude Include="..\..\Dependencies\LetterboxHelper.h" />
+    <ClInclude Include="..\..\Dependencies\INIReader.h" />
     <ClInclude Include="CommonFunctions.h" />
     <ClInclude Include="FallCam.h" />
     <ClInclude Include="Jumpball.h" />
+    <ClInclude Include="LetterboxHelper.h" />
     <ClInclude Include="Misc.h" />
     <ClInclude Include="Crawl.h" />
     <ClInclude Include="EXP.h" />
@@ -136,12 +137,12 @@
     <ClCompile Include="..\..\Dependencies\ArchiveTreePatcher.cpp" />
     <ClCompile Include="..\..\Dependencies\BBTime.cpp" />
     <ClCompile Include="..\..\Dependencies\CSDCommon.cpp" />
-    <ClCompile Include="..\..\Dependencies\LetterboxHelper.cpp" />
     <ClCompile Include="CommonFunctions.cpp" />
     <ClCompile Include="Crawl.cpp" />
     <ClCompile Include="DllMain.cpp" />
     <ClCompile Include="FallCam.cpp" />
     <ClCompile Include="Jumpball.cpp" />
+    <ClCompile Include="LetterboxHelper.cpp" />
     <ClCompile Include="Misc.cpp" />
     <ClCompile Include="EXP.cpp" />
     <ClCompile Include="HubUI.cpp" />

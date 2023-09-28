@@ -21,10 +21,12 @@ void KillScreenTownScreen()
 void __fastcall RemoveHubCallbackTownScreen(Sonic::CGameObject* This, void*, Sonic::CGameDocument* pGameDocument)
 {
 	KillScreenTownScreen();
+
 	if(info)
 		Chao::CSD::CProject::DestroyScene(rcTownScreen.Get(), info);
 	if(cam)
 		Chao::CSD::CProject::DestroyScene(rcTownScreen.Get(), cam);
+
 	rcTownScreen = nullptr;
 }
 
@@ -34,10 +36,7 @@ void HubUI::Save() {
 	Save::saveData.rings += ringCount;
 }
 
-Sonic::CGameObject *ThisObjReference;
-
 HOOK(void, __fastcall, CHudPlayableMenuStart, 0x108DEB0, Sonic::CGameObject *This, int a2, int a3, void **a4, void* Edx) {
-	ThisObjReference = This;
 	originalCHudPlayableMenuStart(This, a2, a3, a4, Edx);
 	RemoveHubCallbackTownScreen(This, nullptr, nullptr);
 
@@ -58,25 +57,25 @@ HOOK(void, __fastcall, CHudPlayableMenuStart, 0x108DEB0, Sonic::CGameObject *Thi
 	CSDCommon::PlayAnimation(*cam, "Usual_so_Anim", Chao::CSD::eMotionRepeatType_Loop, 1, 0);
 
 	ringCount = std::clamp(Save::saveData.rings, 0, 999999);
-
 	char text[256];
 	sprintf(text, "%d", ringCount);
 	info->GetNode("ring_num")->SetText(text);
 
 	info->GetNode("S_medal_lv_num")->SetText("7");
 	info->GetNode("S_medal_num")->SetText("[200]");
-
 	info->GetNode("M_medal_lv_num")->SetText("7");
 	info->GetNode("M_medal_num")->SetText("[200]");
 
 	CreateScreenTownScreen(This);
 }
+
 void HubUI::SetHide(bool hide) {
 	if (spTownScreen) {
 		info->SetHideFlag(hide);
 		cam->SetHideFlag(hide);
 	}
 }
+
 void HubUI::Install() {
 	ringCount = std::clamp(Save::saveData.rings, 0, 999999);
 	INSTALL_HOOK(CHudPlayableMenuStart);

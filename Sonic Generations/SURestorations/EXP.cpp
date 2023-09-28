@@ -233,9 +233,9 @@ void EXP::Install() {
 	// Set absorb time to config settings
 	static float ChaosEnergyParam[] =
 	{
-		Common::reader.GetFloat("EXP","UpHeight",0.0f),	// UpHeight
-		Common::reader.GetFloat("EXP","UpTime",0.0f),	// UpTime
-		Common::reader.GetFloat("EXP","AbsorbTime",0.0f)	// AbsorbTime
+		Common::reader.GetFloat("EXP", "UpHeight", 1.0f),	// UpHeight
+		Common::reader.GetFloat("EXP", "UpTime", 0.3f),	// UpTime
+		Common::reader.GetFloat("EXP", "AbsorbTime", 0.6f)	// AbsorbTime
 	};
 
 	WRITE_MEMORY(0xC8EF3D, float*, ChaosEnergyParam);
