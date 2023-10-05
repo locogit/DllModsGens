@@ -4,9 +4,6 @@ class BBTime
 	static inline float timescale = 1;
 	static inline bool timescaleEnabled = false;
 	static inline float deltaTime = 0;
-	static inline float unscaledTime = 0;
-	static inline double unscaledTimeAsDouble = 0;
-	static inline int frameCount = 0;
 
 public:
 
@@ -19,34 +16,16 @@ public:
 
 	static void Update(float elapsedTime) {
 		deltaTime = elapsedTime;
-		unscaledTime += elapsedTime;
-		unscaledTimeAsDouble += (double)elapsedTime;
-		frameCount++;
 	}
 
 	static void Reset() {
 		deltaTime = 0;
-		unscaledTime = 0;
-		unscaledTimeAsDouble = 0;
-		frameCount = 0;
 	}
 
 	static void Start();
 
 	static float DeltaTime() {
 		return deltaTime;
-	}
-
-	static float UnscaledTime() {
-		return unscaledTime;
-	}
-
-	static double UnscaledTimeAsDouble() {
-		return unscaledTimeAsDouble;
-	}
-
-	static int FrameCount() {
-		return frameCount;
 	}
 
 	static float GetTimeScale() {
