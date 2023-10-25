@@ -247,7 +247,7 @@ void Sweepkick::Install() {
 		WRITE_MEMORY(0xDFCD77, uint32_t*, collisionSwitchTable);
 	}
 
-	Sweepkick::useLight = Common::reader.GetBoolean("Changes", "SweepLight", false);
+	Sweepkick::useLight = Common::reader.GetBoolean("Changes", "SweepLight", true);
 
 	Sweepkick::transitionToStand = sweepIni.GetBoolean("Gameplay", "TransitionToStand", true);
 	WRITE_JUMP(0x125291F, CSonicStateSquatKickAdvanceTransitionOut);

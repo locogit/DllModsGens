@@ -249,7 +249,8 @@ extern "C" _declspec(dllexport) void Init()
 
 	Save::Install();
 
-	Ring::Install();
+	if (Common::reader.GetBoolean("Restorations", "RingSpeed", true))
+		Ring::Install();
 
 	CommonFunctions::Install();
 

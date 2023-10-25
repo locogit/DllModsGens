@@ -3,6 +3,9 @@ float speed = 70.0f;
 float GetCorrectedSpeed() {
 	float correctedSpeed = speed;
 
+	if (Common::GetSonicStateFlags()->KeepRunning || Common::IsPlayerOnBoard())
+		correctedSpeed = 70;
+
 	if (Common::GetSonicStateFlags()->Boost)
 		correctedSpeed *= 1.3f;
 
@@ -11,9 +14,6 @@ float GetCorrectedSpeed() {
 
 	if (Common::IsPlayerIn2D())
 		correctedSpeed *= 0.5f;
-
-	if (Common::GetSonicStateFlags()->KeepRunning)
-		correctedSpeed = 70;
 
 	return correctedSpeed;
 }
